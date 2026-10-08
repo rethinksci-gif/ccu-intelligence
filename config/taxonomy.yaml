@@ -1,0 +1,5 @@
+capture_supply: [capture, direct air capture, sorbent, amine, membrane, cryogenic, purification, compression, transport]
+conversion: [electrochemical, hydrogenation, thermochemical, biological, mineralization, photocatalytic, catalyst, reactor]
+products: [methanol, carbon monoxide, formic acid, olefin, fuel, aviation, polymer, polycarbonate, polyurethane, carbonate, concrete]
+commercialization: [pilot, demonstration, feed study, investment decision, financing, construction, commissioned, operational, offtake, expansion, delay, suspended, cancelled]
+economics_climate_policy: [capex, opex, selling price, life cycle, lifecycle, carbon pricing, subsidy, regulation, certification]

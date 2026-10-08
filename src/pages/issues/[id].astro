@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { href } from '../../lib/data';
+export async function getStaticPaths() {
+  const issues = (
+    await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
+  ).sort((a, b) => +a.data.publication_date - +b.data.publication_date);
+  return issues.map((issue, i) => ({
+    params: { id: issue.id },
+    props: { issue, previous: issues[i - 1]?.id, next: issues[i + 1]?.id },
+  }));
+}
+const { issue, previous, next } = Astro.props;
+const { Content } = await render(issue);
+---
+
+<Base title={issue.data.title}
+  ><div class="prose-title">
+    <p class="eyebrow">
+      Issue {issue.data.issue_number} · {issue.data.publication_date.toISOString().slice(0, 10)}
+    </p><h1>{issue.data.title}</h1><p class="meta">
+      {issue.data.source_count} original sources · Reviewed by {issue.data.reviewer}
+    </p>
+  </div><article class="prose"><Content /></article><nav class="row rule" aria-label="Issue navigation">
+    {previous && <a href={href(`issues/${previous}/`)}>Previous issue</a>}<a href={href('issues/')}
+      >All issues</a
+    >{next && <a href={href(`issues/${next}/`)}>Next issue</a>}
+  </nav></Base
+>

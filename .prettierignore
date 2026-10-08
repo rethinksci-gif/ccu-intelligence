@@ -1,0 +1,9 @@
+node_modules
+dist
+.astro
+.venv
+public/data
+data
+package-lock.json
+test-results
+src/content/issues

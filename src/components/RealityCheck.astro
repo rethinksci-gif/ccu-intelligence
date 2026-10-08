@@ -1,0 +1,192 @@
+<section class="card" aria-labelledby="reality-title">
+  <p class="eyebrow">Transparent calculation · analyst assumptions</p><h2 id="reality-title">
+    CCU Reality Check
+  </h2>
+  <p>
+    What does hydrogen do to the cost of CO₂-derived methanol? Adjust the scenario below. These are
+    illustrative inputs, not market prices.
+  </p>
+  <div class="reaction">CO₂ + 3 H₂ → CH₃OH + H₂O</div>
+  <div class="calculator">
+    <form id="reality-form" class="inputs">
+      <div class="field">
+        <label for="co2">Delivered CO₂ · USD/t</label><input
+          id="co2"
+          name="co2"
+          type="number"
+          min="0"
+          max="10000"
+          value="80"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="hydrogen">Purchased H₂ · USD/kg</label><input
+          id="hydrogen"
+          name="hydrogen"
+          type="number"
+          min="0"
+          max="100"
+          step="0.1"
+          value="3"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="power">Electricity · USD/MWh</label><input
+          id="power"
+          name="power"
+          type="number"
+          min="0"
+          max="10000"
+          value="50"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="energy">Process electricity · MWh/t</label><input
+          id="energy"
+          name="energy"
+          type="number"
+          min="0"
+          max="100"
+          step="0.1"
+          value="1"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="co2-use">CO₂ utilization · %</label><input
+          id="co2-use"
+          name="co2use"
+          type="number"
+          min="1"
+          max="100"
+          value="90"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="h2-use">H₂ utilization · %</label><input
+          id="h2-use"
+          name="h2use"
+          type="number"
+          min="1"
+          max="100"
+          value="95"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="benchmark">Assumed fossil price · USD/t</label><input
+          id="benchmark"
+          name="benchmark"
+          type="number"
+          min="0"
+          max="10000"
+          value="350"
+          required
+        />
+      </div>
+      <div class="field">
+        <label for="year">Scenario year</label><input
+          id="year"
+          name="year"
+          type="number"
+          min="1900"
+          max="2200"
+          value="2026"
+          required
+        />
+      </div>
+      <button class="button" type="reset">Reset assumptions</button>
+    </form>
+    <div class="calc-result" aria-live="polite" aria-atomic="true">
+      <h3>Partial variable cost</h3><output id="cost" for="co2 hydrogen power energy co2-use h2-use"
+        >$768/t</output
+      >
+      <p id="gap">$418/t above the assumed fossil price.</p>
+      <div role="img" aria-label="Cost contributions; values also provided in text">
+        {
+          ['CO₂ feedstock', 'Hydrogen', 'Electricity'].map((name, i) => (
+            <div class="bar-row">
+              <>
+                <span>{name}</span>
+                <div class="bar-track">
+                  <div class="bar-fill" id={`bar-${i}`} />
+                </div>
+                <span id={`part-${i}`} />
+              </>
+            </div>
+          ))
+        }
+      </div>
+      <p class="meta" id="mass"></p><p class="meta" id="scenario-year"></p>
+      <p class="meta">
+        No capital recovery, fixed OPEX, heat, water, logistics or margin. Purchased hydrogen includes its
+        production cost; electrolysis power is not counted again.
+      </p>
+    </div>
+  </div>
+  <div class="rule">
+    <p class="meta">
+      <strong>Functional unit:</strong> 1 t methanol. <strong>Boundary:</strong> purchased feedstocks and process
+      electricity. <strong>Geography:</strong> unspecified scenario. <strong>Reference:</strong> user-assumed fossil
+      price. <strong>Confidence:</strong> theoretical stoichiometry; unverified price assumptions. No lifecycle
+      GHG result is calculated.
+    </p>
+    <p class="meta">
+      Formula: (44.01 ÷ 32.04 ÷ CO₂ utilization) × CO₂ price + (6.048 ÷ 32.04 ÷ H₂ utilization) × 1,000 × H₂
+      price + process electricity × electricity price. Theoretical minima: ≈1.374 t CO₂ and ≈0.189 t H₂ per
+      tonne methanol. <a
+        href="https://www.irena.org/publications/2021/Jan/Innovation-Outlook-Renewable-Methanol"
+        >Process reference</a
+      > · <a href="https://assessccus.globalco2initiative.org/">TEA/LCA guidance</a>.
+    </p>
+  </div>
+  <noscript
+    ><p>
+      The default illustrative cost is about USD 768/t. Enable JavaScript to adjust assumptions.
+    </p></noscript
+  >
+</section>
+<script>
+  const form = document.querySelector<HTMLFormElement>('#reality-form');
+  const set = (id: string, value: string) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+  function calculate() {
+    if (!form) return;
+    if (!form.checkValidity()) {
+      set('cost', 'Invalid input');
+      set('gap', 'Use finite values within the ranges shown.');
+      return;
+    }
+    const value = (name: string) => Number((form.elements.namedItem(name) as HTMLInputElement).value);
+    const co2 = 44.01 / 32.04 / (value('co2use') / 100);
+    const h2 = 6.048 / 32.04 / (value('h2use') / 100);
+    const parts = [co2 * value('co2'), h2 * 1000 * value('hydrogen'), value('power') * value('energy')];
+    const total = parts.reduce((a, b) => a + b, 0),
+      gap = total - value('benchmark');
+    set('cost', `$${total.toFixed(0)}/t`);
+    set(
+      'gap',
+      `$${Math.abs(gap).toFixed(0)}/t ${gap >= 0 ? 'above' : 'below'} the assumed fossil price. This is not a profitability estimate.`,
+    );
+    set(
+      'mass',
+      `Scenario consumption: ${co2.toFixed(3)} t CO₂ and ${h2.toFixed(3)} t H₂ per tonne methanol.`,
+    );
+    set('scenario-year', `Scenario year: ${value('year')}. Inputs are illustrative, not observed prices.`);
+    parts.forEach((part, i) => {
+      set(`part-${i}`, `$${part.toFixed(0)}`);
+      const bar = document.getElementById(`bar-${i}`);
+      if (bar) bar.style.width = `${total ? (part / total) * 100 : 0}%`;
+    });
+  }
+  form?.addEventListener('input', calculate);
+  form?.addEventListener('submit', (e) => e.preventDefault());
+  form?.addEventListener('reset', () => setTimeout(calculate, 0));
+  calculate();
+</script>

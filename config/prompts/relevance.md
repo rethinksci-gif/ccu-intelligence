@@ -1,0 +1,1 @@
+Assess relevance to capture and supply, conversion, products, commercialization, or economics/LCA/policy. A keyword alone is not relevance. Preserve negative developments. Populate relevant, domains, summary, uncertainty; use empty claims and proposed_events when no support is available.

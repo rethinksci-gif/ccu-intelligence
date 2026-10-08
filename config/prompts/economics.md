@@ -1,0 +1,1 @@
+Identify CAPEX, OPEX, price year, currency, functional unit, geography, scale, boundary and assumptions. Do not compare incompatible metrics or do arithmetic: use the deterministic calculation model. Missing context must appear in uncertainty. Never invent costs or carbon footprints.

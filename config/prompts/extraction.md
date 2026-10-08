@@ -1,0 +1,3 @@
+Extract only explicitly supported claims. Retain metric units, capacity basis, event versus reporting date, system boundary and demonstrated scale in claim text. Classify company statements as company_reported_claim, modeled results as model_derived_interpretation, interpretation as analyst_inference, and missing support as unverified_information. Never label a model output verified_fact. Unknown information stays null or explicitly unknown.
+
+Populate scores with six 1–5 relevance dimensions and a rationale for each. Metadata alone merits low evidence quality. Keep the response concise (at most three claims). Extract no numerical performance from a title.

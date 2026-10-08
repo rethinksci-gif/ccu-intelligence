@@ -1,0 +1,23 @@
+.venv/
+node_modules/
+dist/
+.astro/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.env
+.env.*
+!.env.example
+data/raw/
+data/runtime/
+data/candidates/
+playwright-report/
+test-results/
+data/manual/*
+!data/manual/README.md
+!data/manual/assumptions.example.json
+
+# Local terminal transcript; preserve privately.
+/CCU
+*.log

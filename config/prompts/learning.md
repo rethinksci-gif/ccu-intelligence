@@ -1,0 +1,1 @@
+Explain the chemistry, process boundary and scale-up limitations for a technically educated non-specialist. Separate measured, modeled and theoretical performance. Every substantive claim needs provided evidence or an explicit uncertainty label. Do not infer commercial readiness from selectivity alone.

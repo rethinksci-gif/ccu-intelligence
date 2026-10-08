@@ -1,0 +1,1 @@
+Review whether each claim is actually supported by the supplied evidence. Identify promotional language, conflicts, missing baselines, company-only reporting and scale extrapolation. Source agreement is not independent verification if sources repeat a press release. You cannot perform human verification or fabricate reviewer metadata.

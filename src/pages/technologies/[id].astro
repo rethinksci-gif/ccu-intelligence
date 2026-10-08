@@ -1,0 +1,85 @@
+---
+import Base from '../../layouts/Base.astro';
+import RealityCheck from '../../components/RealityCheck.astro';
+import PathwayReality from '../../components/PathwayReality.astro';
+import { technologies, href } from '../../lib/data';
+export function getStaticPaths() {
+  return technologies.map((t) => ({ params: { id: t.technology_id }, props: { technology: t } }));
+}
+const { technology: t } = Astro.props;
+---
+
+<Base title={t.technology_name}
+  ><p class="eyebrow"><a href={href('technologies/')}>Technology atlas</a> / {t.pathway_category}</p><div
+    class="page-head"
+  >
+    <h1>{t.technology_name}</h1><p>Technical reference · Updated {t.last_updated} · No current-news claim</p>
+  </div>{t.chemical_reactions.map((r) => <div class="reaction">{r}</div>)}
+  <section aria-label="Conceptual process diagram">
+    <p class="eyebrow">Conceptual process flow · left to right</p><ol class="flow">
+      {
+        t.process_flow.map((step, i) => (
+          <li>
+            <span>0{i + 1}</span>
+            {step}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+  <div class="detail-grid">
+    <section class="card">
+      <h2>From chemistry to process</h2><dl class="definition-grid">
+        <div><dt>Feedstocks</dt><dd>{t.feedstocks.join(', ')}</dd></div><div>
+          <dt>Products</dt><dd>{t.products.join(', ')}</dd>
+        </div><div><dt>Catalysts</dt><dd>{t.catalysts.join('; ')}</dd></div><div>
+          <dt>Conditions</dt><dd>{t.process_conditions}</dd>
+        </div>
+      </dl><div class="rule">
+        <h3>Performance & demonstrated scale</h3><p>{t.demonstrated_scale}</p>{
+          t.technical_performance.map((m) => (
+            <p>
+              <strong>
+                {m.value.toFixed(3)} {m.unit}
+              </strong>{' '}
+              <>
+                <span class="badge">{m.provenance}</span>
+                <br />
+                <span class="meta">
+                  {m.basis}. {m.assumptions}.
+                </span>
+              </>
+            </p>
+          ))
+        }<p class="meta">
+          Pathway TRL: {t.current_trl ?? 'not assigned'}. Project-specific evidence is required.
+        </p>
+      </div>
+    </section><aside class="card">
+      <h2>Scale-up barriers</h2><ul>{t.known_limitations.map((l) => <li>{l}</li>)}</ul><p class="meta">
+        Representative projects: no live reference projects verified in this initial release.
+      </p>
+    </aside>
+  </div>
+  <div class="cards two" style="margin-block:24px">
+    <section class="card"><h2>Economics</h2><p>{t.economics}</p></section><section class="card">
+      <h2>Climate considerations</h2><p>{t.lifecycle_evidence}</p>
+    </section>
+  </div>
+  <PathwayReality technology={t} />
+  {t.technology_id === 'co2-to-methanol' && <RealityCheck />}
+  <section class="card" style="margin-top:24px">
+    <h2>Source references</h2><ul>
+      {
+        t.references.map((r) => (
+          <li class="source-link">
+            <a href={r}>{r}</a>
+          </li>
+        ))
+      }
+    </ul><p class="meta">
+      Original diagrams and explanatory text. References support process context; no numerical commercial
+      performance has been extrapolated.
+    </p>
+  </section></Base
+>

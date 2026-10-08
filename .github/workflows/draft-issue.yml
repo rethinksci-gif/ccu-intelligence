@@ -1,0 +1,73 @@
+name: Draft biweekly issue
+on:
+  # Manual-only for the initial public deployment; scheduled drafting is disabled.
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+concurrency:
+  group: ccu-draft
+  cancel-in-progress: false
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.lock
+      - name: Resolve current issue window
+        id: window
+        run: |
+          echo "end=$(python -c 'from datetime import datetime,UTC; from ccu_intelligence.editorial import window; print(window(datetime.now(UTC).date())[1])')" >> "$GITHUB_OUTPUT"
+      - name: Check idempotent review branch
+        id: exists
+        env:
+          ISSUE_END: ${{ steps.window.outputs.end }}
+        run: |
+          if [ -f "src/content/issues/$ISSUE_END.md" ]; then
+            echo 'merged=true' >> "$GITHUB_OUTPUT"
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --heads origin "editorial/$ISSUE_END" >/dev/null 2>&1; then
+            echo 'merged=false' >> "$GITHUB_OUTPUT"
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'merged=false' >> "$GITHUB_OUTPUT"
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.exists.outputs.skip != 'true'
+        run: bash scripts/restore-state.sh
+      - name: Generate a draft, never publish
+        if: steps.exists.outputs.skip != 'true'
+        run: |
+          python -m ccu_intelligence.cli init
+          python -m ccu_intelligence.cli draft
+          python -m ccu_intelligence.cli validate
+      - name: Push draft review branch
+        if: steps.exists.outputs.skip != 'true'
+        env:
+          ISSUE_END: ${{ steps.window.outputs.end }}
+        run: |
+          git switch -c "editorial/$ISSUE_END"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "src/content/issues/$ISSUE_END.md"
+          git commit -m "Draft CCU issue $ISSUE_END for editorial review"
+          git push origin "editorial/$ISSUE_END"
+      - name: Ensure editorial pull request exists
+        if: steps.exists.outputs.merged != 'true'
+        env:
+          ISSUE_END: ${{ steps.window.outputs.end }}
+        run: |
+          count="$(gh pr list --head "editorial/$ISSUE_END" --state all --json number --jq 'length')"
+          if [ "$count" = 0 ]; then
+            gh pr create --base "$DEFAULT_BRANCH" --head "editorial/$ISSUE_END" --title "Editorial review: CCU issue $ISSUE_END" --body-file docs/draft-pr.md
+          fi

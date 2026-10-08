@@ -1,0 +1,777 @@
+{
+  "companies": [
+    {
+      "company_id": "svante",
+      "name": "Svante",
+      "aliases": [],
+      "country": null,
+      "website": "https://svanteinc.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbon-clean",
+      "name": "Carbon Clean",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.carbonclean.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "climeworks",
+      "name": "Climeworks",
+      "aliases": [],
+      "country": null,
+      "website": "https://climeworks.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "slb-capturi",
+      "name": "SLB Capturi",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.capturi.slb.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "twelve",
+      "name": "Twelve",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.twelve.co/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "dioxycle",
+      "name": "Dioxycle",
+      "aliases": [],
+      "country": null,
+      "website": "https://dioxycle.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "oxylus-energy",
+      "name": "Oxylus Energy",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.oxylusenergy.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbon-recycling-international",
+      "name": "Carbon Recycling International",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.carbonrecycling.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "liquid-wind",
+      "name": "Liquid Wind",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.liquidwind.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "hif-global",
+      "name": "HIF Global",
+      "aliases": [],
+      "country": null,
+      "website": "https://hifglobal.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "lanzatech",
+      "name": "LanzaTech",
+      "aliases": [],
+      "country": null,
+      "website": "https://lanzatech.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "covestro",
+      "name": "Covestro",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.covestro.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carboncure",
+      "name": "CarbonCure",
+      "aliases": [],
+      "country": null,
+      "website": "https://www.carboncure.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbonbuilt",
+      "name": "CarbonBuilt",
+      "aliases": [],
+      "country": null,
+      "website": "https://carbonbuilt.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbicrete",
+      "name": "CarbiCrete",
+      "aliases": [],
+      "country": null,
+      "website": "https://carbicrete.com/",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "sample-company-0",
+      "name": "Example Nordic Chemicals",
+      "aliases": [],
+      "country": null,
+      "website": null,
+      "watchlist_only": false,
+      "sample": true
+    },
+    {
+      "company_id": "sample-company-1",
+      "name": "Example Mineral Systems",
+      "aliases": [],
+      "country": null,
+      "website": null,
+      "watchlist_only": false,
+      "sample": true
+    },
+    {
+      "company_id": "sample-company-2",
+      "name": "Example Electrochemical Works",
+      "aliases": [],
+      "country": null,
+      "website": null,
+      "watchlist_only": false,
+      "sample": true
+    },
+    {
+      "company_id": "sample-company-3",
+      "name": "Example Polymer Research",
+      "aliases": [],
+      "country": null,
+      "website": null,
+      "watchlist_only": false,
+      "sample": true
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "sample-evidence-0",
+      "source_id": "sample-fixture",
+      "url": "https://example.org/ccu-fixtures/northport-methanol",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "publication_date": "2026-10-02",
+      "locator": "Fictional test record",
+      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
+      "content_sha256": null,
+      "license_note": "Original synthetic fixture",
+      "sample": true
+    },
+    {
+      "evidence_id": "sample-evidence-1",
+      "source_id": "sample-fixture",
+      "url": "https://example.org/ccu-fixtures/riverbend-carbonate",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "publication_date": "2026-10-02",
+      "locator": "Fictional test record",
+      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
+      "content_sha256": null,
+      "license_note": "Original synthetic fixture",
+      "sample": true
+    },
+    {
+      "evidence_id": "sample-evidence-2",
+      "source_id": "sample-fixture",
+      "url": "https://example.org/ccu-fixtures/eastbay-electrolysis",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "publication_date": "2026-10-02",
+      "locator": "Fictional test record",
+      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
+      "content_sha256": null,
+      "license_note": "Original synthetic fixture",
+      "sample": true
+    },
+    {
+      "evidence_id": "sample-evidence-3",
+      "source_id": "sample-fixture",
+      "url": "https://example.org/ccu-fixtures/coastal-polyol",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "publication_date": "2026-10-02",
+      "locator": "Fictional test record",
+      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
+      "content_sha256": null,
+      "license_note": "Original synthetic fixture",
+      "sample": true
+    }
+  ],
+  "projects": [
+    {
+      "project_id": "northport-methanol",
+      "project_name": "Northport Methanol Demonstrator",
+      "company": "sample-company-0",
+      "country": "Sweden",
+      "region": "Europe",
+      "location": null,
+      "co2_source": "Fictional industrial point source",
+      "capture_technology": null,
+      "conversion_pathway": "CO₂ hydrogenation",
+      "primary_product": "Methanol",
+      "development_status": "FEED",
+      "technology_trl": 6,
+      "announced_capacity": {
+        "value": 12000.0,
+        "unit": "t/year",
+        "basis": "product_output",
+        "substance": "Methanol",
+        "evidence_ids": [
+          "sample-evidence-0"
+        ]
+      },
+      "operational_capacity": null,
+      "capacity_units": "t/year product output",
+      "expected_startup_date": "2028",
+      "actual_startup_date": null,
+      "capex": null,
+      "opex": null,
+      "energy_requirements": [],
+      "hydrogen_requirements": [],
+      "climate_claims": [],
+      "lca_evidence": [],
+      "sources": [
+        "sample-evidence-0"
+      ],
+      "date_last_verified": null,
+      "confidence_level": "low",
+      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
+      "sample": true
+    },
+    {
+      "project_id": "riverbend-carbonate",
+      "project_name": "Riverbend Carbonate Pilot",
+      "company": "sample-company-1",
+      "country": "United States",
+      "region": "North America",
+      "location": null,
+      "co2_source": "Fictional industrial point source",
+      "capture_technology": null,
+      "conversion_pathway": "Mineralization",
+      "primary_product": "Carbonate aggregate",
+      "development_status": "PILOT",
+      "technology_trl": 5,
+      "announced_capacity": {
+        "value": 2500.0,
+        "unit": "t/year",
+        "basis": "product_output",
+        "substance": "Carbonate aggregate",
+        "evidence_ids": [
+          "sample-evidence-1"
+        ]
+      },
+      "operational_capacity": {
+        "value": 500.0,
+        "unit": "t/year",
+        "basis": "product_output",
+        "substance": "Carbonate aggregate",
+        "evidence_ids": [
+          "sample-evidence-1"
+        ]
+      },
+      "capacity_units": "t/year product output",
+      "expected_startup_date": "2027",
+      "actual_startup_date": null,
+      "capex": null,
+      "opex": null,
+      "energy_requirements": [],
+      "hydrogen_requirements": [],
+      "climate_claims": [],
+      "lca_evidence": [],
+      "sources": [
+        "sample-evidence-1"
+      ],
+      "date_last_verified": null,
+      "confidence_level": "low",
+      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
+      "sample": true
+    },
+    {
+      "project_id": "eastbay-electrolysis",
+      "project_name": "Eastbay Electrolysis Pilot",
+      "company": "sample-company-2",
+      "country": "China",
+      "region": "China",
+      "location": null,
+      "co2_source": "Fictional industrial point source",
+      "capture_technology": null,
+      "conversion_pathway": "Electrochemical reduction",
+      "primary_product": "Carbon monoxide",
+      "development_status": "STARTUP_DELAYED",
+      "technology_trl": 5,
+      "announced_capacity": {
+        "value": 1000.0,
+        "unit": "t/year",
+        "basis": "product_output",
+        "substance": "Carbon monoxide",
+        "evidence_ids": [
+          "sample-evidence-2"
+        ]
+      },
+      "operational_capacity": null,
+      "capacity_units": "t/year product output",
+      "expected_startup_date": "2029",
+      "actual_startup_date": null,
+      "capex": null,
+      "opex": null,
+      "energy_requirements": [],
+      "hydrogen_requirements": [],
+      "climate_claims": [],
+      "lca_evidence": [],
+      "sources": [
+        "sample-evidence-2"
+      ],
+      "date_last_verified": null,
+      "confidence_level": "low",
+      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
+      "sample": true
+    },
+    {
+      "project_id": "coastal-polyol",
+      "project_name": "Coastal Polyol Demonstrator",
+      "company": "sample-company-3",
+      "country": "Japan",
+      "region": "Other",
+      "location": null,
+      "co2_source": "Fictional industrial point source",
+      "capture_technology": null,
+      "conversion_pathway": "Copolymerization",
+      "primary_product": "Polyol",
+      "development_status": "ANNOUNCED",
+      "technology_trl": null,
+      "announced_capacity": null,
+      "operational_capacity": null,
+      "capacity_units": null,
+      "expected_startup_date": null,
+      "actual_startup_date": null,
+      "capex": null,
+      "opex": null,
+      "energy_requirements": [],
+      "hydrogen_requirements": [],
+      "climate_claims": [],
+      "lca_evidence": [],
+      "sources": [
+        "sample-evidence-3"
+      ],
+      "date_last_verified": null,
+      "confidence_level": "low",
+      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
+      "sample": true
+    }
+  ],
+  "events": [
+    {
+      "event_id": "sample-event-0",
+      "project_id": "northport-methanol",
+      "event_type": "FEED_STARTED",
+      "event_date": "2026-10-01",
+      "reporting_date": "2026-10-02",
+      "previous_value": {
+        "development_status": "ANNOUNCED"
+      },
+      "new_value": {
+        "development_status": "FEED"
+      },
+      "description": "Fictional feed started milestone.",
+      "evidence_links": [
+        "sample-evidence-0"
+      ],
+      "confidence_level": "low",
+      "sample": true
+    },
+    {
+      "event_id": "sample-event-1",
+      "project_id": "riverbend-carbonate",
+      "event_type": "CAPACITY_EXPANDED",
+      "event_date": "2026-10-01",
+      "reporting_date": "2026-10-02",
+      "previous_value": {
+        "development_status": "ANNOUNCED"
+      },
+      "new_value": {
+        "development_status": "PILOT"
+      },
+      "description": "Fictional capacity expanded milestone.",
+      "evidence_links": [
+        "sample-evidence-1"
+      ],
+      "confidence_level": "low",
+      "sample": true
+    },
+    {
+      "event_id": "sample-event-2",
+      "project_id": "eastbay-electrolysis",
+      "event_type": "STARTUP_DELAYED",
+      "event_date": "2026-10-01",
+      "reporting_date": "2026-10-02",
+      "previous_value": {
+        "expected_startup_date": "2027"
+      },
+      "new_value": {
+        "expected_startup_date": "2029"
+      },
+      "description": "Fictional startup moved from 2027 to 2029.",
+      "evidence_links": [
+        "sample-evidence-2"
+      ],
+      "confidence_level": "low",
+      "sample": true
+    },
+    {
+      "event_id": "sample-event-3",
+      "project_id": "coastal-polyol",
+      "event_type": "ANNOUNCED",
+      "event_date": "2026-10-01",
+      "reporting_date": "2026-10-02",
+      "previous_value": {
+        "development_status": "ANNOUNCED"
+      },
+      "new_value": {
+        "development_status": "ANNOUNCED"
+      },
+      "description": "Fictional announced milestone.",
+      "evidence_links": [
+        "sample-evidence-3"
+      ],
+      "confidence_level": "low",
+      "sample": true
+    }
+  ],
+  "technologies": [
+    {
+      "technology_id": "co2-to-methanol",
+      "technology_name": "CO₂ to methanol",
+      "pathway_category": "Catalytic hydrogenation",
+      "chemical_reactions": [
+        "CO₂ + 3 H₂ → CH₃OH + H₂O"
+      ],
+      "feedstocks": [
+        "Purified CO₂",
+        "Hydrogen"
+      ],
+      "products": [
+        "Methanol",
+        "Water"
+      ],
+      "catalysts": [
+        "Cu/ZnO-based catalyst systems; formulation is process-specific"
+      ],
+      "process_conditions": "Elevated pressure and temperature; report the specific reactor conditions rather than a universal optimum.",
+      "process_flow": [
+        "CO₂ purification",
+        "Hydrogen + compression",
+        "Catalytic synthesis",
+        "Condensation + recycle",
+        "Distillation",
+        "Methanol"
+      ],
+      "technical_performance": [
+        {
+          "value": 1.3735955056179776,
+          "unit": "t CO₂/t methanol",
+          "basis": "Ideal net reaction",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Complete atom balance; excludes losses and purge"
+        },
+        {
+          "value": 0.18876404494382024,
+          "unit": "t H₂/t methanol",
+          "basis": "Ideal net reaction",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Not actual plant consumption"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Project-dependent. No plant-level scale or operational status has been verified in this initial atlas.",
+      "known_limitations": [
+        "Hydrogen cost and electricity supply",
+        "CO₂ contaminants and catalyst life",
+        "Water separation, purge losses and heat integration",
+        "Product offtake and capital utilization"
+      ],
+      "reference_projects": [],
+      "economics": "Purchased hydrogen can dominate feedstock cost. Use the transparent scenario model; its partial cost excludes capital recovery and fixed operating expenses.",
+      "lifecycle_evidence": "Carbon in fuel is released at use. Climate benefit depends on feedstock origin, displaced production and energy supply; utilization does not establish removal.",
+      "references": [
+        "https://www.irena.org/publications/2021/Jan/Innovation-Outlook-Renewable-Methanol"
+      ],
+      "last_updated": "2026-10-08"
+    },
+    {
+      "technology_id": "electrochemical-co2",
+      "technology_name": "Electrochemical CO₂ conversion",
+      "pathway_category": "Electrochemical reduction",
+      "chemical_reactions": [
+        "CO₂ + 2 H⁺ + 2 e⁻ → CO + H₂O (cathode half-reaction)"
+      ],
+      "feedstocks": [
+        "CO₂",
+        "Water",
+        "Electricity"
+      ],
+      "products": [
+        "CO or other products, depending on catalyst and reactor"
+      ],
+      "catalysts": [
+        "Silver-based systems for CO; copper-based systems for multicarbon products"
+      ],
+      "process_conditions": "Specify electrolyte, full-cell voltage, current density, electrode area and operating duration together.",
+      "process_flow": [
+        "CO₂ conditioning",
+        "Electrolyser stack",
+        "Gas / liquid separation",
+        "Product purification",
+        "Recycle"
+      ],
+      "technical_performance": [],
+      "current_trl": null,
+      "demonstrated_scale": "Laboratory and larger systems must be assessed individually; no universal pathway TRL is assigned.",
+      "known_limitations": [
+        "Carbonate formation and carbon losses",
+        "Membrane durability and flooding",
+        "Scale-dependent electrode uniformity",
+        "Dilute product separation"
+      ],
+      "reference_projects": [],
+      "economics": "Faradaic efficiency alone does not specify electricity consumption: full-cell voltage, current and production rate are needed.",
+      "lifecycle_evidence": "Include electricity and replacement materials; track carbon leaving every outlet, not only the desired product.",
+      "references": [
+        "https://www.nature.com/articles/s41560-021-00973-9",
+        "https://www.nature.com/articles/s41578-024-00696-9"
+      ],
+      "last_updated": "2026-10-08"
+    },
+    {
+      "technology_id": "carbon-mineralization",
+      "technology_name": "Carbon mineralization",
+      "pathway_category": "Mineralization",
+      "chemical_reactions": [
+        "CaO + CO₂ → CaCO₃ (simplified net reaction)"
+      ],
+      "feedstocks": [
+        "Reactive alkaline material",
+        "CO₂"
+      ],
+      "products": [
+        "Carbonates",
+        "Construction materials where qualified"
+      ],
+      "catalysts": [
+        "No universal catalyst; mineral reactivity and conditioning control the process"
+      ],
+      "process_conditions": "Pressure, moisture and particle size depend on feedstock and product route.",
+      "process_flow": [
+        "Feedstock qualification",
+        "Preparation",
+        "Carbonation",
+        "Product testing",
+        "Use"
+      ],
+      "technical_performance": [],
+      "current_trl": null,
+      "demonstrated_scale": "Route-specific; curing, aggregate production and waste treatment cannot share one readiness rating.",
+      "known_limitations": [
+        "Reactive feedstock supply",
+        "Grinding and transport energy",
+        "Contaminants and leaching",
+        "Construction product qualification"
+      ],
+      "reference_projects": [],
+      "economics": "Consider feedstock treatment, CO₂ delivery, product value and local transport rather than carbon uptake alone.",
+      "lifecycle_evidence": "Carbonate retention may be durable, but net removal additionally requires atmospheric carbon and a complete lifecycle balance. Calcining virgin limestone can offset carbonation uptake.",
+      "references": [
+        "https://www.iea.org/reports/putting-co2-to-use"
+      ],
+      "last_updated": "2026-10-08"
+    }
+  ],
+  "articles": [
+    {
+      "article_id": "sample-article-0",
+      "source_id": "sample-fixture",
+      "canonical_url": "https://example.org/ccu-fixtures/northport-methanol",
+      "title": "Sample: engineering study precedes investment decision",
+      "publication_date": "2026-10-02",
+      "source_updated_date": null,
+      "event_date": "2026-10-01",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "doi": null,
+      "content_fingerprint": "sample-0",
+      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
+      "organization_ids": [
+        "sample-company-0"
+      ],
+      "domains": [
+        "commercialization"
+      ],
+      "claims": [
+        {
+          "claim_id": "sample-claim-0",
+          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
+          "kind": "unverified_information",
+          "evidence_ids": [
+            "sample-evidence-0"
+          ],
+          "uncertainty": "Sample data only.",
+          "reviewer": null,
+          "reviewed_at": null
+        }
+      ],
+      "scores": null,
+      "overall_score": 75.0,
+      "review_required": true,
+      "editorial_status": "candidate",
+      "technical_significance": "Reported scale must be linked to the specific operating system.",
+      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
+      "uncertainty": "No real-world inference is possible from this sample.",
+      "sample": true
+    },
+    {
+      "article_id": "sample-article-1",
+      "source_id": "sample-fixture",
+      "canonical_url": "https://example.org/ccu-fixtures/riverbend-carbonate",
+      "title": "Sample: pilot capacity differs from announced expansion",
+      "publication_date": "2026-10-02",
+      "source_updated_date": null,
+      "event_date": "2026-10-01",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "doi": null,
+      "content_fingerprint": "sample-1",
+      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
+      "organization_ids": [
+        "sample-company-1"
+      ],
+      "domains": [
+        "commercialization"
+      ],
+      "claims": [
+        {
+          "claim_id": "sample-claim-1",
+          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
+          "kind": "unverified_information",
+          "evidence_ids": [
+            "sample-evidence-1"
+          ],
+          "uncertainty": "Sample data only.",
+          "reviewer": null,
+          "reviewed_at": null
+        }
+      ],
+      "scores": null,
+      "overall_score": 70.0,
+      "review_required": true,
+      "editorial_status": "candidate",
+      "technical_significance": "Reported scale must be linked to the specific operating system.",
+      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
+      "uncertainty": "No real-world inference is possible from this sample.",
+      "sample": true
+    },
+    {
+      "article_id": "sample-article-2",
+      "source_id": "sample-fixture",
+      "canonical_url": "https://example.org/ccu-fixtures/eastbay-electrolysis",
+      "title": "Sample: startup delay changes the delivery outlook",
+      "publication_date": "2026-10-02",
+      "source_updated_date": null,
+      "event_date": "2026-10-01",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "doi": null,
+      "content_fingerprint": "sample-2",
+      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
+      "organization_ids": [
+        "sample-company-2"
+      ],
+      "domains": [
+        "commercialization"
+      ],
+      "claims": [
+        {
+          "claim_id": "sample-claim-2",
+          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
+          "kind": "unverified_information",
+          "evidence_ids": [
+            "sample-evidence-2"
+          ],
+          "uncertainty": "Sample data only.",
+          "reviewer": null,
+          "reviewed_at": null
+        }
+      ],
+      "scores": null,
+      "overall_score": 65.0,
+      "review_required": true,
+      "editorial_status": "candidate",
+      "technical_significance": "Reported scale must be linked to the specific operating system.",
+      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
+      "uncertainty": "No real-world inference is possible from this sample.",
+      "sample": true
+    },
+    {
+      "article_id": "sample-article-3",
+      "source_id": "sample-fixture",
+      "canonical_url": "https://example.org/ccu-fixtures/coastal-polyol",
+      "title": "Sample: polymer announcement lacks operating data",
+      "publication_date": "2026-10-02",
+      "source_updated_date": null,
+      "event_date": "2026-10-01",
+      "retrieved_at": "2026-10-04T10:00:00Z",
+      "doi": null,
+      "content_fingerprint": "sample-3",
+      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
+      "organization_ids": [
+        "sample-company-3"
+      ],
+      "domains": [
+        "commercialization"
+      ],
+      "claims": [
+        {
+          "claim_id": "sample-claim-3",
+          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
+          "kind": "unverified_information",
+          "evidence_ids": [
+            "sample-evidence-3"
+          ],
+          "uncertainty": "Sample data only.",
+          "reviewer": null,
+          "reviewed_at": null
+        }
+      ],
+      "scores": null,
+      "overall_score": 60.0,
+      "review_required": true,
+      "editorial_status": "candidate",
+      "technical_significance": "Reported scale must be linked to the specific operating system.",
+      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
+      "uncertainty": "No real-world inference is possible from this sample.",
+      "sample": true
+    }
+  ]
+}

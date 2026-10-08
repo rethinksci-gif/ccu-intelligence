@@ -1,0 +1,152 @@
+{
+  "technologies": [
+    {
+      "technology_id": "co2-to-methanol",
+      "technology_name": "CO\u2082 to methanol",
+      "pathway_category": "Catalytic hydrogenation",
+      "chemical_reactions": [
+        "CO\u2082 + 3 H\u2082 \u2192 CH\u2083OH + H\u2082O"
+      ],
+      "feedstocks": [
+        "Purified CO\u2082",
+        "Hydrogen"
+      ],
+      "products": [
+        "Methanol",
+        "Water"
+      ],
+      "catalysts": [
+        "Cu/ZnO-based catalyst systems; formulation is process-specific"
+      ],
+      "process_conditions": "Elevated pressure and temperature; report the specific reactor conditions rather than a universal optimum.",
+      "process_flow": [
+        "CO\u2082 purification",
+        "Hydrogen + compression",
+        "Catalytic synthesis",
+        "Condensation + recycle",
+        "Distillation",
+        "Methanol"
+      ],
+      "technical_performance": [
+        {
+          "value": 1.3735955056179776,
+          "unit": "t CO\u2082/t methanol",
+          "basis": "Ideal net reaction",
+          "provenance": "theoretical",
+          "assumptions": "Complete atom balance; excludes losses and purge",
+          "evidence_ids": []
+        },
+        {
+          "value": 0.18876404494382024,
+          "unit": "t H\u2082/t methanol",
+          "basis": "Ideal net reaction",
+          "provenance": "theoretical",
+          "assumptions": "Not actual plant consumption",
+          "evidence_ids": []
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Project-dependent. No plant-level scale or operational status has been verified in this initial atlas.",
+      "known_limitations": [
+        "Hydrogen cost and electricity supply",
+        "CO\u2082 contaminants and catalyst life",
+        "Water separation, purge losses and heat integration",
+        "Product offtake and capital utilization"
+      ],
+      "reference_projects": [],
+      "economics": "Purchased hydrogen can dominate feedstock cost. Use the transparent scenario model; its partial cost excludes capital recovery and fixed operating expenses.",
+      "lifecycle_evidence": "Carbon in fuel is released at use. Climate benefit depends on feedstock origin, displaced production and energy supply; utilization does not establish removal.",
+      "references": [
+        "https://www.irena.org/publications/2021/Jan/Innovation-Outlook-Renewable-Methanol"
+      ],
+      "last_updated": "2026-10-08"
+    },
+    {
+      "technology_id": "electrochemical-co2",
+      "technology_name": "Electrochemical CO\u2082 conversion",
+      "pathway_category": "Electrochemical reduction",
+      "chemical_reactions": [
+        "CO\u2082 + 2 H\u207a + 2 e\u207b \u2192 CO + H\u2082O (cathode half-reaction)"
+      ],
+      "feedstocks": [
+        "CO\u2082",
+        "Water",
+        "Electricity"
+      ],
+      "products": [
+        "CO or other products, depending on catalyst and reactor"
+      ],
+      "catalysts": [
+        "Silver-based systems for CO; copper-based systems for multicarbon products"
+      ],
+      "process_conditions": "Specify electrolyte, full-cell voltage, current density, electrode area and operating duration together.",
+      "process_flow": [
+        "CO\u2082 conditioning",
+        "Electrolyser stack",
+        "Gas / liquid separation",
+        "Product purification",
+        "Recycle"
+      ],
+      "technical_performance": [],
+      "current_trl": null,
+      "demonstrated_scale": "Laboratory and larger systems must be assessed individually; no universal pathway TRL is assigned.",
+      "known_limitations": [
+        "Carbonate formation and carbon losses",
+        "Membrane durability and flooding",
+        "Scale-dependent electrode uniformity",
+        "Dilute product separation"
+      ],
+      "reference_projects": [],
+      "economics": "Faradaic efficiency alone does not specify electricity consumption: full-cell voltage, current and production rate are needed.",
+      "lifecycle_evidence": "Include electricity and replacement materials; track carbon leaving every outlet, not only the desired product.",
+      "references": [
+        "https://www.nature.com/articles/s41560-021-00973-9",
+        "https://www.nature.com/articles/s41578-024-00696-9"
+      ],
+      "last_updated": "2026-10-08"
+    },
+    {
+      "technology_id": "carbon-mineralization",
+      "technology_name": "Carbon mineralization",
+      "pathway_category": "Mineralization",
+      "chemical_reactions": [
+        "CaO + CO\u2082 \u2192 CaCO\u2083 (simplified net reaction)"
+      ],
+      "feedstocks": [
+        "Reactive alkaline material",
+        "CO\u2082"
+      ],
+      "products": [
+        "Carbonates",
+        "Construction materials where qualified"
+      ],
+      "catalysts": [
+        "No universal catalyst; mineral reactivity and conditioning control the process"
+      ],
+      "process_conditions": "Pressure, moisture and particle size depend on feedstock and product route.",
+      "process_flow": [
+        "Feedstock qualification",
+        "Preparation",
+        "Carbonation",
+        "Product testing",
+        "Use"
+      ],
+      "technical_performance": [],
+      "current_trl": null,
+      "demonstrated_scale": "Route-specific; curing, aggregate production and waste treatment cannot share one readiness rating.",
+      "known_limitations": [
+        "Reactive feedstock supply",
+        "Grinding and transport energy",
+        "Contaminants and leaching",
+        "Construction product qualification"
+      ],
+      "reference_projects": [],
+      "economics": "Consider feedstock treatment, CO\u2082 delivery, product value and local transport rather than carbon uptake alone.",
+      "lifecycle_evidence": "Carbonate retention may be durable, but net removal additionally requires atmospheric carbon and a complete lifecycle balance. Calcining virgin limestone can offset carbonation uptake.",
+      "references": [
+        "https://www.iea.org/reports/putting-co2-to-use"
+      ],
+      "last_updated": "2026-10-08"
+    }
+  ]
+}

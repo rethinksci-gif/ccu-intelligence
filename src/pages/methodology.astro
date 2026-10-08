@@ -1,0 +1,96 @@
+---
+import Base from '../layouts/Base.astro';
+import { companies } from '../lib/data';
+---
+
+<Base title="Sources & methodology"
+  ><div class="page-head">
+    <p class="eyebrow">Editorial standards</p><h1>Evidence before interpretation.</h1><p>
+      We ask what happened, why it matters, and which verifiable milestone comes next. An attractive
+      laboratory result is not proof of an economically viable industrial system.
+    </p>
+  </div><div class="detail-grid">
+    <section class="card">
+      <h2>How a signal becomes a story</h2><ol>
+        <li>Retrieve permitted metadata or manually supplied source material.</li><li>
+          Preserve the original URL, retrieval time, date precision and raw content privately.
+        </li><li>Deduplicate and resolve organizations; propose project changes.</li><li>
+          Attach evidence, units, boundaries and uncertainty to each substantive claim.
+        </li><li>Review technical significance, economics, climate accounting and rights.</li><li>
+          Publish only after human review through a Git pull request.
+        </li>
+      </ol><h3>Claim labels</h3><dl>
+        <dt><strong>Verified fact</strong></dt><dd>
+          Evidence-backed and explicitly reviewed by an identified human.
+        </dd><dt><strong>Company-reported claim</strong></dt><dd>
+          Attributed to an organization; not independent confirmation.
+        </dd><dt><strong>Model-derived interpretation</strong></dt><dd>
+          Depends on a model, its boundary and assumptions.
+        </dd><dt><strong>Analyst inference</strong></dt><dd>
+          An interpretation separated from observations.
+        </dd><dt><strong>Unverified information</strong></dt><dd>
+          Insufficient evidence; cannot pass the publication gate.
+        </dd>
+      </dl>
+    </section><aside class="card">
+      <h2>Signal scoring</h2><p>
+        Each dimension is rated 1–5, then normalized to 0–100. Scores are editorial heuristics, not readiness
+        measures.
+      </p><table>
+        <tbody
+          >{
+            [
+              ['Industrial relevance', '25%'],
+              ['Technical significance', '20%'],
+              ['Economic implications', '20%'],
+              ['Climate relevance', '15%'],
+              ['Evidence quality', '15%'],
+              ['Novelty', '5%'],
+            ].map(([k, v]) => (
+              <tr>
+                <>
+                  <td>{k}</td>
+                  <td>{v}</td>
+                </>
+              </tr>
+            ))
+          }</tbody
+        >
+      </table><p class="meta rule">
+        Formula: Σ weight × (rating − 1) ÷ 4 × 100. High-impact, low-evidence claims require review. Negative
+        developments remain eligible.
+      </p>
+    </aside>
+  </div>
+  <section class="card" style="margin-top:24px">
+    <h2>Source access & coverage</h2><p>
+      Crossref and OpenAlex adapters collect bounded scholarly metadata. A configurable RSS adapter respects
+      robots.txt and requires an approved feed. IEA, CO₂ Value Europe, Global CO₂ Initiative, DOE/NETL,
+      journals and corporate sources begin as manual-review entries. Registry inclusion does not imply
+      successful retrieval or reuse permission.
+    </p><p>
+      One capped response per API per run keeps collection inexpensive; it is not exhaustive coverage.
+      Retrieval failures and caps are logged. API metadata is discovery evidence, not a verified industrial
+      claim.
+    </p><p>
+      <a href="https://www.iea.org/data-and-statistics/data-product/ccus-projects-database">IEA database</a> ·
+      <a href="https://www.crossref.org/documentation/retrieve-metadata/rest-api/">Crossref API</a> · <a
+        href="https://help.openalex.org/api/authentication/">OpenAlex API access</a
+      > · <a href="https://assessccus.globalco2initiative.org/">TEA/LCA assessment guidance</a>
+    </p>
+  </section>
+  <section class="card" style="margin-top:24px">
+    <h2>Company watchlist</h2><p>
+      Monitoring candidates only. This is not a ranking or confirmation of commercial status.
+    </p><div class="row">
+      {companies.filter((c) => !c.sample).map((c) => <span class="badge">{c.name}</span>)}
+    </div>
+  </section>
+  <section class="card" style="margin-top:24px">
+    <h2>Climate accounting</h2><p>
+      Carbon avoidance, fossil-carbon substitution, temporary use, durable storage and atmospheric removal are
+      distinct outcomes. A claim must state its functional unit, system boundary, reference scenario,
+      geography, year and uncertainty. No climate benefit is inferred from utilization alone.
+    </p>
+  </section></Base
+>

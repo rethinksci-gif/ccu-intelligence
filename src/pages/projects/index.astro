@@ -1,0 +1,190 @@
+---
+import Base from '../../layouts/Base.astro';
+import { projects, companyName, href, quantity, label } from '../../lib/data';
+const options = (key: keyof (typeof projects)[number]) =>
+  [...new Set(projects.map((p) => String(p[key] ?? 'Unknown')))].sort();
+const facets = [
+  ['region', 'Region'],
+  ['country', 'Country'],
+  ['company', 'Company'],
+  ['conversion_pathway', 'Pathway'],
+  ['primary_product', 'Product'],
+  ['development_status', 'Status'],
+  ['technology_trl', 'TRL'],
+] as const;
+const capacityKeys = [
+  ...new Set(
+    projects.flatMap((p) =>
+      p.announced_capacity
+        ? [`${p.announced_capacity.basis}|${p.announced_capacity.substance}|${p.announced_capacity.unit}`]
+        : [],
+    ),
+  ),
+];
+---
+
+<Base title="Project tracker">
+  <div class="page-head">
+    <p class="eyebrow">Industry database</p><h1>Project tracker</h1><p>
+      Follow the distance between announcement and operation. Compare capacity only when the product, unit and
+      measurement basis match.
+    </p>
+  </div>
+  <div class="notice">
+    <strong>Data scope.</strong>
+    {projects.filter((p) => p.sample).length} records are fictional samples and are labeled individually. Company
+    watchlist entries do not establish commercial status.
+  </div>
+  <div class="statline">
+    <div>
+      <strong>{projects.filter((p) => !p.sample).length}</strong><span>Reviewed live records added</span>
+    </div><div>
+      <strong>{projects.filter((p) => p.sample).length}</strong><span>Fictional sample projects</span>
+    </div><div><strong>3</strong><span>Priority regional views</span></div><div>
+      <strong>—</strong><span>Aggregate capacity intentionally omitted</span>
+    </div>
+  </div>
+  <div class="section-head">
+    <h2>Explore project records</h2><a href={href('data/intelligence.json')}>Download curated JSON</a>
+  </div>
+  <form id="project-filters" class="filters" role="search" aria-label="Filter projects">
+    <label class="wide"
+      >Search projects<input type="search" name="query" placeholder="Project, company, product…" /></label
+    >
+    <label
+      >Data scope<select name="scope"
+        ><option value="all">All records (includes samples)</option><option value="live"
+          >Live records only</option
+        ><option value="sample">Samples only</option></select
+      ></label
+    >
+    {
+      facets.map(([key, name]) => (
+        <label>
+          {name}
+          <select name={key}>
+            <option value="">All {name.toLowerCase()}</option>
+            {options(key).map((v) => (
+              <option value={v}>
+                {key === 'company' ? companyName(v) : key === 'development_status' ? label(v) : v}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))
+    }
+    <label
+      >Comparable capacity group<select name="capacityGroup"
+        ><option value="">Choose basis / product / unit</option>{
+          capacityKeys.map((k) => <option value={k}>{k.replaceAll('|', ' · ').replaceAll('_', ' ')}</option>)
+        }</select
+      ></label
+    >
+    <label
+      >Minimum announced capacity<input
+        type="number"
+        name="minCapacity"
+        min="0"
+        placeholder="Choose a group first"
+        disabled
+      /></label
+    >
+    <button type="reset" class="button">Reset filters</button>
+  </form>
+  <p class="meta" id="project-count" role="status">{projects.length} projects shown</p>
+  <div class="table-wrap">
+    <table id="projects-table">
+      <thead
+        ><tr
+          ><th scope="col">Project / company</th><th scope="col">Region / pathway</th><th scope="col"
+            >Status / TRL</th
+          ><th scope="col">Announced capacity</th><th scope="col">Operational capacity</th></tr
+        ></thead
+      ><tbody
+        >{
+          projects.map((p) => (
+            <tr data-project={JSON.stringify({ ...p, company_name: companyName(p.company) })}>
+              <>
+                <td>
+                  <span class="meta">{companyName(p.company)}</span>
+                  {p.sample && <span class="badge sample">Fictional sample</span>}
+                </td>
+                <td>
+                  {p.region}
+                  <span class="meta">
+                    {p.country} · {p.conversion_pathway}
+                  </span>
+                </td>
+                <td>
+                  <>
+                    <span class="badge status">{label(p.development_status)}</span>
+                    <span class="meta">TRL {p.technology_trl ?? 'not reported'}</span>
+                  </>
+                </td>
+                <td class="capacity">{quantity(p.announced_capacity)}</td>
+                <td class="capacity">{quantity(p.operational_capacity)}</td>
+              </>
+            </tr>
+          ))
+        }</tbody
+      >
+    </table>
+  </div>
+  <p id="project-empty" class="empty" hidden>
+    No projects match these filters. Try another selection or reset the filters.
+  </p>
+  <noscript
+    ><p>
+      All records are shown. Enable JavaScript for filters; project detail links work without it.
+    </p></noscript
+  >
+</Base>
+<script>
+  import type { projects } from '../../lib/data';
+  type Project = (typeof projects)[number] & { company_name: string };
+  const form = document.querySelector<HTMLFormElement>('#project-filters');
+  const rows = [...document.querySelectorAll<HTMLTableRowElement>('tr[data-project]')];
+  const fields = [
+    'region',
+    'country',
+    'company',
+    'conversion_pathway',
+    'primary_product',
+    'development_status',
+    'technology_trl',
+  ] as const;
+  function filter() {
+    if (!form) return;
+    const data = new FormData(form),
+      query = String(data.get('query') ?? '').toLowerCase(),
+      group = String(data.get('capacityGroup') ?? '');
+    const minimum = form.elements.namedItem('minCapacity') as HTMLInputElement;
+    minimum.disabled = !group;
+    if (!group) minimum.value = '';
+    let count = 0;
+    for (const row of rows) {
+      const p = JSON.parse(row.dataset.project!) as Project;
+      const capacity = p.announced_capacity;
+      const matches =
+        [p.project_name, p.company_name, p.country, p.region, p.primary_product, p.conversion_pathway]
+          .join(' ')
+          .toLowerCase()
+          .includes(query) &&
+        fields.every((k) => !data.get(k) || String(p[k] ?? 'Unknown') === data.get(k)) &&
+        (data.get('scope') !== 'live' || !p.sample) &&
+        (data.get('scope') !== 'sample' || p.sample) &&
+        (!group ||
+          (capacity &&
+            `${capacity.basis}|${capacity.substance}|${capacity.unit}` === group &&
+            capacity.value >= Number(minimum.value || 0)));
+      row.hidden = !matches;
+      if (matches) count++;
+    }
+    document.querySelector('#project-count')!.textContent = `${count} project${count === 1 ? '' : 's'} shown`;
+    (document.querySelector('#project-empty') as HTMLElement).hidden = count !== 0;
+  }
+  form?.addEventListener('input', filter);
+  form?.addEventListener('change', filter);
+  form?.addEventListener('reset', () => setTimeout(filter, 0));
+  form?.addEventListener('submit', (e) => e.preventDefault());
+</script>

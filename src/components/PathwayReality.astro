@@ -1,0 +1,76 @@
+---
+import { technologies } from '../lib/data';
+interface Props {
+  technology: (typeof technologies)[number];
+}
+const { technology: t } = Astro.props;
+const rows = [
+  [
+    'CO₂ feedstock availability',
+    'No site-specific supplier, volume, purity guarantee or delivery contract has been verified.',
+  ],
+  [
+    'Capture and delivered cost',
+    'Not quantified. Capture, conditioning, compression and transport need separate boundaries.',
+  ],
+  [
+    'Energy and hydrogen demand',
+    t.technology_id === 'co2-to-methanol'
+      ? 'Theoretical hydrogen requirement is shown above. Actual process energy and feed losses remain scenario assumptions.'
+      : 'No integrated plant mass and energy balance is attached; electricity or feedstock demand cannot be inferred from selectivity.',
+  ],
+  [
+    'Catalyst and reactor performance',
+    t.catalysts.join('; ') + '. No plant lifetime or sustained performance is verified here.',
+  ],
+  [
+    'Product separation',
+    'The process flow identifies separation stages where relevant; a quantified separation duty and cost remain unavailable.',
+  ],
+  ['CAPEX and OPEX', 'No plant-specific capital estimate or complete operating-cost dataset is attached.'],
+  [
+    'Minimum selling price',
+    'Not calculated. Capital recovery, utilization, financing and a complete operating boundary are required.',
+  ],
+  [
+    'Fossil benchmark competitiveness',
+    'No verified regional benchmark comparison. Calculator benchmark values, where shown, are illustrative.',
+  ],
+  ['Climate performance', t.lifecycle_evidence],
+  ['Scale-up bottlenecks', t.known_limitations.join('; ') + '.'],
+  [
+    'Customer and offtake readiness',
+    'No qualified-customer or executed-offtake evidence is attached to this pathway profile.',
+  ],
+  [
+    'Policy dependence',
+    'Not assessed for a specific project or jurisdiction. Do not assume subsidies or certification eligibility.',
+  ],
+];
+---
+
+<section class="card" style="margin-top:24px">
+  <p class="eyebrow">CCU Reality Check · pathway assessment</p>
+  <h2>What remains to be demonstrated?</h2>
+  <p>
+    This initial assessment separates process knowledge from the evidence needed for a commercial conclusion.
+    Missing information is left unresolved.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Dimension</th><th scope="col">Assessment and evidence gap</th></tr></thead
+      ><tbody
+        >{
+          rows.map(([dimension, assessment]) => (
+            <tr>
+              <>
+                <th scope="row">{dimension}</th>
+                <td>{assessment}</td>
+              </>
+            </tr>
+          ))
+        }</tbody
+      >
+    </table>
+  </div>
+</section>

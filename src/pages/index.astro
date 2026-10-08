@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { projects, articles, href, label } from '../lib/data';
+const issues = (
+  await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
+).sort((a, b) => +b.data.publication_date - +a.data.publication_date);
+const latest = issues[0];
+const live = articles.filter((a) => !a.sample && a.editorial_status === 'reviewed' && !a.review_required);
+const signals = live.length ? live.slice(0, 3) : articles.filter((a) => a.sample).slice(0, 3);
+const liveProjects = projects.filter((p) => !p.sample);
+const watchProjects = (liveProjects.length ? liveProjects : projects).slice(0, 3);
+---
+
+<Base title="Industrial progress, in perspective">
+  <div class="row" style="justify-content:space-between">
+    <p class="eyebrow">The intelligence brief</p><p class="meta">
+      English · Every two weeks · Evidence first
+    </p>
+  </div>
+  <div class="page-head">
+    <h1>Industrial progress,<br />in perspective.</h1><p>
+      Which carbon capture and utilization pathways are moving toward industrial viability—and what is
+      preventing others from scaling?
+    </p>
+  </div>
+  {
+    !latest && (
+      <div class="notice">
+        <strong>Initial research edition.</strong> No live issue has been published. Fictional demonstrations
+        are marked as samples; learning articles and calculations are separate reference material.
+      </div>
+    )
+  }
+  <div class="hero-grid">
+    <section class="lead-card">
+      <p class="eyebrow">
+        {latest ? `Issue ${latest.data.issue_number}` : 'Biweekly briefing · sample edition'}
+      </p><h2>{latest ? latest.data.title : 'From promising chemistry to a working industrial system.'}</h2><p
+      >
+        Connect scientific progress to engineering constraints, project execution, production costs and
+        climate performance.
+      </p><a class="button" href={latest ? href(`issues/${latest.id}/`) : href('samples/issue/')}
+        >{latest ? 'Read the latest issue' : 'Explore the sample issue'}</a
+      ><div class="metrics">
+        <div class="metric"><strong>05</strong><span>Intelligence domains</span></div><div class="metric">
+          <strong>14</strong><span>Day reporting window</span>
+        </div><div class="metric">
+          <strong>{latest ? issues.length : '00'}</strong><span>Published issues</span>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <p class="eyebrow">Technology in focus</p><h2>CO₂ → Methanol</h2><p>
+        A simple reaction. A demanding industrial balance.
+      </p><div class="reaction" style="font-size:1rem">CO₂ + 3 H₂ → CH₃OH + H₂O</div><p>
+        Explore feedstock stoichiometry, hydrogen cost sensitivity, separation and the limits of a partial
+        cost model.
+      </p><a href={href('technologies/co2-to-methanol/')}>Open the pathway & calculator</a><p
+        class="meta rule"
+      >
+        Reference material · No pathway-wide TRL assigned
+      </p>
+    </section>
+  </div>
+  <div class="section-head">
+    <h2>Executive signals</h2><span class="badge sample"
+      >{live.length ? 'Reviewed evidence' : 'Sample signals · not news'}</span
+    >
+  </div>
+  <div class="cards">
+    {
+      signals.map((a, i) => (
+        <article class="card">
+          <>
+            <span class="card-index">0{i + 1} / INDUSTRIAL READINESS</span>
+            <h3>{a.title.replace('Sample: ', '')}</h3>
+            <p>{a.industrial_implications}</p>
+            <p class="meta">Uncertainty: {a.uncertainty}</p>
+            <a href={href(a.sample ? 'samples/issue/' : 'issues/')}>Read the context</a>
+          </>
+        </article>
+      ))
+    }
+  </div>
+  <div class="section-head">
+    <h2>Recent industry developments</h2><a href={href('issues/')}>Newsletter archive</a>
+  </div>
+  {
+    live.length ? (
+      <ul class="list-clean card">
+        {live.slice(0, 6).map((a) => (
+          <li>
+            <a href={a.canonical_url}>{a.title}</a>
+            <p class="meta">
+              Published {a.publication_date} · {a.domains.join(', ')}
+            </p>
+            <p>{a.summary}</p>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty">
+        No reviewed live developments have been added. Sample signals above illustrate the editorial format.
+      </p>
+    )
+  }
+  <div class="section-head"><h2>Project watch</h2><a href={href('projects/')}>Explore the tracker</a></div>
+  <div class="table-wrap">
+    <table>
+      <caption
+        >{
+          liveProjects.length
+            ? 'Reviewed project records'
+            : 'Sample project updates · fictional, not verified commercial records'
+        }</caption
+      ><thead
+        ><tr
+          ><th scope="col">Project</th><th scope="col">Region</th><th scope="col">Status</th><th scope="col"
+            >Evidence limitation</th
+          ></tr
+        ></thead
+      ><tbody
+        >{
+          watchProjects.map((p) => (
+            <tr>
+              <>
+                <td>
+                  <>
+                    <a href={href(`projects/${p.project_id}/`)}>{p.project_name}</a>
+                    <span class="meta">{p.conversion_pathway}</span>
+                  </>
+                </td>
+                <td>{p.region}</td>
+                <td>
+                  <span class="badge status">{label(p.development_status)}</span>
+                </td>
+                <td>{p.sample ? 'Fictional sample; no live verification' : p.limitations}</td>
+              </>
+            </tr>
+          ))
+        }</tbody
+      >
+    </table>
+  </div>
+  <div class="section-head">
+    <h2>Build a stronger technical lens</h2><a href={href('learning/')}>All insights & learning</a>
+  </div>
+  <div class="cards">
+    <article class="card">
+      <p class="eyebrow">Carbon accounting</p><h3>Utilization is not removal</h3><p>
+        Distinguish fossil substitution, temporary carbon use and durable atmospheric carbon removal.
+      </p><a href={href('learning/ccu-ccs-cdr/')}>Read the primer</a>
+    </article><article class="card">
+      <p class="eyebrow">Industrial evidence</p><h3>Read beyond the TRL</h3><p>
+        Ask what was tested, for how long, at what scale, and in which operating environment.
+      </p><a href={href('learning/trl/')}>Assess readiness</a>
+    </article><article class="card">
+      <p class="eyebrow">Economic discipline</p><h3>Interrogate the boundary</h3><p>
+        A feedstock subtotal is not a levelized production cost or a minimum selling price.
+      </p><a href={href('learning/tea/')}>Understand the comparison</a>
+    </article>
+  </div>
+</Base>

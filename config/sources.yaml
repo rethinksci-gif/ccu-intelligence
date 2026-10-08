@@ -1,0 +1,379 @@
+sources:
+- source_id: crossref
+  organization: Crossref
+  source_type: scholarly_metadata
+  base_url: https://www.crossref.org
+  access_method: crossref
+  endpoint: https://api.crossref.org/works
+  update_frequency: daily
+  reliability_tier: 2
+  last_successful_retrieval: null
+  reuse_restrictions: Metadata only; do not republish publisher abstracts or full
+    text.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 1
+  limitation: null
+- source_id: openalex
+  organization: OpenAlex
+  source_type: scholarly_metadata
+  base_url: https://openalex.org
+  access_method: openalex
+  endpoint: https://api.openalex.org/works
+  update_frequency: daily
+  reliability_tier: 2
+  last_successful_retrieval: null
+  reuse_restrictions: Metadata only; do not republish publisher abstracts or full
+    text.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 1
+  limitation: null
+- source_id: iea
+  organization: IEA CCUS Projects Database
+  source_type: reference_or_publisher
+  base_url: https://www.iea.org/data-and-statistics/data-product/ccus-projects-database
+  access_method: manual
+  endpoint: null
+  update_frequency: biweekly manual review
+  reliability_tier: 1
+  last_successful_retrieval: null
+  reuse_restrictions: Review page-specific license before reuse; link and paraphrase
+    only.
+  active: true
+  automated_access_approved: false
+  minimum_interval_seconds: 1
+  limitation: No automated adapter approved; use manual ingestion. Availability and
+    rights require review.
+- source_id: co2-value-europe
+  organization: CO2 Value Europe
+  source_type: industry_association
+  base_url: https://co2value.eu
+  access_method: rss
+  endpoint: https://co2value.eu/feed/
+  update_frequency: biweekly on demand
+  reliability_tier: 2
+  last_successful_retrieval: null
+  reuse_restrictions: Private feed evidence only; publish original links and short
+    attributed paraphrases after review. No full-text redistribution. Company/association
+    claims are not independent verification.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 1
+  limitation: Feed and robots verified 2026-10-08. Policy, CCU deployment and industry
+    coordination. Feed availability is not a completeness guarantee.
+- source_id: global-co2
+  organization: Global CO2 Initiative
+  source_type: reference_or_publisher
+  base_url: https://www.globalco2initiative.org
+  access_method: manual
+  endpoint: null
+  update_frequency: biweekly manual review
+  reliability_tier: 1
+  last_successful_retrieval: null
+  reuse_restrictions: Review page-specific license before reuse; link and paraphrase
+    only.
+  active: true
+  automated_access_approved: false
+  minimum_interval_seconds: 1
+  limitation: No automated adapter approved; use manual ingestion. Availability and
+    rights require review.
+- source_id: netl
+  organization: US DOE / NETL
+  source_type: reference_or_publisher
+  base_url: https://netl.doe.gov
+  access_method: manual
+  endpoint: null
+  update_frequency: biweekly manual review
+  reliability_tier: 1
+  last_successful_retrieval: null
+  reuse_restrictions: Review page-specific license before reuse; link and paraphrase
+    only.
+  active: true
+  automated_access_approved: false
+  minimum_interval_seconds: 1
+  limitation: No automated adapter approved; use manual ingestion. Availability and
+    rights require review.
+- source_id: doe-funding
+  organization: US Department of Energy funding
+  source_type: reference_or_publisher
+  base_url: https://www.energy.gov
+  access_method: manual
+  endpoint: null
+  update_frequency: biweekly manual review
+  reliability_tier: 1
+  last_successful_retrieval: null
+  reuse_restrictions: Review page-specific license before reuse; link and paraphrase
+    only.
+  active: true
+  automated_access_approved: false
+  minimum_interval_seconds: 1
+  limitation: No automated adapter approved; use manual ingestion. Availability and
+    rights require review.
+- source_id: nature-energy
+  organization: Nature Energy
+  source_type: reference_or_publisher
+  base_url: https://www.nature.com/nenergy/
+  access_method: manual
+  endpoint: null
+  update_frequency: biweekly manual review
+  reliability_tier: 2
+  last_successful_retrieval: null
+  reuse_restrictions: Review page-specific license before reuse; link and paraphrase
+    only.
+  active: true
+  automated_access_approved: false
+  minimum_interval_seconds: 1
+  limitation: No automated adapter approved; use manual ingestion. Availability and
+    rights require review.
+- source_id: chemical-engineering
+  organization: Chemical Engineering
+  source_type: reference_or_publisher
+  base_url: https://www.chemengonline.com
+  access_method: manual
+  endpoint: null
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Review page-specific license before reuse; link and paraphrase
+    only.
+  active: true
+  automated_access_approved: false
+  minimum_interval_seconds: 1
+  limitation: No automated adapter approved; use manual ingestion. Availability and
+    rights require review.
+- source_id: svante
+  organization: Svante
+  source_type: company_announcements_and_annual_reports
+  base_url: https://svanteinc.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: carbon-clean
+  organization: Carbon Clean
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.carbonclean.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: climeworks
+  organization: Climeworks
+  source_type: company_announcements_and_annual_reports
+  base_url: https://climeworks.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: slb-capturi
+  organization: SLB Capturi
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.capturi.slb.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: twelve
+  organization: Twelve
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.twelve.co
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: dioxycle
+  organization: Dioxycle
+  source_type: company_announcements_and_annual_reports
+  base_url: https://dioxycle.com
+  access_method: rss
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Private feed evidence only; publish original links and short
+    attributed paraphrases after review. No full-text redistribution. Company/association
+    claims are not independent verification.
+  active: true
+  automated_access_approved: true
+  limitation: Feed and robots verified 2026-10-08. CO2 electroconversion and chemical
+    manufacturing partnerships. Feed availability is not a completeness guarantee.
+  endpoint: https://dioxycle.com/feed/
+- source_id: oxylus-energy
+  organization: Oxylus Energy
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.oxylusenergy.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: carbon-recycling-international
+  organization: Carbon Recycling International
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.carbonrecycling.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: liquid-wind
+  organization: Liquid Wind
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.liquidwind.com
+  access_method: rss
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Private feed evidence only; publish original links and short
+    attributed paraphrases after review. No full-text redistribution. Company/association
+    claims are not independent verification.
+  active: true
+  automated_access_approved: true
+  limitation: Feed and robots verified 2026-10-08. E-methanol, permitting, financing,
+    bankruptcy and project delays. Feed availability is not a completeness guarantee.
+  endpoint: https://www.liquidwind.com/news/rss.xml
+- source_id: hif-global
+  organization: HIF Global
+  source_type: company_announcements_and_annual_reports
+  base_url: https://hifglobal.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: lanzatech
+  organization: LanzaTech
+  source_type: company_announcements_and_annual_reports
+  base_url: https://lanzatech.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: covestro
+  organization: Covestro
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.covestro.com
+  access_method: rss
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Private feed evidence only; publish original links and short
+    attributed paraphrases after review. No full-text redistribution. Company/association
+    claims are not independent verification.
+  active: true
+  automated_access_approved: true
+  limitation: Feed and robots verified 2026-10-08. Chemicals and polymers; broad corporate
+    feed requires explicit CO2 relevance. Feed availability is not a completeness
+    guarantee.
+  endpoint: https://www.covestro.com/press/feed/en
+- source_id: carboncure
+  organization: CarbonCure
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.carboncure.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: carbonbuilt
+  organization: CarbonBuilt
+  source_type: company_announcements_and_annual_reports
+  base_url: https://carbonbuilt.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link to original;
+    do not copy reports.
+  active: true
+  automated_access_approved: false
+  limitation: Monitoring candidate; specific IR/report URL and automation rights not
+    verified.
+- source_id: carbicrete
+  organization: CarbiCrete
+  source_type: company_announcements_and_annual_reports
+  base_url: https://carbicrete.com
+  access_method: rss
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Private feed evidence only; publish original links and short
+    attributed paraphrases after review. No full-text redistribution. Company/association
+    claims are not independent verification.
+  active: true
+  automated_access_approved: true
+  limitation: Feed and robots verified 2026-10-08. Carbon mineralization, construction
+    materials and government support. Feed availability is not a completeness guarantee.
+  endpoint: https://carbicrete.com/feed/
+- source_id: uk-desnz
+  organization: UK Department for Energy Security and Net Zero
+  source_type: government
+  base_url: https://www.gov.uk/government/organisations/department-for-energy-security-and-net-zero
+  endpoint: https://www.gov.uk/government/organisations/department-for-energy-security-and-net-zero.atom
+  access_method: rss
+  automated_access_approved: true
+  active: true
+  update_frequency: biweekly on demand
+  reliability_tier: 1
+  minimum_interval_seconds: 1
+  reuse_restrictions: GOV.UK Open Government Licence except identified third-party
+    material; retain attribution and original links.
+  limitation: Atom and robots verified 2026-10-08. Broad activity feed, not CCU-specific.
+    Updated timestamps are not original publication dates; undated entries excluded
+    from newsletter.

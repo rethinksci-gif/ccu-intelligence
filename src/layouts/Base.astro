@@ -1,0 +1,97 @@
+---
+import '../styles/global.css';
+import { href } from '../lib/data';
+interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+}
+const {
+  title,
+  description = 'Evidence-driven intelligence on carbon capture and utilization: technology, industrial deployment, economics and climate performance.',
+  noindex = false,
+} = Astro.props;
+const nav = [
+  ['', 'Overview'],
+  ['issues/', 'Biweekly issues'],
+  ['projects/', 'Project tracker'],
+  ['technologies/', 'Technology atlas'],
+  ['learning/', 'Insights & learning'],
+];
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:4321');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · CCU Intelligence</title><meta name="description" content={description} />
+    <link rel="canonical" href={canonical} /><link
+      rel="icon"
+      type="image/svg+xml"
+      href={href('favicon.svg')}
+    />
+    <meta property="og:title" content={`${title} · CCU Intelligence`} /><meta
+      property="og:description"
+      content={description}
+    />
+    <meta property="og:type" content="website" /><meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" /><meta name="twitter:title" content={title} /><meta
+      name="twitter:description"
+      content={description}
+    />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="alternate" type="application/rss+xml" title="CCU Intelligence issues" href={href('rss.xml')} />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="brand" href={href()} aria-label="CCU Intelligence home"
+          ><span class="brand-icon">C<span>₂</span></span><span
+            >CCU <strong>Intelligence</strong><small>CARBON CAPTURE & UTILIZATION</small></span
+          ></a
+        >
+        <span class="masthead-note">Science. Industry. Evidence.</span>
+        <button class="menu-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+      </div>
+    </header>
+    <div class="nav-wrap">
+      <nav id="primary-nav" class="shell navigation" aria-label="Main navigation">
+        {
+          nav.map(([path, name]) => (
+            <a href={href(path)} aria-current={Astro.url.pathname === href(path) ? 'page' : undefined}>
+              {name}
+            </a>
+          ))
+        }
+        <a class="nav-method" href={href('methodology/')}>Methodology</a>
+      </nav>
+    </div>
+    <main id="main" class="shell"><slot /></main>
+    <footer class="shell footer">
+      <div><strong>CCU Intelligence</strong><p>Industrial viability, examined through evidence.</p></div><div>
+        <a href={href('methodology/')}>Sources & editorial standards</a><a href={href('rss.xml')}>Issue RSS</a
+        ><a href={href('data/intelligence.json')}>Curated data · JSON</a>
+      </div><p>
+        CO₂ use is not automatically carbon removal.<br />Sample records are fictional and explicitly labeled.
+      </p>
+    </footer>
+    <script>
+      const button = document.querySelector<HTMLButtonElement>('.menu-toggle');
+      const nav = document.querySelector<HTMLElement>('#primary-nav');
+      button?.addEventListener('click', () => {
+        const open = button.getAttribute('aria-expanded') !== 'true';
+        button.setAttribute('aria-expanded', String(open));
+        nav?.classList.toggle('open', open);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && button?.getAttribute('aria-expanded') === 'true') {
+          button.setAttribute('aria-expanded', 'false');
+          nav?.classList.remove('open');
+          button.focus();
+        }
+      });
+    </script>
+  </body>
+</html>

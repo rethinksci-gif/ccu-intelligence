@@ -1,0 +1,1 @@
+Summarize what changed, why it matters, and what remains unknown. Keep citations attached to individual claims using only provided evidence IDs. No marketing language or unsourced predictions. Summaries are draft proposals, never publishable approvals.

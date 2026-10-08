@@ -1,0 +1,123 @@
+---
+import Base from '../../layouts/Base.astro';
+import { projects, events, evidence, companyName, quantity, label, href } from '../../lib/data';
+export function getStaticPaths() {
+  return projects.map((p) => ({ params: { id: p.project_id }, props: { project: p } }));
+}
+const { project: p } = Astro.props;
+const history = events
+  .filter((e) => e.project_id === p.project_id)
+  .sort((a, b) => b.reporting_date.localeCompare(a.reporting_date));
+const refs = evidence.filter((e) => p.sources.includes(e.evidence_id));
+---
+
+<Base title={p.project_name} noindex={p.sample}>
+  <p class="eyebrow"><a href={href('projects/')}>Project tracker</a> / {p.region}</p>
+  <div class="page-head">
+    <h1>{p.project_name}</h1><p>{companyName(p.company)} · {p.country} · {p.conversion_pathway}</p><div
+      class="row"
+    >
+      <span class="badge status">{label(p.development_status)}</span><span class="badge"
+        >{p.confidence_level} confidence</span
+      >{p.sample && <span class="badge sample">Fictional sample</span>}
+    </div>
+  </div>
+  {
+    p.sample && (
+      <div class="notice">
+        This entire record is fictional. Capacities, dates, company and milestones demonstrate software
+        behavior and must not be used for market analysis.
+      </div>
+    )
+  }
+  <div class="detail-grid">
+    <section class="card">
+      <h2>Technical & commercial profile</h2><dl class="definition-grid">
+        {
+          [
+            ['CO₂ source', p.co2_source],
+            ['Capture technology', p.capture_technology],
+            ['Primary product', p.primary_product],
+            ['TRL', p.technology_trl],
+            ['Announced capacity', quantity(p.announced_capacity)],
+            ['Operational capacity', quantity(p.operational_capacity)],
+            ['Expected startup', p.expected_startup_date],
+            ['Actual startup', p.actual_startup_date],
+            ['CAPEX', p.capex ? JSON.stringify(p.capex) : null],
+            ['OPEX', p.opex ? JSON.stringify(p.opex) : null],
+            [
+              'Energy requirements',
+              p.energy_requirements.length ? JSON.stringify(p.energy_requirements) : null,
+            ],
+            [
+              'Hydrogen requirements',
+              p.hydrogen_requirements.length ? JSON.stringify(p.hydrogen_requirements) : null,
+            ],
+            ['Last verified', p.date_last_verified],
+            ['Location', p.location],
+          ].map(([k, v]) => (
+            <div>
+              <>
+                <dt>{k}</dt>
+                <dd>{v ?? 'Not reported'}</dd>
+              </>
+            </div>
+          ))
+        }
+      </dl><div class="rule">
+        <h3>Climate evidence</h3><p>
+          {
+            p.climate_claims.length
+              ? 'Review the linked claims and their boundaries in the curated data.'
+              : 'No verified lifecycle assessment is attached. No net climate benefit or carbon removal claim is inferred.'
+          }
+        </p>
+      </div>
+    </section>
+    <aside>
+      <section class="card">
+        <h3>Data limitations</h3><p>{p.limitations}</p><p>
+          Unknown operational capacity is not zero. Announced product output is not CO₂ captured or converted.
+        </p>
+      </section><section class="card" style="margin-top:20px">
+        <h3>Evidence register</h3>{
+          refs.map((e) => (
+            <p class="source-link">
+              <>
+                <a href={e.url}>{e.sample ? 'Fictional reference (example.org)' : e.source_id}</a>
+                <span class="meta">
+                  {e.locator}
+                  <br />
+                  Retrieved {e.retrieved_at.slice(0, 10)}
+                </span>
+              </>
+            </p>
+          ))
+        }
+      </section>
+    </aside>
+  </div>
+  <div class="section-head">
+    <h2>Event history</h2><span class="meta">Previous values are preserved</span>
+  </div><ol class="timeline">
+    {
+      history.map((e) => (
+        <li>
+          <>
+            <span class="meta">
+              Event: {e.event_date ?? 'unknown'} · Reported: {e.reporting_date}
+            </span>
+            <h3>{label(e.event_type)}</h3>
+            <p>{e.description}</p>
+            <details>
+              <>
+                <summary>View historical change</summary>
+                <pre>{JSON.stringify({ previous: e.previous_value, next: e.new_value }, null, 2)}</pre>
+              </>
+            </details>
+          </>
+        </li>
+      ))
+    }
+  </ol>
+</Base>

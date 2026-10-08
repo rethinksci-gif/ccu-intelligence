@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ccu-intelligence"
+version = "0.1.0"
+description = "Evidence-first carbon capture and utilization intelligence"
+requires-python = ">=3.12"
+dependencies = ["pydantic==2.14.0", "httpx==0.28.1", "defusedxml==0.7.1", "PyYAML==6.0.3", "python-dotenv==1.2.1"]
+
+[project.scripts]
+ccu = "ccu_intelligence.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["ccu_intelligence*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

@@ -1,0 +1,1 @@
+Propose changes only when the source explicitly identifies the project, event, dates, evidence and previous/new values. Distinguish announced from operational. Proposed events are unverified suggestions and must never modify project history automatically. If project identity or evidence IDs are absent, return an empty proposed_events list.

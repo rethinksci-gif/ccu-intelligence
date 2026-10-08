@@ -1,0 +1,34 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { href } from '../../lib/data';
+const articles = (await getCollection('learning')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base title="Insights & learning"
+  ><div class="page-head">
+    <p class="eyebrow">A cumulative technical library</p><h1>Learn to read the evidence.</h1><p>
+      Short, sourced primers on the chemistry, engineering and accounting behind CCU. Reference material is
+      separate from current industry news.
+    </p>
+  </div><div class="cards">
+    {
+      articles.map((a) => (
+        <article class="card">
+          <>
+            <span class="card-index">
+              0{a.data.order} / {a.data.category.toUpperCase()}
+            </span>
+            <h2 style="font-size:1.4rem">
+              <a class="title-link" href={href(`learning/${a.id}/`)}>
+                {a.data.title}
+              </a>
+            </h2>
+            <p>{a.data.description}</p>
+            <p class="meta">Technical primer · Updated {a.data.updated.toISOString().slice(0, 10)}</p>
+          </>
+        </article>
+      ))
+    }
+  </div></Base
+>

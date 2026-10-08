@@ -1,0 +1,88 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { href } from '../../lib/data';
+const issues = (
+  await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
+).sort((a, b) => +b.data.publication_date - +a.data.publication_date);
+const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
+---
+
+<Base title="Biweekly issues"
+  ><div class="page-head">
+    <p class="eyebrow">The newsletter archive</p><h1>Two weeks. The signals that matter.</h1><p>
+      Concise technical and industrial analysis, with citations, uncertainty and a clear boundary between
+      announcements and demonstrated progress.
+    </p>
+  </div>
+  <form class="filters" id="issue-search" role="search" aria-label="Search issues">
+    <label class="wide"
+      >Search the archive<input name="query" type="search" placeholder="Search titles and topics" /></label
+    ><label
+      >Topic<select name="topic"
+        ><option value="">All topics</option>{topics.map((t) => <option>{t}</option>)}</select
+      ></label
+    ><button class="button" type="reset">Reset</button>
+  </form>
+  <p id="issue-count" role="status" class="meta">{issues.length} published issues</p><div id="issue-results">
+    {
+      issues.map((i) => (
+        <article
+          class="card issue-card"
+          data-search={`${i.data.title} ${i.data.featured_topics.join(' ')}`.toLowerCase()}
+          data-topics={JSON.stringify(i.data.featured_topics)}
+        >
+          <>
+            <div class="issue-number">{String(i.data.issue_number).padStart(2, '0')}</div>
+            <div>
+              <>
+                <p class="meta">
+                  {i.data.publication_date.toISOString().slice(0, 10)} · {i.data.source_count} sources
+                </p>
+                <h2>
+                  <a class="title-link" href={href(`issues/${i.id}/`)}>
+                    {i.data.title}
+                  </a>
+                </h2>
+                <p>{i.data.featured_topics.join(' · ')}</p>
+              </>
+            </div>
+          </>
+        </article>
+      ))
+    }
+  </div>
+  <p id="issue-empty" class="empty" hidden={issues.length > 0}>
+    No published issues yet. Evidence collection and human editorial review must precede publication.
+  </p>
+  <section class="card issue-card" style="margin-top:26px">
+    <div class="issue-number">DEMO</div><div>
+      <span class="badge sample">Fictional sample · excluded from RSS</span><h2 style="margin-top:14px">
+        Explore the editorial format
+      </h2><p>
+        A sample issue demonstrates the seven editorial sections and citation structure. It is not a published
+        briefing or a report of real industry events.
+      </p><a href={href('samples/issue/')}>Read the sample issue</a>
+    </div>
+  </section></Base
+>
+<script>
+  const form = document.querySelector<HTMLFormElement>('#issue-search');
+  function filter() {
+    if (!form) return;
+    const data = new FormData(form);
+    let count = 0;
+    document.querySelectorAll<HTMLElement>('[data-search]').forEach((card) => {
+      const shown =
+        card.dataset.search!.includes(String(data.get('query')).toLowerCase()) &&
+        (!data.get('topic') || JSON.parse(card.dataset.topics!).includes(data.get('topic')));
+      card.hidden = !shown;
+      if (shown) count++;
+    });
+    document.querySelector('#issue-count')!.textContent = `${count} published issues shown`;
+    (document.querySelector('#issue-empty') as HTMLElement).hidden = count > 0;
+  }
+  form?.addEventListener('input', filter);
+  form?.addEventListener('submit', (e) => e.preventDefault());
+  form?.addEventListener('reset', () => setTimeout(filter, 0));
+</script>

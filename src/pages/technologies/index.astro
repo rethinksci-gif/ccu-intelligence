@@ -1,0 +1,41 @@
+---
+import Base from '../../layouts/Base.astro';
+import { technologies, href } from '../../lib/data';
+---
+
+<Base title="Technology atlas"
+  ><div class="page-head">
+    <p class="eyebrow">Pathways & process fundamentals</p><h1>Technology atlas</h1><p>
+      Connect the reaction to the reactor, the reactor to the plant, and the plant to its economics. Readiness
+      belongs to a demonstrated system—not a reaction equation.
+    </p>
+  </div><div class="cards">
+    {
+      technologies.map((t, i) => (
+        <article class="card">
+          <>
+            <span class="card-index">
+              0{i + 1} / {t.pathway_category.toUpperCase()}
+            </span>
+            <h2 style="font-size:1.5rem">{t.technology_name}</h2>
+            <p>{t.chemical_reactions[0]}</p>
+            <h3>Scale-up questions</h3>
+            <ul>
+              {t.known_limitations.slice(0, 3).map((l) => (
+                <li>{l}</li>
+              ))}
+            </ul>
+            <a href={href(`technologies/${t.technology_id}/`)}>Explore this pathway</a>
+            <p class="meta rule">Reference guide · Updated {t.last_updated}</p>
+          </>
+        </article>
+      ))
+    }
+  </div><section class="card" style="margin-top:28px">
+    <h2>The atlas is a foundation, not a ranking</h2><p>
+      Capture, biological, thermochemical, photocatalytic and polymer pathways are included in the monitoring
+      taxonomy. Detailed pathway profiles will be added as evidence is curated. No universal TRL or commercial
+      viability score is assigned.
+    </p>
+  </section></Base
+>

@@ -1,0 +1,11 @@
+{
+  "co2_usd_per_t": 80,
+  "h2_usd_per_kg": 3,
+  "electricity_usd_per_mwh": 50,
+  "process_mwh_per_t": 1,
+  "co2_utilization": 0.9,
+  "h2_utilization": 0.95,
+  "fossil_benchmark_usd_per_t": 350,
+  "geography": "Illustrative scenario only; not an observed regional market",
+  "data_year": 2026
+}

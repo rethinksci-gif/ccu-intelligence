@@ -1,0 +1,109 @@
+{
+  "companies": [
+    {
+      "company_id": "svante",
+      "name": "Svante",
+      "website": "https://svanteinc.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbon-clean",
+      "name": "Carbon Clean",
+      "website": "https://www.carbonclean.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "climeworks",
+      "name": "Climeworks",
+      "website": "https://climeworks.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "slb-capturi",
+      "name": "SLB Capturi",
+      "website": "https://www.capturi.slb.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "twelve",
+      "name": "Twelve",
+      "website": "https://www.twelve.co",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "dioxycle",
+      "name": "Dioxycle",
+      "website": "https://dioxycle.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "oxylus-energy",
+      "name": "Oxylus Energy",
+      "website": "https://www.oxylusenergy.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbon-recycling-international",
+      "name": "Carbon Recycling International",
+      "website": "https://www.carbonrecycling.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "liquid-wind",
+      "name": "Liquid Wind",
+      "website": "https://www.liquidwind.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "hif-global",
+      "name": "HIF Global",
+      "website": "https://hifglobal.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "lanzatech",
+      "name": "LanzaTech",
+      "website": "https://lanzatech.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "covestro",
+      "name": "Covestro",
+      "website": "https://www.covestro.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carboncure",
+      "name": "CarbonCure",
+      "website": "https://www.carboncure.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbonbuilt",
+      "name": "CarbonBuilt",
+      "website": "https://carbonbuilt.com",
+      "watchlist_only": true,
+      "sample": false
+    },
+    {
+      "company_id": "carbicrete",
+      "name": "CarbiCrete",
+      "website": "https://carbicrete.com",
+      "watchlist_only": true,
+      "sample": false
+    }
+  ]
+}
