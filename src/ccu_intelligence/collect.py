@@ -5,6 +5,7 @@ import ipaddress
 import json
 import logging
 import os
+import re
 import socket
 import time
 from dataclasses import dataclass
@@ -27,6 +28,38 @@ from .store import Store
 LOG = logging.getLogger(__name__)
 MAX_BYTES = 5_000_000
 AGENT = "CCUIntelligence"
+
+
+GDELT_CACHE = Path("data/runtime/gdelt-cache")  # filled by scripts/gdelt-daily.py (one query per day)
+
+
+def gdelt_params(query: str, since: date, until: date, records: int) -> dict:
+    return {
+        "query": f"{query} sourcelang:english",
+        "mode": "artlist",
+        "format": "json",
+        "maxrecords": records,
+        "sort": "hybridrel",
+        "startdatetime": since.strftime("%Y%m%d000000"),
+        "enddatetime": until.strftime("%Y%m%d235959"),
+    }
+
+
+def gdelt_cached(source_id: str, since: date, until: date) -> tuple[list[dict], list[str]] | None:
+    """Cached GDELT articles for a source that overlap the window, newest fetch first; None if nothing cached."""
+    folder = GDELT_CACHE / source_id
+    files = sorted(folder.glob("*.json"), reverse=True) if folder.is_dir() else []
+    articles, seen, covered = [], set(), []
+    for path in files:
+        data = json.loads(path.read_text())
+        if date.fromisoformat(data["until"]) < since or date.fromisoformat(data["since"]) > until:
+            continue
+        covered.append(f"{data['since']}..{data['until']}")
+        for article in data["articles"]:
+            if article.get("url") not in seen:
+                seen.add(article.get("url"))
+                articles.append(article)
+    return (articles, covered) if covered else None
 
 
 class RateLimited(RuntimeError):
@@ -367,16 +400,15 @@ def collect(
                     pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
                     parser = federal_register_items
                 elif source.access_method == "gdelt":
-                    params = {
-                        "query": f"{source_query} sourcelang:english",
-                        "mode": "artlist",
-                        "format": "json",
-                        "maxrecords": min(75, limit * 3),
-                        "sort": "hybridrel",
-                        "startdatetime": since.strftime("%Y%m%d000000"),
-                        "enddatetime": until.strftime("%Y%m%d235959"),
-                    }
-                    pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
+                    # Prefer the daily cache (one query per day, spread over the fortnight); query live only when
+                    # nothing cached overlaps the window. GDELT throttles bursts from shared runner IPs.
+                    cached = gdelt_cached(source.source_id, since, until)
+                    if cached:
+                        counts["gdelt_cache"] = cached[1]
+                        pages = [json.dumps({"articles": cached[0]}).encode()]
+                    else:
+                        pages = [fetcher.get(endpoint, params=gdelt_params(source_query, since, until, min(75, limit * 3)),
+                                             interval=source.minimum_interval_seconds)]
                     parser = gdelt_items
                 elif source.access_method == "editor_list":
                     # Reviewed pointers in config/editor-submitted.yaml; the text is fetched later from each URL.
@@ -430,9 +462,13 @@ def collect(
                     counts["raw_files"].append(str(folder / f"{digest}.bin"))
                     items += parser(raw)
                 kept = 0
+                include = re.compile(source.include_pattern, re.I) if source.include_pattern else None
                 for item in items:
                     if kept >= limit:
                         break
+                    if include and not include.search(f"{item.get('title') or ''} {item.get('summary') or ''}"):
+                        counts["filtered_out"] = counts.get("filtered_out", 0) + 1
+                        continue
                     counts["considered"] += 1
                     try:
                         article = analyze(normalize(item, source.source_id), companies)

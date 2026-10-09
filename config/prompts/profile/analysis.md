@@ -35,4 +35,8 @@ The `input_basis` field states what text you received. With `headline` you saw o
 
 Score concrete, relevant incremental developments at 5–6 even when early-stage. Do not give a passing score to fill a quota; off-topic material, vague promotion and unsupported headlines stay below 5.
 
+Set `evidence_type` to `compilation` for collections of several unrelated studies or announcements (poster or abstract compilations, research highlights, virtual issues, news digests); a compilation is never original research.
+
+List in `projects` the named plants or projects the item is about (for example "Project ENDOR", "NorthStarH2") and in `organizations` the companies, developers, buyers and agencies that are parties to the development, using their usual short names (for example "Arcadia eFuels", "Uniper", "Plug Power"). Leave out organizations only mentioned in passing. Use empty lists when none are named.
+
 Assign exactly one `category` from the list below based on the central subject, ignoring the source type. Use three to five specific `tags` (the product, route or catalyst family, geography, company or regulation when known). Write `summary` as one neutral sentence of what the item reports, attributed to its source type.

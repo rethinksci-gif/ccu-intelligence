@@ -29,7 +29,7 @@ from .models import (
 )
 from .settings import ROOT
 
-PROMPT_VERSION = "ccu-profile-v6"  # v6: e-fuel policy/market relevance, score calibration, stories, limitation line
+PROMPT_VERSION = "ccu-profile-v7"  # v7: named entities, compilations, event dates, plain section intros
 SCREENING_CHARS = 12_000
 ENRICHMENT_CHARS = 18_000
 CACHE = Path("data/runtime/llm-cache")
@@ -182,6 +182,9 @@ def ground_enrichment(result: Enrichment, source: str) -> tuple[Enrichment, list
                 detail["event_date"] = None
             kept.append(detail)
         data[group] = kept
+    if data.get("event_date") and not date_supported(data["event_date"], source):
+        removed.append({"item": "event_date", "reason": "event date not written in source", "text": str(data["event_date"])})
+        data["event_date"] = None
     quotes = [q for q in data["quotes"] if quote_supported(q, source)]
     removed += [{"item": "quote", "reason": "not verbatim", "text": q} for q in data["quotes"] if q not in quotes]
     data["quotes"] = quotes
@@ -267,8 +270,10 @@ def word_count(result: Enrichment) -> int:
 # --- selection -------------------------------------------------------------------------------------------
 
 def rank_key(entry: dict):
+    """Score first; a research item with full text counts half a point more than one known from its abstract."""
     basis_rank = {"full_text": 0, "abstract": 1, "headline": 2}[entry["input_basis"]]
-    return (-entry["score"], entry["evidence_role"] == "news", basis_rank, entry["article_id"])
+    bonus = 0.5 if entry.get("kind") == "academic" and entry["input_basis"] == "full_text" else 0
+    return (-(entry["score"] + bonus), entry["evidence_role"] == "news", basis_rank, entry["article_id"])
 
 
 def outlet_tier(entry: dict, config: dict | None = None) -> int:
@@ -323,6 +328,89 @@ def story_groups(result: DedupResult | None, entries: list[dict], merged: dict[s
     return story_of
 
 
+_SUFFIX = re.compile(r"\b(?:inc|ltd|llc|ag|se|sa|gmbh|a/s|as|asa|ab|plc|co|corp|corporation|company|group|holding|"
+                     r"project|plant|facility|the)\b\.?", re.I)
+ROUNDUP_ENTITIES = 3  # an item naming this many projects (or twice as many organizations) is a roundup
+
+
+def entity_key(name: str) -> str:
+    return " ".join(_SUFFIX.sub(" ", re.sub(r"[^\w/ ]+", " ", name.lower())).split())
+
+
+def entities(entry: dict) -> tuple[set[str], set[str]]:
+    screening = entry["record"]["screening"]
+    projects = {k for p in screening.get("projects", []) if len(k := entity_key(p)) >= 3}
+    organizations = {k for o in screening.get("organizations", []) if len(k := entity_key(o)) >= 3}
+    return projects, organizations
+
+
+def is_roundup(entry: dict) -> bool:
+    projects, organizations = entities(entry)
+    return len(projects) >= ROUNDUP_ENTITIES or len(organizations) >= 2 * ROUNDUP_ENTITIES
+
+
+def entity_stories(entries: list[dict], story_of: dict[str, str], merged: dict[str, str]
+                   ) -> tuple[dict[str, str], dict[str, list[str]]]:
+    """Add deterministic stories: non-academic items naming the same project or organization become one story.
+
+    Model-proposed stories are kept. Multi-project roundups never join or bridge stories (they would chain unrelated
+    projects together); a roundup that names a story's project or organization is returned as a related roundup of
+    that story instead. Returns (article_id -> story lead, story lead -> roundup article_ids).
+    """
+    pool = [e for e in entries if e["article_id"] not in merged and e.get("kind") != "academic"]
+    parent = {e["article_id"]: e["article_id"] for e in pool}
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    def union(a, b):
+        parent[find(a)] = find(b)
+
+    for a, lead in story_of.items():
+        if a in parent and lead in parent:
+            union(a, lead)
+    singles = [e for e in pool if not is_roundup(e)]
+    keys = {e["article_id"]: set().union(*entities(e)) for e in pool}
+    for i, a in enumerate(singles):
+        for b in singles[i + 1:]:
+            if keys[a["article_id"]] & keys[b["article_id"]]:
+                union(a["article_id"], b["article_id"])
+    groups: dict[str, list[dict]] = {}
+    for e in pool:
+        groups.setdefault(find(e["article_id"]), []).append(e)
+    result = {}
+    for members in groups.values():
+        if len(members) > 1:
+            lead = min(members, key=rank_key)["article_id"]
+            result.update({m["article_id"]: lead for m in members})
+    roundups: dict[str, list[str]] = {}
+    for e in pool:
+        if not is_roundup(e) or e["article_id"] in result:
+            continue
+        for lead in dict.fromkeys(result.get(x["article_id"], x["article_id"]) for x in singles
+                                  if keys[x["article_id"]] & keys[e["article_id"]]):
+            roundups.setdefault(lead, []).append(e["article_id"])
+    return result, roundups
+
+
+COMPILATION = re.compile(r"\b(?:compilation|research highlights?|virtual issue|special collection|digest|"
+                         r"roundup|round-up|news in brief)\b", re.I)
+COMPILATION_HOSTS = ("peeref.com",)
+COMPILATION_DOI_PREFIXES = ("10.54985/",)  # Peeref posters and abstract collections
+
+
+def is_compilation(entry: dict) -> bool:
+    """Collections of several unrelated studies are never primary research items."""
+    record = entry["record"]
+    url = record["url"].lower()
+    return bool(record["screening"].get("evidence_type") == "compilation" or COMPILATION.search(record["title"])
+                or any(h in url for h in COMPILATION_HOSTS)
+                or any(p in url for p in COMPILATION_DOI_PREFIXES))
+
+
 def category_cap(category: str, config: dict) -> int:
     return config.get("category_caps", {}).get(category, config["per_category_cap"])
 
@@ -336,8 +424,11 @@ def select(entries: list[dict], config: dict, story_of: dict[str, str] | None = 
     """
     story_of = story_of or {}
     decisions, chosen, per_category, units, unit_category, capped = {}, [], Counter(), set(), {}, []
+    research_caps, per_research = config.get("research_caps", {}), Counter()
 
     def take(entry, status="selected"):
+        if entry.get("kind") == "academic":
+            per_research[entry["category"]] += 1
         unit = story_of.get(entry["article_id"], entry["article_id"])
         if unit not in units:
             units.add(unit)
@@ -348,8 +439,11 @@ def select(entries: list[dict], config: dict, story_of: dict[str, str] | None = 
     for entry in sorted(entries, key=rank_key):
         unit = story_of.get(entry["article_id"], entry["article_id"])
         unit_category.setdefault(unit, entry["category"])  # a story counts against its lead item's category
+        research = entry.get("kind") == "academic"
         if entry["score"] < config["threshold"]:
             decisions[entry["article_id"]] = "below threshold"
+        elif research and per_research[entry["category"]] >= research_caps.get(entry["category"], 10**6):
+            decisions[entry["article_id"]] = "research cap"  # strict: never relaxed to reach the target
         elif unit in units:
             take(entry, "selected (same story)")
         elif per_category[unit_category[unit]] >= category_cap(unit_category[unit], config):
@@ -362,6 +456,9 @@ def select(entries: list[dict], config: dict, story_of: dict[str, str] | None = 
     target = min(config.get("target_min_items", 0), config["overall_cap"])
     for entry in capped:
         unit = story_of.get(entry["article_id"], entry["article_id"])
+        if entry.get("kind") == "academic" and per_research[entry["category"]] >= research_caps.get(
+                entry["category"], 10**6):
+            continue
         if unit in units:
             take(entry, "selected (same story)")
         elif len(units) < target:
@@ -378,6 +475,8 @@ def takeaways(entries: list[dict], config: dict) -> list[dict]:
     ranked, seen = [], set()
     for entry in sorted(entries, key=rank_key):
         story = entry.get("story", entry["article_id"])
+        if entry.get("background"):  # an older event reported in this window is never a takeaway
+            continue
         if entry["score"] >= config["threshold"] and story not in seen:
             seen.add(story)
             ranked.append(entry)

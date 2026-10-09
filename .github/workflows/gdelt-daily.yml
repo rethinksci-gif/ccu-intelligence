@@ -1,0 +1,43 @@
+name: Daily GDELT cache (unpaid)
+on:
+  # One GDELT request per day, rotating through the queries; the research workflow reads the cache.
+  schedule:
+    - cron: '41 4 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gdelt-daily
+  cancel-in-progress: false
+env:
+  PYTHONPATH: src
+jobs:
+  gdelt:
+    # No secrets and no model calls; only public GDELT DOC API results are cached.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.lock
+      - run: pip install -r requirements.lock
+      - name: Restore GDELT cache
+        uses: actions/cache/restore@v6
+        with:
+          path: data/runtime/gdelt-cache
+          key: gdelt-cache-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            gdelt-cache-v1-
+      - name: Fetch one query
+        run: python scripts/gdelt-daily.py
+      - name: Save GDELT cache
+        if: always() && !cancelled()
+        uses: actions/cache/save@v6
+        with:
+          path: data/runtime/gdelt-cache
+          key: gdelt-cache-v1-${{ github.run_id }}-${{ github.run_attempt }}

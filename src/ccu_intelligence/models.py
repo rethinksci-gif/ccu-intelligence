@@ -105,7 +105,9 @@ class Source(Record):
     evidence_role: Literal["primary", "news"] = "primary"
     query: str | None = None
     filters: str | None = None  # extra OpenAlex filter clause, e.g. open_access.is_oa:true
-    pages: int = Field(default=1, ge=1, le=5)  # WordPress feed pages (?paged=N)
+    pages: int = Field(default=1, ge=1, le=25)  # WordPress feed pages (?paged=N); paging stops at the window start
+    # Broad feeds: only items whose title or summary matches this case-insensitive regex count toward run_limit.
+    include_pattern: str | None = None
 
 
 class Project(Record):
@@ -396,6 +398,7 @@ EvidenceType = Literal[
     "news_report",
     "association_update",
     "market_report",
+    "compilation",
     "other",
 ]
 
@@ -411,6 +414,9 @@ class Screening(Wire):
     tags: list[str] = Field(min_length=1, max_length=5)
     summary: str = Field(min_length=1, max_length=500)
     evidence_type: EvidenceType
+    # Named projects/plants and organizations the item is about; used to group related items into one story.
+    projects: list[str] = Field(default_factory=list, max_length=8)
+    organizations: list[str] = Field(default_factory=list, max_length=10)
 
 
 class SourcedValue(Wire):
@@ -437,6 +443,8 @@ class Enrichment(Wire):
     """Stage 2: decision brief (four blocks, <=180 words) plus grounded CCU fields."""
 
     headline: str = Field(min_length=1, max_length=160)
+    # Date of the main development, only when written explicitly in the source (checked after parsing).
+    event_date: date | None = None
     what_changed: str = Field(min_length=1, max_length=1000)
     why_it_matters: str | None = Field(default=None, max_length=800)
     practical_implication: str | None = Field(default=None, max_length=800)

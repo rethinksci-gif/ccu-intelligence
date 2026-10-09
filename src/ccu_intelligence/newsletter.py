@@ -73,13 +73,15 @@ def limitation(item: dict, items: dict) -> str | None:
 def headline_list(entries: list[dict]) -> list[str]:
     return [f"- [{safe_text(b['title'])}]({b['url']}) — {safe_text(b['source_name'])}, {b['publication_date']}"
             + (" (news report)" if b["evidence_role"] == "news" else "")
-            + (" (editor-submitted)" if b.get("editor_submitted") else "") + "." for b in entries]
+            + (" (editor-submitted)" if b.get("editor_submitted") else "")
+            + (" (compilation)" if b.get("selection") == "compilation (listed only)" else "") + "." for b in entries]
 
 
 def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synthesis: dict | None,
            takeaway_entries: list[dict], briefs: list[dict], also: dict, notes: list[str],
            pending: list[dict], inbox: list[dict], also_research: list[dict] = (),
-           also_other: list[dict] = ()) -> str:
+           also_other: list[dict] = (), roundups: dict | None = None) -> str:
+    roundups = roundups or {}
     items = {e["sid"]: e for e in selected}
     names = {k: c["name"] for k, c in config["categories"].items()}
     order = list(config["categories"])
@@ -135,10 +137,12 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
     sections.sort(key=lambda s: order.index(s["category"]))
     for section in sections:
         lines += ["", f"## {safe_text(names[section['category']])}", ""]
-        if section.get("intro"):
-            lines += [cited(section["intro"]["text"], section["intro"]["source_ids"], items), ""]
+        if section.get("intro"):  # plain text: citations stay with the items
+            lines += [safe_text(section["intro"]["text"]), ""]
         for item in section["items"]:
-            lines += [f"### {safe_text(item['headline'])}", ""]
+            dates = {items[i].get("background") for i in item["source_ids"]}
+            label = f" (background, event date {dates.pop()})" if len(dates) == 1 and None not in dates else ""
+            lines += [f"### {safe_text(item['headline'])}{label}", ""]
             for paragraph in item["paragraphs"]:
                 lines += [cited(paragraph["text"], paragraph["source_ids"], items), ""]
             if note := limitation(item, items):
@@ -147,6 +151,9 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
                 for dup in also.get(items[sid]["article_id"], []):
                     lines += [f"Also reported: [{safe_text(dup['title'])}]({dup['url']}) — "
                               f"{safe_text(dup['source_name'])}, {dup['publication_date']}.", ""]
+                for roundup in roundups.get(sid, []):
+                    lines += [f"Also covered in roundup: [{safe_text(roundup['title'])}]({roundup['url']}) — "
+                              f"{safe_text(roundup['source_name'])}, {roundup['publication_date']}.", ""]
     if selected:
         lines += ["", "## Technology and economics at a glance", "",
                   "Values come from the verified fact sheets; n.s. = not stated in the supplied material.", "",

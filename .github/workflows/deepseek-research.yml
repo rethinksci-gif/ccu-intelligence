@@ -86,6 +86,13 @@ jobs:
           key: deepseek-responses-v5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             deepseek-responses-v5-
+      - name: Restore daily GDELT cache (read-only)
+        uses: actions/cache/restore@v6
+        with:
+          path: data/runtime/gdelt-cache
+          key: gdelt-cache-v1-${{ github.run_id }}
+          restore-keys: |
+            gdelt-cache-v1-
       - name: Research dry run (no LLM secret)
         env:
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
@@ -136,6 +143,13 @@ jobs:
           key: deepseek-responses-v5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             deepseek-responses-v5-
+      - name: Restore daily GDELT cache (read-only)
+        uses: actions/cache/restore@v6
+        with:
+          path: data/runtime/gdelt-cache
+          key: gdelt-cache-v1-${{ github.run_id }}
+          restore-keys: |
+            gdelt-cache-v1-
       - name: Bounded paid research
         env:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
