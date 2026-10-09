@@ -55,7 +55,8 @@ npm run preview
 
 - Home, newsletter archive, project tracker, Technology Atlas, Insights & Learning, and methodology pages.
 - Search and combined project filters: region, country, company, pathway, product, status, TRL, sample/live scope and compatible announced capacity.
-- Persistent project URLs, evidence, unknown-value labels and event history with previous/new values.
+- Linked project names and persistent detail URLs, evidence, unknown-value labels and event history with previous/new values.
+- Shareable tracker filters in the URL, restored on reload and browser back navigation.
 - Three pathway profiles, original process diagrams, and seven sourced technical primers.
 - Interactive methanol feedstock/energy sensitivity model, backed by the same documented Python formula.
 - English seven-section Markdown newsletter drafts with structured metadata, date windows and adjacent citations.

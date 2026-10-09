@@ -106,6 +106,7 @@ const capacityKeys = [
             <tr data-project={JSON.stringify({ ...p, company_name: companyName(p.company) })}>
               <>
                 <td>
+                  <a href={href(`projects/${p.project_id}/`)}>{p.project_name}</a>
                   <span class="meta">{companyName(p.company)}</span>
                   {p.sample && <span class="badge sample">Fictional sample</span>}
                 </td>
@@ -143,7 +144,10 @@ const capacityKeys = [
   import type { projects } from '../../lib/data';
   type Project = (typeof projects)[number] & { company_name: string };
   const form = document.querySelector<HTMLFormElement>('#project-filters');
-  const rows = [...document.querySelectorAll<HTMLTableRowElement>('tr[data-project]')];
+  const rows = [...document.querySelectorAll<HTMLTableRowElement>('tr[data-project]')].map((row) => ({
+    row,
+    project: JSON.parse(row.dataset.project!) as Project,
+  }));
   const fields = [
     'region',
     'country',
@@ -153,17 +157,43 @@ const capacityKeys = [
     'development_status',
     'technology_trl',
   ] as const;
+  const controls = form
+    ? [...form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')]
+    : [];
+  function restoreFilters() {
+    form?.reset();
+    const params = new URL(window.location.href).searchParams;
+    for (const control of controls) {
+      const value = params.get(control.name);
+      if (value === null) continue;
+      if (control instanceof HTMLSelectElement && ![...control.options].some((o) => o.value === value))
+        continue;
+      control.value = value;
+      if (control instanceof HTMLInputElement && !control.validity.valid) control.value = '';
+    }
+    filter();
+  }
+  function saveFilters() {
+    const url = new URL(window.location.href);
+    for (const control of controls) {
+      url.searchParams.delete(control.name);
+      if (!control.disabled && control.value && !(control.name === 'scope' && control.value === 'all'))
+        url.searchParams.set(control.name, control.value);
+    }
+    window.history.replaceState(window.history.state, '', url);
+  }
   function filter() {
     if (!form) return;
     const data = new FormData(form),
-      query = String(data.get('query') ?? '').toLowerCase(),
+      query = String(data.get('query') ?? '')
+        .trim()
+        .toLowerCase(),
       group = String(data.get('capacityGroup') ?? '');
     const minimum = form.elements.namedItem('minCapacity') as HTMLInputElement;
     minimum.disabled = !group;
     if (!group) minimum.value = '';
     let count = 0;
-    for (const row of rows) {
-      const p = JSON.parse(row.dataset.project!) as Project;
+    for (const { row, project: p } of rows) {
       const capacity = p.announced_capacity;
       const matches =
         [p.project_name, p.company_name, p.country, p.region, p.primary_product, p.conversion_pathway]
@@ -183,8 +213,14 @@ const capacityKeys = [
     document.querySelector('#project-count')!.textContent = `${count} project${count === 1 ? '' : 's'} shown`;
     (document.querySelector('#project-empty') as HTMLElement).hidden = count !== 0;
   }
-  form?.addEventListener('input', filter);
-  form?.addEventListener('change', filter);
-  form?.addEventListener('reset', () => setTimeout(filter, 0));
+  function updateFilters() {
+    filter();
+    saveFilters();
+  }
+  form?.addEventListener('input', updateFilters);
+  form?.addEventListener('change', updateFilters);
+  form?.addEventListener('reset', () => setTimeout(updateFilters, 0));
   form?.addEventListener('submit', (e) => e.preventDefault());
+  window.addEventListener('popstate', restoreFilters);
+  restoreFilters();
 </script>
