@@ -44,6 +44,7 @@ from .stages import (
     move_requests,
     newsletter_config,
     numbers,
+    rank_key,
     screening_schema,
     select,
     story_groups,
@@ -363,7 +364,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
             return host.removeprefix("www.") if host != "news.google.com" else f"{publisher} (via Google News)"
         if source.access_method in ("gdelt", "editor_list"):
             return urlsplit(str(article.canonical_url)).hostname.removeprefix("www.")
-        return re.sub(r"\s*\((?:site search|open-access subset)[^)]*\)", "", source.organization)
+        return re.sub(r"\s*\((?:site search|open-access subset|all news)[^)]*\)", "", source.organization)
 
     records = {a.article_id: {
         "article_id": a.article_id, "title": a.title, "url": str(a.canonical_url), "source_id": a.source_id,
@@ -440,7 +441,19 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     for duplicate, kept in merged.items():
         records[duplicate]["selection"] = f"duplicate of {kept}"
         also.setdefault(kept, []).append(records[duplicate])
-    chosen, selection = select([e for e in entries if e["article_id"] not in merged], config, story_of)
+    # Headline-only items are screened but never written up or used as takeaways. In a story with a text-backed
+    # member they become "Also reported" under that story; otherwise they are listed with headline and link only.
+    for entry in [e for e in entries if e["input_basis"] == "headline" and e["article_id"] not in merged]:
+        lead = story_of.pop(entry["article_id"], None)
+        backed = sorted((e for e in entries if lead and story_of.get(e["article_id"]) == lead
+                         and e["input_basis"] != "headline" and e["article_id"] not in merged), key=rank_key)
+        if backed:
+            records[entry["article_id"]]["selection"] = f"also reported under {backed[0]['article_id']}"
+            also.setdefault(backed[0]["article_id"], []).append(records[entry["article_id"]])
+        else:
+            records[entry["article_id"]]["selection"] = "headline only (listed)"
+    selectable = [e for e in entries if e["article_id"] not in merged and e["input_basis"] != "headline"]
+    chosen, selection = select(selectable, config, story_of)
     # Enrichment cap: items beyond it (in selection order) are not sent to the strong model.
     for entry in chosen[args.max_enrichments:]:
         selection[entry["article_id"]] = "selected, not enriched: enrichment cap"
@@ -578,11 +591,19 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     # Relevant items that were not selected, headline and link only: specialist-source news ("CCU ecosystem
     # briefs"), papers ("Also noted in research") and other news, company and policy items.
     leftovers = sorted([r for r in records.values() if r.get("screening") and r["screening"]["ccu_relevant"]
-                        and r.get("selection") in ("below threshold", "category cap", "overall cap", "research cap",
-                                                    "compilation (listed only)")
+                        and (r.get("selection") in ("below threshold", "category cap", "overall cap", "research cap",
+                                                     "compilation (listed only)")
+                             or (r.get("selection") == "headline only (listed)" and r["triage"]["kind"] == "academic"))
                         and r["screening"]["score"] >= config.get("also_noted_min_score", 3)],
                        key=lambda r: (-r["screening"]["score"], r["title"]))
-    briefs = [r for r in leftovers if r["source_id"] in CCU_SPECIALIST_SOURCES]
+    headline_leads = sorted([r for r in records.values() if r.get("selection") == "headline only (listed)"
+                             and r["screening"]["score"] >= config.get("also_noted_min_score", 3)
+                             and r["triage"]["kind"] != "academic" and r["source_id"] not in CCU_SPECIALIST_SOURCES],
+                            key=lambda r: (-r["screening"]["score"], r["title"]))
+    briefs = [r for r in leftovers if r["source_id"] in CCU_SPECIALIST_SOURCES] + sorted(
+        [r for r in records.values() if r.get("selection") == "headline only (listed)"
+         and r["source_id"] in CCU_SPECIALIST_SOURCES and r["screening"]["score"] >= config.get("also_noted_min_score", 3)],
+        key=lambda r: (-r["screening"]["score"], r["title"]))
     research = [r for r in leftovers if r not in briefs and r["triage"]["kind"] == "academic"]
     other = [r for r in leftovers if r not in briefs and r not in research]
     pending = [records[e["article_id"]] for e in chosen if e["article_id"] not in {f["article_id"] for f in final}]
@@ -594,7 +615,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
                                 "screened": sum(bool(r.get("screening")) for r in records.values())},
         roundups={e["sid"]: [records[r] for r in roundups.get(e["article_id"], [])] for e in final},
         config=config, selected=final, synthesis=synthesis, takeaway_entries=leads, briefs=briefs,
-        also_research=research, also_other=other, also=also, notes=notes, pending=pending, inbox=inbox))
+        also_research=research, also_other=other, headline_leads=headline_leads, also=also, notes=notes,
+        pending=pending, inbox=inbox))
     validate_issue(draft, bundle)
 
     calls = caller.calls
@@ -672,6 +694,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     }
     report = {"summary": summary, "triage": decisions, "promising_candidates": len(gated),
               "ecosystem_briefs": len(briefs), "also_noted_research": len(research), "also_noted_other": len(other),
+              "headline_only_listed": len(headline_leads),
               "records": list(records.values()),
               "synthesis_issues": synthesis_issues, "calls": calls}
     atomic_json(args.output / "report.json", report)

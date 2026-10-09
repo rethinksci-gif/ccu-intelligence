@@ -74,13 +74,14 @@ def headline_list(entries: list[dict]) -> list[str]:
     return [f"- [{safe_text(b['title'])}]({b['url']}) — {safe_text(b['source_name'])}, {b['publication_date']}"
             + (" (news report)" if b["evidence_role"] == "news" else "")
             + (" (editor-submitted)" if b.get("editor_submitted") else "")
-            + (" (compilation)" if b.get("selection") == "compilation (listed only)" else "") + "." for b in entries]
+            + (" (compilation)" if b.get("selection") == "compilation (listed only)" else "")
+            + (" (headline only)" if (b.get("input") or {}).get("basis") == "headline" else "") + "." for b in entries]
 
 
 def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synthesis: dict | None,
            takeaway_entries: list[dict], briefs: list[dict], also: dict, notes: list[str],
            pending: list[dict], inbox: list[dict], also_research: list[dict] = (),
-           also_other: list[dict] = (), roundups: dict | None = None) -> str:
+           also_other: list[dict] = (), roundups: dict | None = None, headline_leads: list[dict] = ()) -> str:
     roundups = roundups or {}
     items = {e["sid"]: e for e in selected}
     names = {k: c["name"] for k, c in config["categories"].items()}
@@ -149,8 +150,9 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
                 lines += [f"*{safe_text(note)}*", ""]
             for sid in item["source_ids"]:
                 for dup in also.get(items[sid]["article_id"], []):
+                    basis = " (headline only)" if (dup.get("input") or {}).get("basis") == "headline" else ""
                     lines += [f"Also reported: [{safe_text(dup['title'])}]({dup['url']}) — "
-                              f"{safe_text(dup['source_name'])}, {dup['publication_date']}.", ""]
+                              f"{safe_text(dup['source_name'])}, {dup['publication_date']}{basis}.", ""]
                 for roundup in roundups.get(sid, []):
                     lines += [f"Also covered in roundup: [{safe_text(roundup['title'])}]({roundup['url']}) — "
                               f"{safe_text(roundup['source_name'])}, {roundup['publication_date']}.", ""]
@@ -174,6 +176,11 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
         lines += ["", "## Also noted in research", "",
                   "Relevant papers not selected (category cap or below the threshold). Headline and link only.", ""]
         lines += headline_list(also_research)
+    if headline_leads:
+        lines += ["", "## Also reported (headline only)", "",
+                  "Relevant items whose text could not be retrieved and that no text-backed source in this run "
+                  "covers. Headline and link only; not summarised or verified.", ""]
+        lines += headline_list(headline_leads)
     if also_other:
         lines += ["", "## Also noted in industry and policy", "",
                   "Relevant news, company and policy items not selected. Headline and link only.", ""]

@@ -925,8 +925,10 @@ def test_end_to_end_full_text_two_stage_verification_and_synthesis(research, cap
     # Dedup merged the news report into the primary company source.
     news = by_title["Liquid Wind closes e-methanol financing"]
     assert news["selection"].startswith("duplicate of")
-    # Enrichment and verification ran on selected items only, with the strong model.
-    assert stages.count("enrichment") == stages.count("verification") == 3
+    # Enrichment and verification ran on selected items only, with the strong model. The headline-only item was
+    # screened but is never written up: no text-backed source covers it, so it is listed with headline and link.
+    assert stages.count("enrichment") == stages.count("verification") == 2
+    assert minerals["selection"] == "headline only (listed)" and "enrichment" not in minerals
     lw = by_title["Liquid Wind secures financing for e-methanol plant"]
     assert lw["enrichment_status"] == "verified"
     assert "partners" in lw["fields"]["not_stated"] and "scale" in lw["fields"]["filled"]
@@ -944,12 +946,14 @@ def test_end_to_end_full_text_two_stage_verification_and_synthesis(research, cap
     assert "https://www.liquidwind.com/news/financing" in body and "https://oa.example" not in body
     assert "Also reported: [Liquid Wind closes e-methanol financing](https://carbonherald.com/lw)" in body
     assert "999" not in body and "unknown item" not in body and "S99" not in body
-    assert "headline only" in body  # the headline-only item is labelled wherever cited
-    assert "[Carbon Herald, 2026-09-21](https://blocked.example/minerals)" in body  # clean outlet label
+    listed = body.split("## Also reported (headline only)")[1].split("\n## ")[0]
+    assert ("[CO2 mineralization startup raises funds](https://blocked.example/minerals) — Carbon Herald, 2026-09-21 "
+            "(news report) (headline only).") in listed  # clean outlet label
+    takeaways_section = body.split("## Key takeaways")[1].split("\n## ")[0]
+    assert "blocked.example" not in takeaways_section and "### CO2 mineralization" not in body
     assert "site search" not in body and "open-access subset" not in body
     dek = next(line for line in body.splitlines() if line.startswith("*A financing round"))
     assert "](" not in dek  # the executive summary is plain prose; citations stay in the item sections
-    assert "*Headline only; content not reviewed.*" in body  # default one-line limitation
     assert "\nIntro sentence for commercialization.\n" in body  # section intros carry no citation chain
     assert {i["issue"] for i in report["synthesis_issues"]} >= {"unsupported number", "uncited text removed"}
     # Publisher text never leaves the private cache: not in the draft, report, bundle or stage cache.
@@ -967,11 +971,13 @@ def test_story_members_render_as_one_item_citing_every_source(research, monkeypa
     report = execute(args)
     by_title = records(report)
     lead = by_title["Liquid Wind secures financing for e-methanol plant"]["article_id"]
-    assert by_title["CO2 mineralization startup raises funds"]["story"] == lead
+    # The headline-only member is not written up: it is "Also reported" under the text-backed story.
+    assert by_title["CO2 mineralization startup raises funds"]["selection"] == f"also reported under {lead}"
     body = Path(report["summary"]["draft"]).read_text()
     section = body.split("## Projects, finance & deployment")[1].split("\n## ")[0]
-    assert "https://blocked.example/minerals" in section and "## Products & markets" not in body
-    assert section.count("### ") == 1  # one story item citing both sources
+    assert ("Also reported: [CO2 mineralization startup raises funds](https://blocked.example/minerals) — "
+            "Carbon Herald, 2026-09-21 (headline only).") in section
+    assert "## Products & markets" not in body and section.count("### ") == 1
 
 
 def test_editor_submitted_list_is_valid():
@@ -1014,6 +1020,12 @@ def test_editor_submitted_items_go_through_the_same_pipeline_and_are_marked(rese
     assert "Rs 2,300 crore (USD 50 million)" in body  # flagged, never corrected
 
 
+def test_headline_only_duplicate_yields_to_the_text_backed_copy():
+    items = [entry("headline", 9, "commercialization", basis="headline") | {"url": "https://www.reuters.com/x"},
+             entry("text", 6, "commercialization", "news") | {"url": "https://www.sentinelassam.com/y"}]
+    assert dedup_groups(DedupResult(groups=[["HEADLINE", "TEXT"]]), items, newsletter_config()) == {"headline": "text"}
+
+
 def test_cache_makes_reruns_free_and_prompt_change_invalidates(research, monkeypatch):
     args, stages, _ = research
     execute(args)
@@ -1042,8 +1054,8 @@ def test_enrichment_cap_limits_strong_model_items(research):
     args.max_enrichments = 1
     report = execute(args)
     assert stages.count("enrichment") == stages.count("verification") == 1
-    assert report["summary"]["cut_by_enrichment_cap"] == 2 and report["summary"]["verified_in_draft"] == 1
-    assert sum(r.get("selection") == "selected, not enriched: enrichment cap" for r in report["records"]) == 2
+    assert report["summary"]["cut_by_enrichment_cap"] == 1 and report["summary"]["verified_in_draft"] == 1
+    assert sum(r.get("selection") == "selected, not enriched: enrichment cap" for r in report["records"]) == 1
 
 
 @pytest.mark.parametrize("mode", ["explicit", "default", "zero-spend"])
