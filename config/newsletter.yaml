@@ -4,6 +4,8 @@ threshold: 5            # minimum 0–10 decision-value score for enrichment and
 per_category_cap: 5     # default per-category cap, counted per story; never fill a category with weak items
 category_caps:          # per-category overrides
   conversion: 8
+research_caps:          # strict per-section caps on research papers (never relaxed); the rest go to "Also noted"
+  conversion: 4         # ranked by score, with full text counting half a point more than an abstract
 target_min_items: 10    # aim for 10–15 stories: caps (never the threshold) are relaxed to reach 10 when enough qualify
 overall_cap: 15
 min_takeaways: 3        # aim for 3–5 takeaways when enough stories pass the threshold
@@ -20,7 +22,8 @@ outlet_tiers:
     scmp.com, japantimes.co.jp, axios.com, politico.eu, politico.com, euractiv.com]
   trade_press: [carbonherald.com, hydrogen-central.com, biofuels-news.com, hellenicshippingnews.com, offshore-energy.biz,
     rechargenews.com, upstreamonline.com, tradewindsnews.com, chemanager-online.com, cen.acs.org, chemistryworld.com,
-    greenairnews.com, sustainableaviationfuel.news, h2-view.com, hydrogeninsight.com, renewablesnow.com]
+    greenairnews.com, sustainableaviationfuel.news, h2-view.com, hydrogeninsight.com, renewablesnow.com,
+    biofuelsdigest.com, chemengonline.com, manifoldtimes.com, renewable-carbon.eu, bioenergy-news.com]
 categories:
   commercialization:
     name: Projects, finance & deployment

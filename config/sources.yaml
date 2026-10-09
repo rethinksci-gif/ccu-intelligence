@@ -217,8 +217,7 @@ sources:
     do not copy reports.
   active: true
   automated_access_approved: false
-  limitation: Monitoring candidate; specific IR/report URL and automation rights not
-    verified.
+  limitation: Checked 2026-10-09 - no RSS feed found. Manual review only.
 - source_id: dioxycle
   run_limit: 5
   content_extractor: trafilatura
@@ -295,8 +294,7 @@ sources:
     do not copy reports.
   active: true
   automated_access_approved: false
-  limitation: Monitoring candidate; specific IR/report URL and automation rights not
-    verified.
+  limitation: Checked 2026-10-09 - no RSS feed (feed URLs redirect to the home page). Manual review only.
 - source_id: lanzatech
   organization: LanzaTech
   source_type: company_announcements_and_annual_reports
@@ -399,15 +397,19 @@ sources:
   organization: European Energy
   source_type: company_or_consortium_report
   base_url: https://europeanenergy.com
-  access_method: manual
+  access_method: rss
   update_frequency: biweekly manual review
   reliability_tier: 3
   reuse_restrictions: Original attributed paraphrase and link only; no full-text redistribution.
   active: true
-  automated_access_approved: false
-  limitation: Primary-source reporting is not independent verification of throughput
-    or lifecycle performance.
-
+  automated_access_approved: true
+  endpoint: https://europeanenergy.com/feed/
+  pages: 3
+  run_limit: 5
+  content_extractor: trafilatura
+  include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
+  minimum_interval_seconds: 3
+  limitation: WordPress feed; robots verified 2026-10-09. Company news (e-methanol, PtX); only items matching the CCU/e-fuel include_pattern count.
 - source_id: poseidon
   organization: POSEIDON project consortium
   source_type: company_or_consortium_report
@@ -746,6 +748,184 @@ sources:
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09. E-fuels and power-to-liquid. Replaces Google News RSS, whose robots.txt
     disallows /rss/search for all agents.
+- source_id: ineratec
+  organization: INERATEC
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.ineratec.de
+  access_method: rss
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Private feed evidence only; publish original links and short attributed paraphrases after review. No full-text redistribution. Company claims are not independent verification.
+  active: true
+  automated_access_approved: true
+  endpoint: 'https://www.ineratec.de/en/rss.xml?q=/en/rss.xml'
+  run_limit: 5
+  content_extractor: trafilatura
+  minimum_interval_seconds: 3
+  limitation: Company news feed (e-fuels, power-to-liquid plants); robots verified 2026-10-09. The plain /en/rss.xml redirects here.
+- source_id: uniper
+  organization: Uniper
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.uniper.energy
+  access_method: manual
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Private feed evidence only; publish original links and short attributed paraphrases after review. No full-text redistribution. Company claims are not independent verification.
+  active: true
+  automated_access_approved: false
+  limitation: Newsroom answers HTTP 403 to our declared agent (checked 2026-10-09); respected, not bypassed. Manual review only.
+- source_id: arcadia-efuels
+  organization: Arcadia eFuels
+  source_type: company_announcements_and_annual_reports
+  base_url: https://arcadiaefuels.com
+  access_method: manual
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Private feed evidence only; publish original links and short attributed paraphrases after review. No full-text redistribution. Company claims are not independent verification.
+  active: true
+  automated_access_approved: false
+  limitation: Site answers HTTP 403 to our declared agent (checked 2026-10-09); respected, not bypassed. Manual review only.
+- source_id: infinium
+  organization: Infinium
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.infiniumco.com
+  access_method: manual
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Private feed evidence only; publish original links and short attributed paraphrases after review. No full-text redistribution. Company claims are not independent verification.
+  active: true
+  automated_access_approved: false
+  limitation: Checked 2026-10-09 - no RSS feed found. Manual review only.
+- source_id: norsk-e-fuel
+  organization: Norsk e-Fuel
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.norsk-e-fuel.com
+  access_method: manual
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Private feed evidence only; publish original links and short attributed paraphrases after review. No full-text redistribution. Company claims are not independent verification.
+  active: true
+  automated_access_approved: false
+  limitation: Checked 2026-10-09 - no RSS feed found. Manual review only.
+- source_id: syzygy-plasmonics
+  organization: Syzygy Plasmonics
+  source_type: company_announcements_and_annual_reports
+  base_url: https://syzygyplasmonics.com
+  access_method: manual
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Private feed evidence only; publish original links and short attributed paraphrases after review. No full-text redistribution. Company claims are not independent verification.
+  active: true
+  automated_access_approved: false
+  limitation: Checked 2026-10-09 - no RSS feed found. Manual review only.
+- source_id: news-offshore-energy
+  organization: "Offshore Energy (all news, CCU filter)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.offshore-energy.biz
+  access_method: rss
+  endpoint: 'https://www.offshore-energy.biz/feed'
+  pages: 1
+  run_limit: 10
+  content_extractor: trafilatura
+  include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: Feed and robots verified 2026-10-09. Serves only the latest 50 items and ignores paging, so early-window coverage is partial.
+- source_id: news-biofuels-digest
+  organization: "Biofuels Digest (all news, CCU filter)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://biofuelsdigest.com
+  access_method: rss
+  endpoint: 'https://biofuelsdigest.com/feed/'
+  pages: 20
+  run_limit: 20
+  content_extractor: trafilatura
+  include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress feed and robots verified 2026-10-09 (site search answers 403). About 10 pages cover 14 days; paging stops at the window start.
+- source_id: news-chemengonline
+  organization: "Chemical Engineering (all news, CCU filter)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.chemengonline.com
+  access_method: rss
+  endpoint: 'https://www.chemengonline.com/feed/'
+  pages: 15
+  run_limit: 10
+  content_extractor: trafilatura
+  include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress feed and robots verified 2026-10-09. Paging stops at the window start.
+- source_id: news-manifold-times
+  organization: "Manifold Times (all news, CCU filter)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.manifoldtimes.com
+  access_method: rss
+  endpoint: 'https://www.manifoldtimes.com/feed/'
+  pages: 15
+  run_limit: 20
+  content_extractor: trafilatura
+  include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: Bunkering and marine fuels (e-methanol). WordPress feed and robots verified 2026-10-09 (site search answers 403). Paging stops at the window start.
+- source_id: news-renewable-carbon
+  organization: "Renewable Carbon News (all news, CCU filter)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://renewable-carbon.eu
+  access_method: rss
+  endpoint: 'https://renewable-carbon.eu/news/feed/'
+  pages: 15
+  run_limit: 20
+  content_extractor: trafilatura
+  include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: CO2-based chemicals and fuels. WordPress feed and robots verified 2026-10-09 (category feeds answer 403). Paging stops at the window start.
+- source_id: news-efuel-bioenergy
+  organization: "Bioenergy Insight (site search: e-fuel)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.bioenergy-news.com
+  access_method: rss
+  endpoint: 'https://www.bioenergy-news.com/?s=e-fuel&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09.
 - source_id: editor-submitted-company
   organization: "Editor-submitted (company announcements)"
   source_type: company_announcements_and_annual_reports
@@ -784,7 +964,7 @@ sources:
   access_method: gdelt
   endpoint: https://api.gdeltproject.org/api/v2/doc/doc
   query: '("e-methanol" OR "e-fuels" OR "e-SAF" OR "e-kerosene" OR "power-to-liquid" OR "synthetic methanol")'
-  run_limit: 10
+  run_limit: 25
   content_extractor: trafilatura
   update_frequency: biweekly on demand
   reliability_tier: 3
@@ -802,7 +982,7 @@ sources:
   access_method: gdelt
   endpoint: https://api.gdeltproject.org/api/v2/doc/doc
   query: '("CO2 electrolysis" OR "carbon utilization" OR "carbon utilisation" OR "CO2 utilization" OR "CO2 conversion" OR "carbon capture and utilization")'
-  run_limit: 10
+  run_limit: 25
   content_extractor: trafilatura
   update_frequency: biweekly on demand
   reliability_tier: 3
@@ -820,7 +1000,7 @@ sources:
   access_method: gdelt
   endpoint: https://api.gdeltproject.org/api/v2/doc/doc
   query: '("CO2 mineralization" OR "carbon mineralization" OR "CO2 mineralisation" OR "carbonated aggregate" OR "CO2-cured concrete")'
-  run_limit: 10
+  run_limit: 25
   content_extractor: trafilatura
   update_frequency: biweekly on demand
   reliability_tier: 3
@@ -840,7 +1020,7 @@ sources:
   # GDELT rejects quoted phrases shorter than four characters ("The specified phrase is too short."), so 45Q and 45V
   # are searched with their context words (diagnosed 2026-10-09; the old query failed in every run).
   query: '("RFNBO" OR "RFNBOs" OR "renewable fuels of non-biological origin" OR "45Q tax credit" OR "45V tax credit" OR "ReFuelEU")'
-  run_limit: 10
+  run_limit: 25
   content_extractor: trafilatura
   update_frequency: biweekly on demand
   reliability_tier: 3

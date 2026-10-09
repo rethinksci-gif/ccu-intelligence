@@ -49,6 +49,21 @@ There are deliberately **no required reviewers** on `deepseek-paid`. Paid spendi
 
 Prompts are profile-style markdown in `config/prompts/profile/` (`match`, `analysis`, `enrichment`, `verification`, `dedup`, `synthesis`); the version is `PROMPT_VERSION` in `src/ccu_intelligence/stages.py`. Validated responses are cached by stage, model, thinking mode, prompt text and input, so reruns are free and any prompt, model or input change re-analyses.
 
+### Draft safeguards (added 2026-10-09)
+
+- **Stories:** besides the dedup model's proposals, non-academic items that name the same project or organization (screening returns `projects` and `organizations`) become one story, written as one item citing every source. Multi-project roundups (three or more named projects) never join or bridge stories; they appear under each related story as "Also covered in roundup".
+- **Event dates:** enrichment returns the main `event_date` only when it is written in the source. An item whose event predates the window is headed "(background, event date YYYY-MM-DD)", explained in the editor notes and never used as a takeaway; dated milestones outside the window inside an item are listed as background in the notes.
+- **Compilations:** poster and abstract collections, research highlights and similar digests (evidence type `compilation`, Peeref DOIs `10.54985/`) are listed under "Also noted in research" with "(compilation)", never as research items.
+- **Currency check:** "amount (other-currency amount)" pairs in the verified briefs are compared at fixed approximate reference rates (`src/ccu_intelligence/currency.py`); a gap above 20% becomes an editor note. Numbers are never corrected.
+- **Research cap:** at most 4 research papers in the conversion section (`research_caps`), ranked by score with full text counting half a point more than an abstract; the cap is never relaxed to reach the 10-story target. The rest go to "Also noted in research".
+- **Section intros** are plain sentences; citations stay with the items.
+
+### Feeds and the daily GDELT cache
+
+Company newsroom feeds: INERATEC, European Energy and Liquid Wind (robots verified 2026-10-09). Uniper and Arcadia eFuels answer HTTP 403 to our declared agent, which we respect; HIF Global, Infinium, Twelve, Norsk e-Fuel and Syzygy Plasmonics have no RSS feed. These are recorded as manual sources. Trade-press feeds that load from runners: Offshore Energy (latest 50 items only), Biofuels Digest, Chemical Engineering, Manifold Times, Renewable Carbon News and a Bioenergy Insight search feed. Broad feeds use `include_pattern`: only items whose title or summary matches the CCU/e-fuel pattern count toward `run_limit`; paging stops at the window start.
+
+`.github/workflows/gdelt-daily.yml` runs daily without secrets. `scripts/gdelt-daily.py` sends one GDELT request: the query whose last success is oldest (so a throttled query is retried first the next day), from one day before that success (16 days on first use) through today, saved under `data/runtime/gdelt-cache/` in the Actions cache. The research workflow restores the cache read-only and reads GDELT results from it, querying GDELT live only when nothing cached overlaps the window (`collection.json` records `gdelt_cache` coverage). Cache files older than 35 days are pruned.
+
 ### Editor-submitted items
 
 When the automated sources miss a story (for example when GDELT is throttled), an editor can list it in `config/editor-submitted.yaml`: source (`editor-submitted-company` for official announcement text, `editor-submitted-news` for a press report), publisher headline, URL and publication date. Only pointers are stored, never text. The run applies the coverage window, fetches the text from the URL with the normal robots-respecting reader, and sends the item through the same gate, scoring, dedup, grounding and verification. Citations in the draft carry "editor-submitted", and `summary.editor_submitted` lists each item with its gate result, score and selection.

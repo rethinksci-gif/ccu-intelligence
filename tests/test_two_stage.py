@@ -22,7 +22,9 @@ from ccu_intelligence.models import NOT_STATED, DedupResult, Enrichment, Screeni
 from ccu_intelligence.stages import (
     apply_verification,
     dedup_groups,
+    entity_stories,
     ground_enrichment,
+    is_compilation,
     keep_supported_numbers,
     merge_stories,
     move_requests,
@@ -500,6 +502,93 @@ def test_limitation_is_one_short_line():
     assert len(short_line(long).split()) <= 20 and short_line(None) is None
 
 
+def news(article_id, score, projects=(), organizations=(), kind="news", title="t", url="https://x.example/a"):
+    return entry(article_id, score, "commercialization", "news") | {"kind": kind, "record": {
+        "title": title, "url": url, "screening": {"projects": list(projects), "organizations": list(organizations),
+                                                  "evidence_type": "news_report"}}}
+
+
+def test_items_about_one_project_or_deal_become_one_story():
+    plug = news("plug", 7, ["Project ENDOR"], ["Plug Power", "Arcadia eFuels"])
+    uniper = news("uniper", 8, ["Project Endor"], ["Uniper SE", "Arcadia eFuels A/S"])
+    other = news("kandla", 8, ["Kandla e-methanol plant"], ["Deendayal Port Authority"])
+    paper = news("paper", 6, ["Project ENDOR"], kind="academic")
+    story, roundups = entity_stories([plug, uniper, other, paper], {}, {})
+    assert story == {"plug": "uniper", "uniper": "uniper"} and roundups == {}
+
+
+def test_roundups_never_bridge_stories_and_are_cross_referenced():
+    a = news("a", 7, ["ENDOR"], ["Arcadia eFuels"])
+    b = news("b", 6, ["ENDOR"], ["Plug Power", "Arcadia eFuels"])
+    c = news("c", 6, ["Hopefield"], ["Phelan Green"])
+    roundup = news("r", 8, ["ENDOR", "Hopefield", "DAWN", "AirPlant One"], ["Arcadia eFuels", "Phelan Green"])
+    story, roundups = entity_stories([a, b, c, roundup], {}, {})
+    assert story == {"a": "a", "b": "a"}  # c and the roundup stay separate; the roundup does not chain a+b to c
+    assert roundups == {"a": ["r"], "c": ["r"]}
+
+
+def test_model_stories_are_kept_and_duplicates_ignored():
+    a, b, dup = news("a", 7), news("b", 6), news("d", 5, ["X"], ["Y"])
+    story, _ = entity_stories([a, b, dup], {"a": "a", "b": "a"}, {"d": "a"})
+    assert story == {"a": "a", "b": "a"}
+
+
+@pytest.mark.parametrize("title,url,evidence,expected", [
+    ("Enhanced CO2 Electroreduction by a Rhenium Catalyst", "https://doi.org/10.54985/peeref.2609a8838826",
+     "original_research", True),
+    ("Research highlights: CO2 conversion", "https://doi.org/10.1/x", "original_research", True),
+    ("A copper catalyst for CO2 reduction", "https://doi.org/10.1/x", "compilation", True),
+    ("A copper catalyst for CO2 reduction", "https://doi.org/10.1/x", "original_research", False),
+    ("A review of CO2 utilization", "https://doi.org/10.1/x", "review_article", False),
+])
+def test_compilations_are_detected(title, url, evidence, expected):
+    item = {"record": {"title": title, "url": url, "screening": {"evidence_type": evidence}}}
+    assert is_compilation(item) is expected
+
+
+def test_research_cap_is_strict_and_prefers_full_text():
+    config = {"threshold": 5, "per_category_cap": 8, "research_caps": {"conversion": 2}, "overall_cap": 15,
+              "target_min_items": 10}
+    papers = [entry("abs6", 6, "conversion", basis="abstract"), entry("full6", 6, "conversion"),
+              entry("abs65", 6.4, "conversion", basis="abstract"), entry("full5", 5, "conversion")]
+    for paper in papers:
+        paper["kind"] = "academic"
+    pilot = entry("pilot", 6, "conversion", "news") | {"kind": "news"}
+    chosen, decisions = select(papers + [pilot], config)
+    assert {c["article_id"] for c in chosen} == {"full6", "abs65", "pilot"}  # 6 + 0.5 full-text bonus ranks first
+    assert decisions["abs6"] == decisions["full5"] == "research cap"  # not relaxed although below target
+
+
+def test_background_events_are_never_takeaways():
+    config = {"threshold": 5, "min_takeaways": 3, "max_takeaways": 5, "takeaway_extra_score": 7}
+    leads = takeaways([entry("old", 9, "commercialization") | {"background": "2026-09-01"},
+                       entry("new", 6, "commercialization")], config)
+    assert [e["article_id"] for e in leads] == ["new"]
+
+
+def test_event_date_must_be_written_in_the_source():
+    result, removed = ground_enrichment(enrichment(event_date="2026-09-21"), SOURCE)
+    assert str(result.event_date) == "2026-09-21"
+    result, removed = ground_enrichment(enrichment(event_date="2026-09-01"), SOURCE)
+    assert result.event_date is None and any(r["item"] == "event_date" for r in removed)
+
+
+@pytest.mark.parametrize("text,flagged", [
+    ("first phase of R12bn ($73m)", True), ("R12bn ($690m)", False), ("Rs 2,300 crore (about $277m)", False),
+    ("₹2,300-crore (USD 50 million)", True), ("€585M ($680M)", False), ("100 million euros ($108m)", False),
+    ("SEK 100 million ($9.5m)", False), ("70,000 tonnes (2026)", False), ("$73m ($73m)", False),
+])
+def test_currency_pairs_are_checked_at_reference_rates(text, flagged):
+    from ccu_intelligence.currency import mismatches
+    assert bool(mismatches(text)) is flagged
+
+
+def test_currency_note_never_changes_the_number():
+    from ccu_intelligence.currency import mismatches, note
+    text = note("Hopefield FID", mismatches("R12bn ($73m)")[0])
+    assert "'R12bn ($73m)'" in text and "about USD 672m" in text and "Not corrected" in text
+
+
 # --- limits, pricing and budget -------------------------------------------------------------------------
 
 def entrypoint():
@@ -737,6 +826,8 @@ def llm_handler(log):
                 content = enrichment().model_dump(mode="json")
             elif payload["title"].startswith("Kandla"):
                 content = Enrichment(headline="Foundation stone laid for Kandla e-methanol plant",
+                                     event_date="2026-09-01", fields={"cost_economics": {
+                                         "value": "Rs 2,300 crore (USD 50 million)", "quote": "Rs 2,300 crore"}},
                                      what_changed="A foundation stone was laid for a 150 tonnes per day e-methanol "
                                                   "plant at Kandla.", uncertainty="Press report.").model_dump(mode="json")
             elif payload["input_basis"] == "headline":
@@ -767,7 +858,8 @@ def llm_handler(log):
                 "dek": {"text": "A financing round and a durability result stand out.", "source_ids": ids},
                 "takeaways": [{"text": f"Takeaway for {t['category']}.", "source_ids": t["source_ids"]}
                               for t in payload["takeaway_plan"]],
-                "sections": [{"category": s["category"], "intro": None, "items": [{
+                "sections": [{"category": s["category"], "intro": {
+                    "text": f"Intro sentence for {s['category']}.", "source_ids": ids[:1]}, "items": [{
                     "source_ids": [i["source_id"]], "headline": i["brief"]["headline"],
                     "paragraphs": [{"text": i["brief"]["what_changed"] + " Revenue could reach USD 999 million.",
                                     "source_ids": [i["source_id"]]},
@@ -858,6 +950,7 @@ def test_end_to_end_full_text_two_stage_verification_and_synthesis(research, cap
     dek = next(line for line in body.splitlines() if line.startswith("*A financing round"))
     assert "](" not in dek  # the executive summary is plain prose; citations stay in the item sections
     assert "*Headline only; content not reviewed.*" in body  # default one-line limitation
+    assert "\nIntro sentence for commercialization.\n" in body  # section intros carry no citation chain
     assert {i["issue"] for i in report["synthesis_issues"]} >= {"unsupported number", "uncited text removed"}
     # Publisher text never leaves the private cache: not in the draft, report, bundle or stage cache.
     for path in [*args.output.rglob("*"), *Path("data/runtime/llm-cache").rglob("*")]:
@@ -900,7 +993,8 @@ def test_editor_submitted_items_go_through_the_same_pipeline_and_are_marked(rese
         {"source": "editor-submitted-news", "title": "Kandla e-methanol outside the window",
          "url": "https://news.example/old", "publication_date": "2026-08-31", "note": "test"}]}))
     web.routes["https://news.example/kandla"] = (200, "text/html", page(long_text(
-        "A foundation stone was laid on 26 September 2026 for a 150 tonnes per day e-methanol plant at Kandla.")))
+        "A foundation stone was laid on 26 September 2026 for a 150 tonnes per day e-methanol plant at Kandla. "
+        "The plan was announced on 1 September 2026 at a cost of Rs 2,300 crore (USD 50 million).")))
     report = execute(args)
     by_title = records(report)
     item = by_title["Kandla e-methanol plant foundation stone laid"]
@@ -911,6 +1005,13 @@ def test_editor_submitted_items_go_through_the_same_pipeline_and_are_marked(rese
     assert not by_title["Liquid Wind secures financing for e-methanol plant"]["editor_submitted"]
     body = Path(report["summary"]["draft"]).read_text()
     assert "[news.example, 2026-09-26](https://news.example/kandla) (news report; editor-submitted)" in body
+    # The event predates the window: labelled background, explained in the notes, never a takeaway.
+    assert item["background_event_date"] == "2026-09-01"
+    assert "### Foundation stone laid for Kandla e-methanol plant (background, event date 2026-09-01)" in body
+    takeaways_section = body.split("## Key takeaways")[1].split("\n## ")[0]
+    assert "news.example/kandla" not in takeaways_section
+    assert "Currency check in 'Foundation stone laid for Kandla e-methanol plant'" in body
+    assert "Rs 2,300 crore (USD 50 million)" in body  # flagged, never corrected
 
 
 def test_cache_makes_reruns_free_and_prompt_change_invalidates(research, monkeypatch):
@@ -1127,3 +1228,114 @@ def test_retries_never_run_faster_than_the_polite_interval(monkeypatch):
         assert sleeps == [pytest.approx(6, abs=0.01)]
     finally:
         fetcher.client.close()
+
+
+# --- broad-feed filter and daily GDELT cache ------------------------------------------------------------
+
+def gdelt_article(title, url, seen="20260926T090000Z"):
+    return {"title": title, "url": url, "seendate": seen}
+
+
+def daily_module():
+    spec = importlib.util.spec_from_file_location("gdelt_daily", ROOT / "scripts/gdelt-daily.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture
+def gdelt_workspace(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    shutil.copytree(ROOT / "config", "config")
+    monkeypatch.setattr("ccu_intelligence.collect.time.sleep", lambda _: None)
+    return tmp_path
+
+
+def write_cache(source_id, day, since, until, articles):
+    folder = Path("data/runtime/gdelt-cache") / source_id
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / f"{day}.json").write_text(json.dumps({"source_id": source_id, "since": since, "until": until,
+                                                    "articles": articles}))
+
+
+def test_gdelt_cache_merges_overlapping_fetches_and_skips_others(gdelt_workspace):
+    from ccu_intelligence.collect import gdelt_cached
+    write_cache("gdelt-efuels", "2026-10-01", "2026-09-15", "2026-10-01",
+                [gdelt_article("A", "https://a.example/1"), gdelt_article("B", "https://b.example/2")])
+    write_cache("gdelt-efuels", "2026-10-05", "2026-09-30", "2026-10-05",
+                [gdelt_article("A again", "https://a.example/1"), gdelt_article("C", "https://c.example/3")])
+    write_cache("gdelt-efuels", "2026-08-01", "2026-07-15", "2026-08-01", [gdelt_article("Old", "https://o.example")])
+    articles, covered = gdelt_cached("gdelt-efuels", date(2026, 9, 25), date(2026, 10, 8))
+    assert sorted(a["url"] for a in articles) == ["https://a.example/1", "https://b.example/2", "https://c.example/3"]
+    assert covered == ["2026-09-30..2026-10-05", "2026-09-15..2026-10-01"]
+    assert gdelt_cached("gdelt-policy", date(2026, 9, 25), date(2026, 10, 8)) is None
+
+
+def test_research_collection_reads_the_cache_without_calling_gdelt(gdelt_workspace, monkeypatch):
+    from ccu_intelligence.collect import collect
+    from ccu_intelligence.store import Store
+    write_cache("gdelt-efuels", "2026-10-05", "2026-09-20", "2026-10-05", [
+        gdelt_article("Plug and Arcadia eFuels sign e-SAF partnership", "https://news.example/plug", "20260929T090000Z"),
+        gdelt_article("Old e-methanol story", "https://news.example/old", "20260901T090000Z")])
+    requests = []
+    monkeypatch.setattr(Fetcher, "fetch", lambda self, url, **kw: requests.append(url))
+    Path("data/runtime").mkdir(parents=True, exist_ok=True)
+    store = Store(Path("data/runtime/t.sqlite"))
+    counts = collect(store, date(2026, 9, 25), date(2026, 10, 8), "gdelt-efuels", 25)
+    assert requests == [] and counts["added"] == 1 and counts["outside_window"] == 1
+    assert counts["gdelt_cache"] == ["2026-09-20..2026-10-05"]
+    assert [a.title for a in store.articles()] == ["Plug and Arcadia eFuels sign e-SAF partnership"]
+
+
+def test_daily_job_rotates_retries_failures_first_and_prunes(gdelt_workspace, monkeypatch):
+    daily = daily_module()
+    replies = [httpx.Response(200, json={"articles": [gdelt_article("X", "https://x.example")]})]
+
+    def fetch(self, url, **kw):
+        response = replies.pop(0)
+        return Fetched(response.status_code, response.headers, response.content, url)
+
+    monkeypatch.setattr(Fetcher, "fetch", fetch)
+    write_cache("gdelt-policy", "2026-08-01", "2026-07-15", "2026-08-01", [])  # older than 35 days: pruned
+    first = daily.main(date(2026, 10, 9))
+    state = json.loads(Path("data/runtime/gdelt-cache/state.json").read_text())
+    assert first["last_success"] == "2026-10-09" and list(state) == ["gdelt-co2-conversion"]
+    cached = json.loads(Path("data/runtime/gdelt-cache/gdelt-co2-conversion/2026-10-09.json").read_text())
+    assert cached["since"] == "2026-09-23" and len(cached["articles"]) == 1  # 16-day seed covers a full window
+    assert not Path("data/runtime/gdelt-cache/gdelt-policy/2026-08-01.json").exists()
+    # Throttled (the real fetcher retries once; this mock replaces it): the failure is recorded, the job succeeds.
+    replies.append(httpx.Response(429))
+    second = daily.main(date(2026, 10, 10))
+    assert second["last_error"] == "HTTPStatusError" and "last_success" not in second
+    # The failed query has no success yet, so it is retried the next day before queries that already succeeded.
+    replies.append(httpx.Response(200, json={"articles": []}))
+    third = daily.main(date(2026, 10, 11))
+    state = json.loads(Path("data/runtime/gdelt-cache/state.json").read_text())
+    assert third["last_success"] == "2026-10-11" and third["last_error"] is None
+    assert state["gdelt-efuels"]["last_success"] == "2026-10-11"
+    assert state["gdelt-co2-conversion"]["last_success"] == "2026-10-09"
+
+
+def test_daily_job_records_gdelt_text_errors(gdelt_workspace, monkeypatch):
+    daily = daily_module()
+    monkeypatch.setattr(Fetcher, "fetch", lambda self, url, **kw: Fetched(200, httpx.Headers({}),
+                                                                          b"The specified phrase is too short.", url))
+    entry = daily.main(date(2026, 10, 9))
+    assert entry["last_error"] == "GDELT query error: The specified phrase is too short." and "last_success" not in entry
+
+
+def test_broad_feed_items_must_match_the_include_pattern(gdelt_workspace, monkeypatch):
+    from ccu_intelligence.collect import collect
+    from ccu_intelligence.store import Store
+    sources = yaml.safe_load(Path("config/sources.yaml").read_text())["sources"]
+    feed = next(s for s in sources if s["source_id"] == "news-chemengonline") | {"pages": 1}
+    Path("config/sources.yaml").write_text(yaml.safe_dump({"sources": [feed]}))
+    body = rss(("Plug Power signs electrolyzer supply agreement for e-SAF plant", "https://x.example/1",
+                "Thu, 01 Oct 2026 09:00:00 GMT", "Electrolyzers for e-fuels."),
+               ("New pump catalogue released", "https://x.example/2", "Thu, 01 Oct 2026 09:00:00 GMT", "Pumps."))
+    web = FakeWeb({"https://www.chemengonline.com/feed/": (200, "application/rss+xml", body)})
+    monkeypatch.setattr(Fetcher, "fetch", lambda self, url, **kw: web(self, url, **kw))
+    Path("data/runtime").mkdir(parents=True, exist_ok=True)
+    counts = collect(Store(Path("data/runtime/t.sqlite")), date(2026, 9, 25), date(2026, 10, 8),
+                     "news-chemengonline", 10)
+    assert counts["added"] == 1 and counts["filtered_out"] == 1

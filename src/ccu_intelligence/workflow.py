@@ -17,6 +17,8 @@ import httpx
 
 from .budget import Budget
 from .collect import Fetcher, collect, registry
+from .currency import mismatches
+from .currency import note as currency_note
 from .editorial import validate_issue
 from .fulltext import PageReader, SourceText, obtain, openalex_records, select_content
 from .models import NOT_STATED, DedupResult, Enrichment, Synthesis, VerificationResult
@@ -34,8 +36,10 @@ from .stages import (
     band,
     checklist,
     dedup_groups,
+    entity_stories,
     field_coverage,
     ground_enrichment,
+    is_compilation,
     merge_stories,
     move_requests,
     newsletter_config,
@@ -401,7 +405,12 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         if screening and screening["ccu_relevant"]:
             entries.append({"article_id": article.article_id, "score": screening["score"],
                             "category": screening["category"], "evidence_role": record["evidence_role"],
-                            "input_basis": texts[article.article_id].basis, "record": record})
+                            "input_basis": texts[article.article_id].basis, "record": record,
+                            "kind": decisions[article.article_id]["kind"]})
+    # Compilations of several studies (poster collections, highlights) are listed, never primary research items.
+    for entry in [e for e in entries if e["kind"] == "academic" and is_compilation(e)]:
+        records[entry["article_id"]]["selection"] = "compilation (listed only)"
+        entries.remove(entry)
 
     # Cross-source dedup of the same event (strong model) over everything that could be selected.
     eligible = sorted([e for e in entries if e["score"] >= config["threshold"]], key=lambda e: (-e["score"]))
@@ -419,6 +428,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         groups = caller("dedup", DedupResult, payload, "dedup")
         merged = dedup_groups(groups, eligible, config)
         story_of = story_groups(groups, eligible, merged)
+    story_of, roundups = entity_stories(eligible, story_of, merged)
     also: dict[str, list] = {}
     for duplicate, kept in merged.items():
         records[duplicate]["selection"] = f"duplicate of {kept}"
@@ -459,6 +469,9 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
             record["enrichment_status"] = "core claim unsupported: excluded"
             return None
         record["enrichment_status"] = "verified"
+        event = verified.event_date
+        if event and not args.since <= event <= args.until:
+            record["background_event_date"] = str(event)
         record["enrichment"] = verified.model_dump(mode="json")
         record["fields"] = field_coverage(verified)
         record["brief_words"] = word_count(verified)
@@ -486,7 +499,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         story = story_of.get(entry["article_id"], entry["article_id"])
         final.append({"sid": f"S{number}", "article_id": entry["article_id"], "title": record["title"],
                       "story": story, "story_category": story_lead[story]["category"],
-                      "editor_submitted": record["editor_submitted"],
+                      "editor_submitted": record["editor_submitted"], "kind": entry["kind"],
+                      "background": record.get("background_event_date"),
                       "url": record["url"], "source_name": record["source_name"],
                       "evidence_role": entry["evidence_role"], "publication_date": record["publication_date"],
                       "input_basis": entry["input_basis"], "category": entry["category"], "score": entry["score"],
@@ -517,6 +531,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
                 "quotes": brief["quotes"], "uncertainty": brief["uncertainty"],
                 "also_reported_by": [d["source_name"] for d in also.get(e["article_id"], [])],
                 "story_id": e["story"] if e["sid"] in sid_story else None,
+                "background_event_date": e["background"],
+                "related_roundups": [records[r]["title"] for r in roundups.get(e["article_id"], [])],
             }
         payload = {
             "coverage": {"start": str(args.since), "end_inclusive": str(args.until)},
@@ -538,6 +554,16 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     headlines = {e["sid"]: e["enrichment"]["headline"] for e in final}
     notes = [re.sub(r"\bS\d+\b", lambda m: f"'{headlines[m.group(0)]}'" if m.group(0) in headlines else m.group(0), n)
              for n in (synthesis or {}).get("editor_notes", [])]
+    for e in final:
+        for issue in {i["text"]: i for i in mismatches(json.dumps(e["enrichment"], ensure_ascii=False))}.values():
+            notes.append(currency_note(e["enrichment"]["headline"], issue))
+        if e["background"]:
+            notes.append(f"'{e['enrichment']['headline']}' reports an event dated {e['background']}, before the "
+                         "coverage window; it is labelled background and kept out of the takeaways.")
+        for milestone in e["enrichment"]["milestone_proposals"]:
+            when = milestone.get("event_date")
+            if when and not str(args.since) <= str(when) <= str(args.until):
+                notes.append(f"Background in '{e['enrichment']['headline']}': {milestone['text']} (event date {when}).")
     if any(e["input_basis"] == "headline" for e in final):
         notes.append("Some items rest on a headline only; open the original before using them.")
     if final and synthesis is None:
@@ -545,7 +571,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     # Relevant items that were not selected, headline and link only: specialist-source news ("CCU ecosystem
     # briefs"), papers ("Also noted in research") and other news, company and policy items.
     leftovers = sorted([r for r in records.values() if r.get("screening") and r["screening"]["ccu_relevant"]
-                        and r.get("selection") in ("below threshold", "category cap", "overall cap")
+                        and r.get("selection") in ("below threshold", "category cap", "overall cap", "research cap",
+                                                    "compilation (listed only)")
                         and r["screening"]["score"] >= config.get("also_noted_min_score", 3)],
                        key=lambda r: (-r["screening"]["score"], r["title"]))
     briefs = [r for r in leftovers if r["source_id"] in CCU_SPECIALIST_SOURCES]
@@ -558,6 +585,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     draft.write_text(render(
         args=args, meta_counts={"collected": len(bundle.articles),
                                 "screened": sum(bool(r.get("screening")) for r in records.values())},
+        roundups={e["sid"]: [records[r] for r in roundups.get(e["article_id"], [])] for e in final},
         config=config, selected=final, synthesis=synthesis, takeaway_entries=leads, briefs=briefs,
         also_research=research, also_other=other, also=also, notes=notes, pending=pending, inbox=inbox))
     validate_issue(draft, bundle)
