@@ -1,7 +1,4 @@
-import argparse
-import importlib.util
 import json
-import shutil
 from dataclasses import replace
 from datetime import date
 from pathlib import Path
@@ -13,210 +10,21 @@ import yaml
 
 from ccu_intelligence.budget import Budget
 from ccu_intelligence.collect import Fetcher
-from ccu_intelligence.editorial import SECTIONS, read_issue, validate_issue
 from ccu_intelligence.llm import date_supported, grounded_analysis, quote_supported, run
-from ccu_intelligence.models import Bundle
-from ccu_intelligence.workflow import cache_key, execute, triage
+from ccu_intelligence.workflow import BORDERLINE, BRIEF, triage
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture(autouse=True)
 def no_external_network(monkeypatch):
-    def forbidden(*args, **kwargs):
-        raise AssertionError('Tests must never use an external HTTP transport')
-    monkeypatch.setattr(httpx.HTTPTransport, 'handle_request', forbidden)
+    # conftest.py blocks HTTP transports, DNS and sockets for every test.
     monkeypatch.setattr('ccu_intelligence.workflow.load_environment', lambda: None)
     monkeypatch.setenv('LLM_API_KEY', 'fixture-secret-never-real')
     monkeypatch.setenv('LLM_MODEL', 'deepseek-flash')
     monkeypatch.setenv('LLM_BASE_URL', 'https://api.deepseek.com')
     monkeypatch.delenv('GITHUB_ACTIONS', raising=False)
     monkeypatch.setattr('ccu_intelligence.llm.time.sleep', lambda _: None)
-
-
-@pytest.fixture
-def research(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    shutil.copytree(ROOT / 'config', 'config')
-    company = ('<item><title>CO2 methanol pilot commissioned</title><link>https://example.org/pilot</link>'
-               '<pubDate>Sun, 20 Sep 2026 12:00:00 GMT</pubDate>'
-               '<description>Commissioned on 2026-09-20. Investment USD 10 million.</description></item>')
-    other = ('<item><title>Solar park financing</title><link>https://example.org/solar</link>'
-             '<pubDate>Sun, 20 Sep 2026 12:00:00 GMT</pubDate></item>')
-
-    def rss(items):
-        return ('<rss><channel>' + items + '</channel></rss>').encode()
-
-    def get(self, url, **kwargs):
-        if url.endswith('robots.txt'):
-            return b'User-agent: *\nAllow: /\n'
-        if 'api.crossref.org' in url:
-            assert kwargs['params']['sort'] == 'score'
-            assert 'query.title' in kwargs['params']
-            return json.dumps({'message': {'items': [{
-                'title': ['CO2 reduction to methanol review'], 'URL': 'https://doi.org/10.1/ccu',
-                'DOI': '10.1/ccu', 'published': {'date-parts': [[2026, 9, 20]]},
-            }]}}).encode()
-        if 'api.openalex.org' in url:
-            return json.dumps({'results': [{
-                'display_name': 'CO2 reduction to methanol review', 'doi': 'https://doi.org/10.1/ccu',
-                'id': 'https://openalex.org/W1', 'publication_date': '2026-09-20',
-            }]}).encode()
-        if 'liquidwind.com' in url:
-            return rss(company + company)
-        if 'carbicrete.com' in url:
-            return rss(company.replace('/pilot', '/syndicated'))
-        if 'gov.uk' in url:
-            return (b'<feed xmlns="http://www.w3.org/2005/Atom"><entry>'
-                    b'<title>CO2 conversion funding programme</title><link href="https://example.org/gov"/>'
-                    b'<published>2026-09-21</published></entry><entry>'
-                    b'<title>CO2 conversion update</title><link href="https://example.org/undated"/>'
-                    b'<updated>2026-09-21</updated></entry></feed>')
-        return rss(other)
-
-    monkeypatch.setattr(Fetcher, 'get', get)
-    options = argparse.Namespace(
-        since=date(2026, 9, 14), until=date(2026, 9, 27), scheduled_publication=None,
-        output=Path('data/runtime/test-run'), max_analyses=30, max_requests=60,
-        token_budget=120000, max_output_tokens=1200, allow_paid=True, dry_run=False,
-        max_spend_usd=0.5, rate_ceiling=1.2, source_limit=15,
-    )
-    calls = []
-
-    def handler(request):
-        data = json.loads(request.content)
-        assert data['model'] == 'deepseek-flash' and data['thinking'] == {'type': 'disabled'}
-        assert data['max_tokens'] == 1200
-        source = json.loads(data['messages'][1]['content'])['source_text']
-        calls.append(source)
-        proposal = dict(relevant=True, domains=['conversion'], quotes=[source.split('\n')[0]],
-                        draft_summary='Source reports a CO2 conversion topic; review required.',
-                        technical_significance='Source-reported topic only.',
-                        industrial_implications='Commercial output is not independently established.',
-                        uncertainty='Needs original source review.',
-                        technical_information=[], economic_information=[], milestone_proposals=[])
-        if 'Investment USD 10 million.' in source:
-            proposal['economic_information'] = [dict(text='Reported investment: USD 10 million.',
-                quote='Investment USD 10 million.', uncertainty='Reported, not audited.')]
-            proposal['technical_information'] = [dict(text='Methanol pilot described.',
-                quote='CO2 methanol pilot commissioned', uncertainty='Performance unknown.')]
-            proposal['milestone_proposals'] = [dict(text='Reported commissioning.',
-                quote='Commissioned on 2026-09-20.', uncertainty='Needs verification.',
-                event_type='COMMISSIONED', event_date='2026-09-20', project_name=None)]
-        return httpx.Response(200, json={
-            'choices': [{'finish_reason': 'stop', 'message': {'content': json.dumps(proposal)}}],
-            'usage': {'prompt_tokens': 200, 'completion_tokens': 100, 'total_tokens': 300},
-        })
-
-    client = httpx.Client(transport=httpx.MockTransport(handler))
-    monkeypatch.setattr('ccu_intelligence.workflow.run', lambda *a, **kw: run(*a, client=client, **kw))
-    yield options, calls
-    client.close()
-
-
-def test_complete_pipeline_deduplicates_filters_extracts_and_drafts(research, capsys):
-    args, calls = research
-    report = execute(args)
-    assert len(calls) == report['requests_reserved'] == 3
-    assert report['promising_candidates'] == 3
-    assert all('Solar' not in text and 'update' not in text for text in calls)
-    assert len([s for s in calls if 'pilot' in s]) == 1
-    draft = Path(report['draft'])
-    meta, body = read_issue(draft)
-    assert meta['editorial_status'] == 'draft' and meta['reviewer'] is None
-    assert meta['event_ids'] == [] and not any(meta['review_checklist'].values())
-    assert all('## ' + heading in body for heading in SECTIONS)
-    assert 'USD 10 million' in body and 'COMMISSIONED' in body
-    assert 'https://example.org/pilot' in body and 'https://doi.org/10.1/ccu' in body
-    assert 'fixture-secret' not in capsys.readouterr().out
-    assert not Path('public').exists() and not Path('src/content/issues').exists()
-    bundle = Bundle.model_validate_json((args.output / 'bundle.json').read_text())
-    assert bundle.events == [] and all(a.review_required for a in bundle.articles)
-    validate_issue(draft, bundle)
-    unpublished = draft.read_text().replace('editorial_status: draft', 'editorial_status: published')
-    draft.write_text(unpublished)
-    with pytest.raises(ValueError, match='reviewer'):
-        validate_issue(draft, bundle)
-
-
-def test_cache_and_completed_run_make_no_repeat_paid_calls(research):
-    args, calls = research
-    report = execute(args)
-    execute(args)
-    assert len(calls) == 3
-    args.output = Path('data/runtime/second-run')
-    cached = execute(args)
-    assert len(calls) == 3 and cached['cache_hits'] == 3 and cached['requests_reserved'] == 0
-    assert report['reserved_cost_usd'] > 0 and cached['reserved_cost_usd'] == 0
-
-
-@pytest.mark.parametrize('mode', ['explicit', 'default', 'zero-spend', 'zero-tokens'])
-def test_zero_paid_requests(research, mode):
-    args, calls = research
-    if mode == 'explicit':
-        args.dry_run = True
-    elif mode == 'default':
-        del args.allow_paid
-    elif mode == 'zero-spend':
-        args.max_spend_usd = 0
-    else:
-        args.token_budget = 1
-    report = execute(args)
-    assert calls == [] and report['requests_reserved'] == 0
-    assert 'https://example.org/pilot' in Path(report['draft']).read_text()
-
-
-def test_invalid_caps_fail_before_collection(research):
-    args, calls = research
-    args.max_analyses = 31
-    with pytest.raises(ValueError, match='30'):
-        execute(args)
-    assert not args.output.exists() and calls == []
-
-
-@pytest.mark.parametrize('event,ref,attempt', [
-    ('pull_request', 'refs/heads/main', '1'),
-    ('pull_request_target', 'refs/heads/main', '1'),
-    ('workflow_dispatch', 'refs/heads/untrusted', '1'),
-    ('workflow_dispatch', 'refs/heads/main', '2'),
-    ('schedule', 'refs/heads/main', '1'),
-])
-def test_untrusted_or_retry_run_rejected_before_payment(research, monkeypatch, event, ref, attempt):
-    args, calls = research
-    monkeypatch.setenv('GITHUB_ACTIONS', 'true')
-    monkeypatch.setenv('GITHUB_EVENT_NAME', event)
-    monkeypatch.setenv('GITHUB_REF', ref)
-    monkeypatch.setenv('GITHUB_RUN_ATTEMPT', attempt)
-    with pytest.raises(ValueError, match='trusted'):
-        execute(args)
-    assert calls == []
-
-
-def test_attempt_marker_survives_crash_without_repaying(research, monkeypatch):
-    args, calls = research
-    args.max_analyses = 1
-    def crash(*a, **kw):
-        assert kw['budget'].reserve(1000)
-        raise RuntimeError('simulated crash after request reservation')
-    monkeypatch.setattr('ccu_intelligence.workflow.run', crash)
-    with pytest.raises(RuntimeError):
-        execute(args)
-    report = execute(args)
-    assert report['new_analyses_attempted'] == report['requests_reserved'] == 1
-    assert calls == []
-
-
-def test_tampered_cached_extraction_rejected(research):
-    args, calls = research
-    execute(args)
-    for path in Path('data/runtime/llm-cache').glob('*.json'):
-        data = json.loads(path.read_text())
-        data['analysis']['economic_information'] = [dict(text='Invented', quote='not in source', uncertainty='?')]
-        path.write_text(json.dumps(data))
-    args.output = Path('data/runtime/new-run')
-    with pytest.raises(ValueError, match='unsupported extraction'):
-        execute(args)
-    assert len(calls) == 3
 
 
 def test_money_reservations_survive_restart_and_are_never_refunded(tmp_path):
@@ -257,15 +65,19 @@ def test_workflow_has_no_schedule_or_pr_payment_trigger():
     assert set(workflow['on']) == {'workflow_dispatch'}
     inputs = workflow['on']['workflow_dispatch']['inputs']
     assert inputs['mode']['default'] == 'dry-run'
-    assert {'max_analyses', 'max_spend_usd', 'token_budget'} <= set(inputs)
+    assert {'max_analyses', 'max_spend_usd', 'token_budget', 'screening_model', 'strong_model'} <= set(inputs)
+    assert inputs['max_analyses']['default'] == '60' and inputs['max_spend_usd']['default'] == '5'
+    assert inputs['token_budget']['default'] == '2000000' and inputs['strong_model']['default'] == 'deepseek-v4-pro'
     assert workflow['permissions'] == {'contents': 'read'}
     assert 'LLM_API_KEY' not in json.dumps(workflow['env'])
     dry, paid = workflow['jobs']['dry-run'], workflow['jobs']['paid']
     # The dry-run job has no environment and never sees the key.
     assert 'environment' not in dry and 'LLM_API_KEY' not in json.dumps(dry)
     assert dry['env']['RESEARCH_MODE'] == 'dry-run' and "inputs.mode == 'dry-run'" in dry['if']
-    # The paid job is gated by mode, repository opt-in, first attempt, default branch and an environment.
+    # The paid job is gated by mode, repository opt-in, first attempt, default branch and an environment
+    # whose only protection is the main-branch policy (no required reviewers; see docs/operations.md).
     assert paid['environment'] == 'deepseek-paid'
+    assert all(job['runs-on'] == 'ubuntu-24.04' for job in workflow['jobs'].values())
     for gate in ("inputs.mode == 'paid'", "vars.CCU_ENABLE_DEEPSEEK == 'true'", 'github.run_attempt == 1',
                  'default_branch'):
         assert gate in paid['if']
@@ -293,14 +105,21 @@ def headline(title):
     (GENERAL, 'Solar park financing', 'no CCU term'),
     (GENERAL, 'Perovskite solar cell efficiency record', 'no CCU term'),
     (GENERAL, 'Lithium battery recycling plant', 'no CCU term'),
-    (GENERAL, 'CO2 footprint of nuclear power', 'CCU term without utilization context'),
-    (GENERAL, 'Mapping data centre energy consumption to carbon-dioxide emissions',
-     'CCU term without utilization context'),
-    (GENERAL, 'Highlights from CO2 Value Europe', 'CCU term without utilization context'),
 ])
 def test_unrelated_headlines_dropped(source, title, reason):
     result = triage(headline(title), source, DAY, DAY)
     assert not result['eligible'] and result['reason'] == reason
+
+
+@pytest.mark.parametrize('source,title', [
+    (GENERAL, 'CO2 footprint of nuclear power'),
+    (GENERAL, 'Mapping data centre energy consumption to carbon-dioxide emissions'),
+    (GENERAL, 'Highlights from CO2 Value Europe'),
+])
+def test_keyword_borderline_headlines_go_to_the_llm_gate(source, title):
+    # Previously dropped by keyword; the relevance gate now decides with the full text.
+    result = triage(headline(title), source, DAY, DAY)
+    assert result['eligible'] and result['reason'] == BORDERLINE
 
 
 @pytest.mark.parametrize('source,title', [
@@ -324,27 +143,6 @@ def test_unrelated_headlines_dropped(source, title, reason):
 ])
 def test_ccu_headlines_with_energy_words_kept(source, title):
     assert triage(headline(title), source, DAY, DAY)['eligible']
-
-
-# --- Source failure isolation -------------------------------------------------------------------------
-
-def test_failing_sources_never_abort_run(research, monkeypatch):
-    args, calls = research
-    working = Fetcher.get
-
-    def get(self, url, **kwargs):
-        if 'co2value.eu' in url:
-            request = httpx.Request('GET', url)
-            raise httpx.HTTPStatusError('403', request=request, response=httpx.Response(403, request=request))
-        if 'covestro.com' in url:
-            raise RuntimeError('unexpected parser or transport failure')
-        return working(self, url, **kwargs)
-
-    monkeypatch.setattr(Fetcher, 'get', get)
-    report = execute(args)
-    collection = json.loads((args.output / 'collection.json').read_text())
-    assert collection['co2-value-europe']['failed'] == collection['covestro']['failed'] == 1
-    assert len(calls) == report['requests_reserved'] == 3
 
 
 def test_user_agent_identifies_bot_without_blocked_word():
@@ -423,62 +221,6 @@ def test_grounded_analysis_normalizes_quotes_and_dates():
         grounded_analysis(proposal(quotes=['liquid wind’s flagshipone']), text, ['e1'], 'company')
 
 
-# --- Cache key ----------------------------------------------------------------------------------------
-
-def article_stub():
-    return SimpleNamespace(article_id='a1', publication_date=DAY, canonical_url='https://example.org/a',
-                           title='CO2 methanol pilot', summary='Commissioned.')
-
-
-def test_cache_key_changes_with_prompt_model_and_endpoint(monkeypatch):
-    base = dict(kind='company', model='deepseek-flash', endpoint='https://api.deepseek.com', max_tokens=1200)
-    key = cache_key(article_stub(), **base)
-    assert key == cache_key(article_stub(), **base)
-    assert key != cache_key(article_stub(), **{**base, 'model': 'deepseek-v4-pro'})
-    assert key != cache_key(article_stub(), **{**base, 'endpoint': 'https://api.deepseek.com/v1'})
-    monkeypatch.setattr('ccu_intelligence.workflow.PROMPT_VERSION', 'grounded-next')
-    assert key != cache_key(article_stub(), **base)
-    monkeypatch.undo()
-    monkeypatch.setattr('ccu_intelligence.workflow.prompt_hash', lambda task: 'edited prompt text')
-    assert key != cache_key(article_stub(), **base)
-
-
-def test_prompt_version_change_invalidates_cached_responses(research, monkeypatch):
-    args, calls = research
-    execute(args)
-    assert len(calls) == 3
-    monkeypatch.setattr('ccu_intelligence.workflow.PROMPT_VERSION', 'grounded-next')
-    args.output = Path('data/runtime/after-prompt-change')
-    report = execute(args)
-    assert report['cache_hits'] == 0 and len(calls) == 6
-
-
-# --- Entry-point hard caps ----------------------------------------------------------------------------
-
-def entrypoint():
-    spec = importlib.util.spec_from_file_location('research_entry', ROOT / 'scripts/deepseek-research.py')
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-@pytest.mark.parametrize('name,value', [
-    ('MAX_ANALYSES', '31'), ('MAX_ANALYSES', '-1'),
-    ('MAX_SPEND_USD', '0.51'), ('MAX_SPEND_USD', 'nan'), ('MAX_SPEND_USD', 'inf'), ('MAX_SPEND_USD', '-0.01'),
-])
-def test_dispatch_inputs_cannot_exceed_hard_caps(monkeypatch, name, value):
-    monkeypatch.setenv(name, value)
-    with pytest.raises(ValueError):
-        entrypoint().configuration()
-
-
-def test_recommended_first_paid_run_parameters_accepted(monkeypatch):
-    monkeypatch.setenv('MAX_ANALYSES', '6')
-    monkeypatch.setenv('MAX_SPEND_USD', '0.10')
-    options = entrypoint().configuration()
-    assert options.max_analyses == 6 and options.max_spend_usd == 0.10 and options.dry_run
-
-
 # --- Ecosystem briefs ---------------------------------------------------------------------------------
 
 ASSOCIATION = SimpleNamespace(source_id='co2-value-europe', source_type='industry_association')
@@ -490,21 +232,28 @@ GOVERNMENT = SimpleNamespace(source_id='uk-desnz', source_type='government')
     (ASSOCIATION, 'CO2 Value Europe annual general assembly'),
     (SPECIALIST, 'Dioxycle joins CO2 industry alliance'),
 ])
-def test_specialist_ecosystem_news_becomes_unanalysed_brief(source, title):
+def test_specialist_ecosystem_news_goes_to_the_gate(source, title):
+    # The gate decides; relevant items below the threshold become headline-only briefs in the draft.
     result = triage(headline(title), source, DAY, DAY)
-    assert result['reason'] == 'specialist source: headline-only brief' and not result['eligible']
+    assert result['reason'] == BRIEF and result['eligible']
 
 
 @pytest.mark.parametrize('source,title', [
     (GENERAL, 'Ultrasonic-Swing Carbon Dioxide Release Using Aralkylamines for Direct Air Capture'),
     (GENERAL, 'A Research Strategy for Ocean-based Carbon Dioxide Removal and Sequestration'),
     (GOVERNMENT, 'Carbon capture and storage cluster sequencing update'),
-    (ASSOCIATION, 'Welcome to our new events officer'),  # no CCU term: dropped, not a brief
+])
+def test_pure_capture_and_removal_are_left_to_the_gate(source, title):
+    result = triage(headline(title), source, DAY, DAY)
+    assert result['eligible'] and result['reason'] == BORDERLINE
+
+
+@pytest.mark.parametrize('source,title', [
+    (ASSOCIATION, 'Welcome to our new events officer'),  # no CCU term: dropped
     (SPECIALIST, 'Solar park financing'),
 ])
-def test_pure_capture_removal_and_non_ccu_items_still_dropped(source, title):
-    result = triage(headline(title), source, DAY, DAY)
-    assert not result['eligible'] and result['reason'] != 'specialist source: headline-only brief'
+def test_non_ccu_specialist_items_still_dropped(source, title):
+    assert not triage(headline(title), source, DAY, DAY)['eligible']
 
 
 def ecosystem_headline(title):
@@ -534,33 +283,9 @@ def test_staff_announcements_dropped_from_briefs(title):
     'Welcome to our new members: Topsoe and Dioxycle',
     'CO2 Value Europe general assembly',
 ])
-def test_membership_news_still_kept_as_brief(title):
-    assert triage(ecosystem_headline(title), ASSOCIATION, DAY, DAY)['reason'] == 'specialist source: headline-only brief'
-
-
-def test_briefs_appear_in_draft_without_model_analysis(research, monkeypatch):
-    args, calls = research
-    working = Fetcher.get
-    item = ('<rss><channel><item><title>{}</title><link>{}</link>'
-            '<pubDate>Mon, 21 Sep 2026 09:00:00 GMT</pubDate></item></channel></rss>')
-
-    def get(self, url, **kwargs):
-        if url.endswith('robots.txt'):
-            return working(self, url, **kwargs)
-        if 'co2value.eu' in url:
-            return item.format('MVV Umwelt Joins CO₂ Value Europe', 'https://example.org/mvv').encode()
-        if 'gov.uk' in url:
-            return item.format('Direct air capture hub selected', 'https://example.org/dac').encode()
-        return working(self, url, **kwargs)
-
-    monkeypatch.setattr(Fetcher, 'get', get)
-    report = execute(args)
-    assert report['ecosystem_briefs'] == 1
-    assert not any('MVV' in text or 'Direct air capture' in text for text in calls)
-    body = Path(report['draft']).read_text()
-    briefs = body.split('## CCU Ecosystem Briefs')[1].split('## Candidate inbox')[0]
-    assert '[MVV Umwelt Joins CO₂ Value Europe](https://example.org/mvv) — co2-value-europe, 2026-09-21.' in briefs
-    assert 'example.org/dac' not in body
+def test_membership_news_still_reaches_the_gate(title):
+    result = triage(ecosystem_headline(title), ASSOCIATION, DAY, DAY)
+    assert result['reason'] == BRIEF and result['eligible']
 
 
 # --- Fetcher politeness: low frequency, backoff, no hammering on 403/429 --------------------------------

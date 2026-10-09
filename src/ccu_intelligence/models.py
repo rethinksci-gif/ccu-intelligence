@@ -86,7 +86,7 @@ class Source(Record):
     organization: str
     source_type: str
     base_url: HttpUrl
-    access_method: Literal["crossref", "openalex", "rss", "manual"]
+    access_method: Literal["crossref", "openalex", "rss", "federal_register", "manual"]
     endpoint: HttpUrl | None = None
     update_frequency: str
     reliability_tier: Literal[1, 2, 3]
@@ -96,6 +96,15 @@ class Source(Record):
     automated_access_approved: bool = False
     minimum_interval_seconds: float = Field(default=1, ge=1)
     limitation: str | None = None
+    # Research run: sources with a run_limit are collected, at most that many in-window items each.
+    run_limit: int | None = Field(default=None, ge=1, le=30)
+    # Fetch the linked page (robots.txt permitting) and extract main text for the model.
+    content_extractor: Literal["trafilatura"] | None = None
+    # News search results are secondary reporting, never primary evidence.
+    evidence_role: Literal["primary", "news"] = "primary"
+    query: str | None = None
+    filters: str | None = None  # extra OpenAlex filter clause, e.g. open_access.is_oa:true
+    pages: int = Field(default=1, ge=1, le=5)  # WordPress feed pages (?paged=N)
 
 
 class Project(Record):
@@ -345,3 +354,137 @@ class GroundedProposal(Record):
     technical_significance: str = Field(max_length=500)
     industrial_implications: str = Field(max_length=500)
     uncertainty: str = Field(min_length=1, max_length=400)
+
+
+# --- Two-stage research wire formats (untrusted model output, validated and grounded after parsing) ---------
+
+NOT_STATED = "not stated in the supplied material"
+CCU_FIELDS = (
+    "co2_source",
+    "conversion_route",
+    "catalyst",
+    "product",
+    "trl",
+    "scale",
+    "energy_input",
+    "cost_economics",
+    "lca_claims",
+    "partners",
+    "location",
+    "milestones",
+)
+class Wire(Record):
+    """Model output: unknown extra keys are dropped rather than failing validation (no facts are added by them)."""
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class WireDetail(GroundedDetail):
+    model_config = ConfigDict(extra="ignore")
+
+
+class WireMilestone(GroundedMilestone):
+    model_config = ConfigDict(extra="ignore")
+
+
+EvidenceType = Literal[
+    "original_research",
+    "review_article",
+    "company_announcement",
+    "government_document",
+    "news_report",
+    "association_update",
+    "market_report",
+    "other",
+]
+
+
+class Screening(Wire):
+    """Stage 1: relevance gate, 0–10 decision-value score, category and tags."""
+
+    ccu_relevant: bool
+    relevance_reason: str = Field(min_length=1, max_length=500)
+    score: float = Field(ge=0, le=10)
+    reason: str = Field(min_length=1, max_length=700)
+    category: str = Field(min_length=1, max_length=60)
+    tags: list[str] = Field(min_length=1, max_length=5)
+    summary: str = Field(min_length=1, max_length=500)
+    evidence_type: EvidenceType
+
+
+class SourcedValue(Wire):
+    value: str = Field(default=NOT_STATED, min_length=1, max_length=400)
+    quote: str | None = Field(default=None, max_length=500)
+
+
+class CCUFields(Wire):
+    co2_source: SourcedValue = SourcedValue()
+    conversion_route: SourcedValue = SourcedValue()
+    catalyst: SourcedValue = SourcedValue()
+    product: SourcedValue = SourcedValue()
+    trl: SourcedValue = SourcedValue()
+    scale: SourcedValue = SourcedValue()
+    energy_input: SourcedValue = SourcedValue()
+    cost_economics: SourcedValue = SourcedValue()
+    lca_claims: SourcedValue = SourcedValue()
+    partners: SourcedValue = SourcedValue()
+    location: SourcedValue = SourcedValue()
+    milestones: SourcedValue = SourcedValue()
+
+
+class Enrichment(Wire):
+    """Stage 2: decision brief (four blocks, <=180 words) plus grounded CCU fields."""
+
+    headline: str = Field(min_length=1, max_length=160)
+    what_changed: str = Field(min_length=1, max_length=1000)
+    why_it_matters: str | None = Field(default=None, max_length=800)
+    practical_implication: str | None = Field(default=None, max_length=800)
+    next_action: str | None = Field(default=None, max_length=500)
+    fields: CCUFields = CCUFields()
+    technical_information: list[WireDetail] = Field(default_factory=list, max_length=4)
+    economic_information: list[WireDetail] = Field(default_factory=list, max_length=4)
+    milestone_proposals: list[WireMilestone] = Field(default_factory=list, max_length=4)
+    quotes: list[str] = Field(default_factory=list, max_length=3)
+    uncertainty: str = Field(min_length=1, max_length=600)
+
+
+class VerificationCheck(Wire):
+    id: str = Field(min_length=1, max_length=60)
+    verdict: Literal["supported", "partially_supported", "unsupported"]
+    problem: str = Field(default="", max_length=600)
+    corrected_text: str | None = Field(default=None, max_length=1000)
+
+
+class VerificationResult(Wire):
+    checks: list[VerificationCheck] = Field(max_length=120)
+    overall_note: str = Field(default="", max_length=800)
+
+
+class DedupResult(Wire):
+    groups: list[list[str]] = Field(default_factory=list, max_length=60)
+
+
+class Cited(Wire):
+    text: str = Field(min_length=1, max_length=1600)
+    source_ids: list[str] = Field(min_length=1, max_length=8)
+
+
+class SynthesisItem(Wire):
+    source_ids: list[str] = Field(min_length=1, max_length=8)
+    headline: str = Field(min_length=1, max_length=180)
+    paragraphs: list[Cited] = Field(min_length=1, max_length=4)
+
+
+class SynthesisSection(Wire):
+    category: str = Field(min_length=1, max_length=60)
+    intro: Cited | None = None
+    items: list[SynthesisItem] = Field(min_length=1, max_length=12)
+
+
+class Synthesis(Wire):
+    title: str = Field(min_length=1, max_length=180)
+    dek: Cited
+    takeaways: list[Cited] = Field(default_factory=list, max_length=5)
+    sections: list[SynthesisSection] = Field(default_factory=list, max_length=8)
+    watch_next: list[Cited] = Field(default_factory=list, max_length=6)
+    editor_notes: list[str] = Field(default_factory=list, max_length=10)

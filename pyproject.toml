@@ -7,7 +7,8 @@ name = "ccu-intelligence"
 version = "0.1.0"
 description = "Evidence-first carbon capture and utilization intelligence"
 requires-python = ">=3.12"
-dependencies = ["pydantic==2.14.0", "httpx==0.28.1", "defusedxml==0.7.1", "PyYAML==6.0.3", "python-dotenv==1.2.1"]
+dependencies = ["pydantic==2.14.0", "httpx==0.28.1", "defusedxml==0.7.1", "PyYAML==6.0.3", "python-dotenv==1.2.1",
+                "trafilatura==2.2.0", "pypdf==6.19.0"]
 
 [project.scripts]
 ccu = "ccu_intelligence.cli:main"

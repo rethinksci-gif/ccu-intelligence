@@ -1,0 +1,7 @@
+# CCU intelligence profile
+
+Use this profile for timely, credible developments that could change a decision about carbon capture and utilization (CCU): converting CO2 into fuels, chemicals, polymers and materials; CO2 mineralization in concrete, aggregates and building materials; e-fuels made from CO2 (e-methanol, e-SAF/e-kerosene, synthetic methane); CO2 electrolysis and electrochemical, thermocatalytic, photochemical and biological conversion; the projects, FIDs, financing, offtakes, construction, commissioning, delays and cancellations that move these routes toward scale; their techno-economics and life-cycle assessment; and policy that changes CCU economics (EU RFNBO/RCF rules and ETS treatment of utilized CO2, US 45Q utilization and 45V, CO2 transport and hubs that supply utilization).
+
+The readers are technically fluent people in industry, investment and policy who decide which conversion routes, partners, projects and rules to act on in the next 3–24 months.
+
+Prefer original company and government documents with technical or financial detail, peer-reviewed papers with quantified results, regulation text, and credible trade reporting. Exclude CO2 storage or enhanced oil recovery without a utilization step, carbon-credit market news, nature-based removal, generic climate commentary, staff and HR news, market-size forecast reports, marketing without data, and stories in which CO2 conversion is incidental.

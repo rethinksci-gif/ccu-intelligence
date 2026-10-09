@@ -1,4 +1,4 @@
-"""Bounded, on-demand biweekly workflow over the existing collectors and store."""
+"""Bounded, on-demand biweekly research workflow: collect → full text → two-stage analysis → draft."""
 
 import argparse
 import fcntl
@@ -6,32 +6,53 @@ import hashlib
 import json
 import os
 import re
+import threading
 from collections import Counter
-from datetime import UTC, date, datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
-import yaml
+import httpx
 
 from .budget import Budget
-from .collect import collect, registry
-from .editorial import SECTIONS, safe_text, validate_issue
-from .llm import PROMPT_VERSION, date_supported, prompt_hash, quote_supported, run
-from .models import Analysis, Evidence
+from .collect import Fetcher, collect, registry
+from .editorial import validate_issue
+from .fulltext import PageReader, SourceText, obtain, openalex_records, select_content
+from .models import NOT_STATED, DedupResult, Enrichment, Synthesis, VerificationResult
+from .newsletter import render
 from .normalize import plain
+from .pricing import OFFICIAL_ENDPOINTS, call_cost, roles
+from .pricing import load as load_pricing
 from .settings import load_environment
+from .stages import (
+    ENRICHMENT_CHARS,
+    PROMPT_VERSION,
+    SCREENING_CHARS,
+    Caller,
+    apply_verification,
+    band,
+    checklist,
+    dedup_groups,
+    field_coverage,
+    ground_enrichment,
+    newsletter_config,
+    numbers,
+    screening_schema,
+    select,
+    takeaways,
+    validate_synthesis,
+    word_count,
+)
 from .store import Store
 
-# Feed payloads can contain more entries, but only these <=20 records are considered.
-SOURCE_LIMITS = [
-    ("liquid-wind", 2),
-    ("dioxycle", 2),
-    ("carbicrete", 2),
-    ("covestro", 2),
-    ("co2-value-europe", 3),
-    ("uk-desnz", 3),
-    ("crossref", 3),
-    ("openalex", 3),
-]
+# Hard ceilings. Dispatch inputs may only lower them; raising one needs a reviewed code change.
+MAX_ANALYSES_CAP = 60
+MAX_REQUESTS_CAP = 300
+MAX_SPEND_USD_CAP = 5.0
+MAX_TOKEN_BUDGET = 5_000_000
+FULLTEXT_FETCH_CAP = 120
+WORKERS = 4
+
 # CCU terms. Any match also exempts a headline from the unrelated-energy (OFF_TOPIC) rule below,
 # so CCU stories that mention solar, batteries or nuclear power are kept.
 CCU_TERMS = [
@@ -43,12 +64,15 @@ CCU_TERMS = [
     r"direct air capture",
     r"e-?methanol",
     r"e-?kerosene",
+    r"e-?saf",
     r"e-fuels?",
     r"electrofuels?",
     r"synthetic fuels?",
     r"solar fuels?",
     r"power.to.(?:x|liquids?|gas|fuels?|methanol)",
     r"ptx",
+    r"rfnbos?",
+    r"45q",
 ]
 CCU = re.compile(r"\b(?:" + "|".join(CCU_TERMS) + r")\b", re.I)
 # Utilization context: generic carbon capture/storage, footprints and optical CO2 transitions are not CCU
@@ -56,15 +80,16 @@ CCU = re.compile(r"\b(?:" + "|".join(CCU_TERMS) + r")\b", re.I)
 CONVERSION = re.compile(
     r"utili[sz]|convert|conversion|reduc(?:tion|e)|methanol|ethanol|ethylene|minerali[sz]|polyol|carbonate|"
     r"electrofuel|electroly[sz]\w*|electroreduc\w*|electrosynthes\w*|(?:co2|carbon.dioxide).derived|"
-    r"from (?:co2|carbon.dioxide)(?!\s+value\b)|e-?kerosene|e-fuel|synthetic fuel|solar fuel|power.to.|ptx",
+    r"from (?:co2|carbon.dioxide)(?!\s+value\b)|e-?kerosene|e-fuel|e-?saf|synthetic fuel|solar fuel|power.to.|ptx",
     re.I,
 )
-# CCU-specialist sources: ecosystem news (memberships, association updates) that mentions a CCU term but
-# has no utilization step is kept as a headline-only brief. Briefs are never sent to the model.
+# CCU-specialist sources: ecosystem news (memberships, association updates) is sent to the gate and, if relevant
+# but below the threshold, appears as a headline-only brief.
 CCU_SPECIALIST_SOURCES = {"co2-value-europe", "liquid-wind", "dioxycle", "carbicrete"}
-BRIEF = "specialist source: headline-only brief"
+BRIEF = "specialist source: borderline, gate decides"
+BORDERLINE = "CCU term without utilization context"
 # Staff/HR announcements from CCU-specialist sources are dropped; matched on the title only. Membership wording overrides,
-# so "CO2 Value Europe welcomes new member X" and "X Joins CO2 Value Europe" stay briefs.
+# so "CO2 Value Europe welcomes new member X" and "X Joins CO2 Value Europe" still reach the gate.
 STAFF = re.compile(
     r"\b(?:welcome|joins? our team|new colleagues?|hiring|we.re hiring|vacanc(?:y|ies)|job openings?|"
     r"internships?)\b",
@@ -78,32 +103,28 @@ EVENT = re.compile(
     r"delay\w*|cancel\w*|bankrupt\w*|investment decision|permit\w*)\b",
     re.I,
 )
-# Conservative peak cache-miss prices: upper estimate, not an invoice. Verified 2026-10-09.
-PRICING = {
-    "input_usd_per_million": 0.30,
-    "output_usd_per_million": 1.20,
-    "source": "https://api-docs.deepseek.com/quick_start/pricing/",
-    "checked": "2026-10-09",
-    "basis": "Peak, all input charged as cache miss; conservative estimate",
-}
+GATED = {"CCU topic", "specialist milestone", BRIEF, BORDERLINE}
 
 
 def atomic_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(value, indent=2, ensure_ascii=False))
+    tmp.write_text(json.dumps(value, indent=2, ensure_ascii=False, default=str))
     tmp.replace(path)
 
 
 def source_kind(source):
     if source.source_type == "scholarly_metadata":
         return "academic"
+    if source.source_type == "news_search" or getattr(source, "evidence_role", "primary") == "news":
+        return "news"
     if source.source_type.startswith("company_"):
         return "company"
     return "government" if source.source_type == "government" else "industry"
 
 
 def triage(article, source, since, until):
+    """Keyword pre-filter: drop only clearly unrelated items; everything borderline goes to the LLM gate."""
     text = plain(article.title + " " + article.summary).replace("₂", "2")
     kind = source_kind(source)
     if article.sample:
@@ -127,359 +148,387 @@ def triage(article, source, since, until):
         reason = "specialist milestone"
     elif matched and ccu_specialist:
         reason = BRIEF
-    elif matched:
-        reason = "CCU term without utilization context"
+    elif matched or (conversion and kind == "news"):
+        reason = BORDERLINE
     else:
         reason = "no CCU term" + (" or milestone keyword" if specialist else "")
+    strength = {"CCU topic": 2, "specialist milestone": 2}.get(reason, 1)
     return {
-        "eligible": reason in ("CCU topic", "specialist milestone"),
+        "eligible": reason in GATED,
         "reason": reason,
         "kind": kind,
-        "event_lead": kind != "academic" and event,
-        "priority": int(kind != "academic") * 2 + int(event),
+        "event_lead": kind not in ("academic", "news") and event,
+        "priority": strength * 10 + {"academic": 0, "news": 1}.get(kind, 2) * 2 + int(event),
     }
 
 
-def source_text(article):
-    # Avoid duplicate title in RSS descriptions and omit URL, dates and generated metadata from LLM input.
-    summary = plain(article.summary).replace(article.title, "").strip()
-    return article.title + ("\n" + summary[:900] if summary else "")
-
-
-def cache_key(article, kind, model, endpoint, max_tokens):
-    payload = {
-        "article_id": article.article_id,
-        "publication_date": str(article.publication_date),
-        "source_url": str(article.canonical_url),
-        "text": source_text(article),
-        "source_kind": kind,
-        "model": model,
-        "endpoint": endpoint,
-        "prompt_version": PROMPT_VERSION,
-        "prompt_hash": prompt_hash("grounded"),
-        "max_tokens": max_tokens,
-        "temperature": 0,
-        "thinking": "disabled",
-        "validation_version": 3,
-    }
-    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
-
-
-def validate_cached(record, text, evidence_id):
-    evidence = Evidence.model_validate(record["evidence"])
-    result = Analysis.model_validate(record["analysis"])
-    if evidence.evidence_id != evidence_id:
-        raise ValueError("Cache evidence mismatch")
-    if evidence.content_sha256 != hashlib.sha256(text.encode()).hexdigest():
-        raise ValueError("Cache source text mismatch")
-    if result.proposed_events:
-        raise ValueError("Cache cannot contain committed event records")
-    for detail in [*result.technical_information, *result.economic_information, *result.milestone_proposals]:
-        if not quote_supported(detail.quote, text):
-            raise ValueError("Cache contains unsupported extraction")
-        if getattr(detail, "event_date", None) and not date_supported(detail.event_date, text):
-            raise ValueError("Cache contains unsupported event date")
-    for claim in result.claims:
-        if (
-            claim.kind == "verified_fact"
-            or claim.reviewer
-            or claim.reviewed_at
-            or not quote_supported(claim.text, text)
-            or claim.evidence_ids != [evidence_id]
-        ):
-            raise ValueError("Cache contains unsupported claims")
-    return result
-
-
-def estimated_cost(usage):
-    if usage.get("attempts", 0) and not usage.get("usage_reported"):
+def account_balance(endpoint: str) -> dict | None:
+    """Prepaid balance per currency (DeepSeek /user/balance); only the before/after difference is reported."""
+    key = os.getenv("LLM_API_KEY")
+    if not key:
         return None
-    return round(
-        (
-            usage.get("prompt_tokens", 0) * PRICING["input_usd_per_million"]
-            + usage.get("completion_tokens", 0) * PRICING["output_usd_per_million"]
-        )
-        / 1_000_000,
-        8,
-    )
+    try:
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            response = client.get(endpoint + "/user/balance", headers={"Authorization": "Bearer " + key})
+            response.raise_for_status()
+            return {b["currency"]: float(b["total_balance"]) for b in response.json().get("balance_infos", [])}
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        return None
 
 
-def write_draft(bundle, records, decisions, args):
-    """Compose the seven-section draft from cited DeepSeek summaries; never approve it."""
-    path = args.output / "draft.md"
-    if path.exists():
-        return path
-    selected = [r for r in records if r.get("analysis") and r["analysis"]["relevant"]]
-    created = datetime.now(UTC).isoformat()
-    meta = dict(
-        title=f"CCU Intelligence — research draft through {args.until}",
-        issue_number=0,  # Human editor assigns publication numbering.
-        editorial_status="draft", sample=False, publication_date=None,
-        coverage_start=str(args.since), coverage_end=str(args.until + timedelta(days=1)),
-        last_updated=created, source_count=len({r["evidence"]["url"] for r in selected}),
-        featured_topics=sorted({d for r in selected for d in r["analysis"]["domains"]}),
-        article_ids=[r["article_id"] for r in selected], executive_signal_ids=[], event_ids=[],
-        reviewer=None, reviewed_at=None, watch_milestones=[],
-        review_checklist={k: False for k in ("evidence", "technical", "economics", "climate", "rights")},
-    )
-    articles = {a.article_id: a for a in bundle.articles}
-    lines = [
-        "> DRAFT — AI proposals and source metadata only. Human review required; not published.",
-        "", f"Coverage: {args.since} through {args.until} inclusive (UTC).", "",
-        "Missing evidence stays unknown. Company/government reporting is attributed, not independent verification.",
-    ]
-    def citation(record):
-        a = articles[record["article_id"]]
-        return f"[{safe_text(a.source_id)}]({a.canonical_url}) — {a.publication_date}; evidence `{record['evidence']['evidence_id']}`."
-
-    for heading in SECTIONS:
-        lines += ["", "## " + heading, ""]
-        group = selected[:3] if heading == "Executive Signals" else selected
-        wrote = False
-        for r in group:
-            a = r["analysis"]
-            content = []
-            if heading in ("Executive Signals", "Industry Developments"):
-                content = ["AI draft summary: " + safe_text(a["summary"])]
-            elif heading == "Technology Spotlight":
-                content = [safe_text(d["text"]) + " Uncertainty: " + safe_text(d["uncertainty"])
-                           for d in a.get("technical_information", [])]
-            elif heading == "Project Watch":
-                content = [safe_text(d["event_type"]) + " proposal: " + safe_text(d["text"])
-                           + " Event date: " + str(d["event_date"] or "unknown")
-                           + ". Uncertainty: " + safe_text(d["uncertainty"])
-                           for d in a.get("milestone_proposals", [])]
-            elif heading == "Economics & Climate Reality Check":
-                content = [safe_text(d["text"]) + " Uncertainty: " + safe_text(d["uncertainty"])
-                           for d in a.get("economic_information", [])]
-            elif heading == "Materials & Chemicals Connection" and a.get("industrial_implications"):
-                content = ["AI interpretation: " + safe_text(a["industrial_implications"])]
-            elif heading == "What to Watch Next":
-                content = ["Verification needed: " + safe_text(a["uncertainty"])]
-            if content:
-                wrote = True
-                lines += ["### " + safe_text(articles[r["article_id"]].title), "", *content,
-                          "", citation(r), "", "Uncertainty: " + safe_text(a["uncertainty"]), ""]
-        if not wrote:
-            lines += ["No supported analysis available. Additional evidence and editorial review required."]
-    briefs = [a for a in bundle.articles if decisions[a.article_id]["reason"] == BRIEF]
-    lines += ["", "## CCU Ecosystem Briefs", "",
-              "Headline-only items from CCU-specialist sources. Not analysed by the model; title and link only.", ""]
-    for article in briefs:
-        lines += [f"- [{safe_text(article.title)}]({article.canonical_url}) — "
-                  f"{safe_text(article.source_id)}, {article.publication_date}."]
-    if not briefs:
-        lines += ["No ecosystem briefs in this window."]
-    lines += ["", "## Candidate inbox and limitations", "",
-              "Coverage is bounded; unavailable sources and exact-date gaps are recorded in collection.json. "
-              "No project events or human approvals are applied. Quotes and interpretations require original-source review.", ""]
-    for article in bundle.articles:
-        if decisions[article.article_id]["eligible"]:
-            lines += [f"- [{safe_text(article.title)}]({article.canonical_url}) — {article.publication_date}. Metadata lead only."]
-    path.write_text("---\n" + yaml.safe_dump(meta, sort_keys=False, allow_unicode=True)
-                    + "---\n\n" + "\n".join(lines) + "\n")
-    validate_issue(path, bundle)
-    return path
+def item_metadata(article, source, decision, text: SourceText) -> dict:
+    return {
+        "title": article.title,
+        "source": source.organization,
+        "source_kind": decision["kind"],
+        "evidence_role": source.evidence_role,
+        "publication_date": str(article.publication_date),
+        "input_basis": text.basis,
+    }
 
 
-def execute(args):
-    load_environment()
+def allowed_numbers(article, text: str) -> set[str]:
+    """Numbers the brief may use: the supplied text plus the title and publication date."""
+    return numbers(text) | numbers(article.title) | numbers(str(article.publication_date))
+
+
+def check_args(args):
     args.dry_run = getattr(args, "dry_run", False) or not getattr(args, "allow_paid", False)
-    args.max_spend_usd = getattr(args, "max_spend_usd", 0.50)
-    args.rate_ceiling = getattr(args, "rate_ceiling", 1.20)
+    args.max_spend_usd = getattr(args, "max_spend_usd", MAX_SPEND_USD_CAP)
     args.source_limit = getattr(args, "source_limit", None)
+    args.fetch_full_text = getattr(args, "fetch_full_text", True)
     if args.source_limit is not None and not 1 <= args.source_limit <= 30:
         raise ValueError("Per-source candidate cap must be 1–30")
-    limits = [(sid, args.source_limit or limit) for sid, limit in SOURCE_LIMITS]
-    if not args.dry_run and os.getenv("GITHUB_ACTIONS") == "true":
-        event = os.getenv("GITHUB_EVENT_NAME")
-        trusted = os.getenv("GITHUB_REF") == "refs/heads/" + os.getenv("DEFAULT_BRANCH", "main")
-        scheduled = event == "schedule" and os.getenv("CCU_ALLOW_SCHEDULED_PAID") == "true"
-        if not trusted or (event != "workflow_dispatch" and not scheduled) or os.getenv("GITHUB_RUN_ATTEMPT") != "1":
-            raise ValueError("Paid processing requires a trusted default-branch dispatch and first attempt")
-    if not args.dry_run and not os.getenv("LLM_API_KEY"):
-        raise ValueError("Paid processing requires LLM_API_KEY")
     if args.until > date.today() or args.since > args.until or (args.until - args.since).days != 13:
         raise ValueError("Use a completed 14-day inclusive collection window ending no later than today")
     if args.scheduled_publication and args.scheduled_publication <= args.until:
         raise ValueError("Scheduled publication must follow the coverage window")
-    if not 0 <= args.max_analyses <= 30 or not 0 <= args.max_requests <= 60 or args.token_budget < 1:
-        raise ValueError("Caps: <=30 new analyses, <=60 attempts and positive token budget")
-    if not 256 <= args.max_output_tokens <= 2048:
-        raise ValueError("Output tokens must be 256–2048")
+    if not 0 <= args.max_analyses <= MAX_ANALYSES_CAP or not 0 <= args.max_requests <= MAX_REQUESTS_CAP:
+        raise ValueError(f"Caps: <={MAX_ANALYSES_CAP} new analyses and <={MAX_REQUESTS_CAP} requests")
+    if not 1 <= args.token_budget <= MAX_TOKEN_BUDGET:
+        raise ValueError(f"Token budget must be 1–{MAX_TOKEN_BUDGET}")
+    if not 0 <= args.max_spend_usd <= MAX_SPEND_USD_CAP:
+        raise ValueError(f"Spending cap must be between 0 and {MAX_SPEND_USD_CAP} USD")
     if not args.output.resolve().is_relative_to(Path("data/runtime").resolve()):
         raise ValueError("Output must stay private under data/runtime")
-    model = os.getenv("LLM_MODEL", "")
-    endpoint = os.getenv("LLM_BASE_URL", "").rstrip("/")
-    if model != "deepseek-flash" or endpoint not in (
-        "https://api.deepseek.com",
-        "https://api.deepseek.com/v1",
-    ):
-        raise ValueError("This pricing/budget profile requires the official deepseek-flash endpoint")
-    initial_budget = Budget(max_requests=0 if args.dry_run else args.max_requests,
-                            max_tokens=args.token_budget, max_spend_usd=args.max_spend_usd,
-                            usd_per_million_tokens=args.rate_ceiling)
+    if not args.dry_run and os.getenv("GITHUB_ACTIONS") == "true":
+        event = os.getenv("GITHUB_EVENT_NAME")
+        trusted = os.getenv("GITHUB_REF") == "refs/heads/" + os.getenv("DEFAULT_BRANCH", "main")
+        if not trusted or event != "workflow_dispatch" or os.getenv("GITHUB_RUN_ATTEMPT") != "1":
+            raise ValueError("Paid processing requires a trusted default-branch dispatch and first attempt")
+    if not args.dry_run and not os.getenv("LLM_API_KEY"):
+        raise ValueError("Paid processing requires LLM_API_KEY")
+
+
+def execute(args):
+    load_environment()
+    check_args(args)
+    pricing = load_pricing()
+    stage_roles = roles(pricing)  # rejects any model missing from the pricing table
+    endpoint = os.getenv("LLM_BASE_URL", pricing["endpoint"]).rstrip("/")
+    if endpoint not in OFFICIAL_ENDPOINTS:
+        raise ValueError("This pricing/budget profile requires the official DeepSeek endpoint")
+    os.environ["LLM_BASE_URL"] = endpoint
+    config = newsletter_config()
+    categories = list(config["categories"])
     args.output.mkdir(parents=True, exist_ok=True)
     with (args.output / ".lock").open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        config = {k: str(v) if isinstance(v, (Path, date)) else v for k, v in vars(args).items()}
-        config.update(
-            model=model,
+        run_config = {k: str(v) if isinstance(v, (Path, date)) else v for k, v in vars(args).items()}
+        run_config.update(
             endpoint=endpoint,
-            prompt_hash=prompt_hash("grounded"),
-            sources=limits,
+            models={stage: {"model": r.model, "thinking": r.thinking, "max_output_tokens": r.max_output_tokens,
+                            "ceiling_usd_per_million": vars(r.rates)} for stage, r in stage_roles.items()},
+            prompt_version=PROMPT_VERSION,
             source_registry_hash=hashlib.sha256(Path("config/sources.yaml").read_bytes()).hexdigest(),
         )
-        config = json.loads(json.dumps(config))
+        run_config = json.loads(json.dumps(run_config))
         config_path = args.output / "config.json"
-        if config_path.exists() and json.loads(config_path.read_text()) != config:
+        if config_path.exists() and json.loads(config_path.read_text()) != run_config:
             raise ValueError("Existing run has different configuration; use another output directory")
-        atomic_json(config_path, config)
+        atomic_json(config_path, run_config)
         report_path = args.output / "report.json"
         if report_path.exists():
             report = json.loads(report_path.read_text())
-            print(json.dumps({k: v for k, v in report.items() if k not in ("records", "triage")}, indent=2))
+            print(json.dumps(report["summary"], indent=2))
             return report
         ledger = args.output / "budget.json"
-        budget = (
-            Budget(**json.loads(ledger.read_text()), path=ledger)
-            if ledger.exists()
-            else initial_budget
-        )
+        budget = Budget(**json.loads(ledger.read_text())) if ledger.exists() else Budget(
+            max_requests=0 if args.dry_run else args.max_requests, max_tokens=args.token_budget,
+            max_spend_usd=args.max_spend_usd)
         budget.path = ledger
         budget.save()
+        balance_before = None if args.dry_run else account_balance(endpoint)
         store = Store(args.output / "intelligence.sqlite")
         try:
-            sources = {s.source_id: s for s in registry()}
-            collection_file = args.output / "collection.json"
-            collection = json.loads(collection_file.read_text()) if collection_file.exists() else {}
-            for source, limit in limits:
-                if source not in collection:
-                    collection[source] = collect(
-                        store, args.since, args.until, source, limit, '"carbon dioxide" utilization'
-                    )
-                    atomic_json(collection_file, collection)
-            bundle = store.bundle()
-            atomic_json(args.output / "bundle.json", bundle.model_dump(mode="json"))
-            if len(bundle.articles) > sum(limit for _, limit in limits):
-                raise ValueError("Candidate cap exceeded")
-            decisions = {
-                a.article_id: triage(a, sources[a.source_id], args.since, args.until) for a in bundle.articles
-            }
-            eligible = sorted(
-                [a for a in bundle.articles if decisions[a.article_id]["eligible"]],
-                key=lambda a: (-decisions[a.article_id]["priority"], a.article_id),
-            )
-            records = []
-            # The durable attempt marker prevents crashes or reruns increasing the 30-article cap.
-            attempted_path = args.output / "attempted.json"
-            attempted = json.loads(attempted_path.read_text()) if attempted_path.exists() else []
-            for article in eligible:
-                kind = decisions[article.article_id]["kind"]
-                text = source_text(article)
-                eid = "metadata-" + article.article_id
-                key = cache_key(article, kind, model, endpoint, args.max_output_tokens)
-                cache = Path("data/runtime/llm-cache") / (key + ".json")
-                result_path = args.output / (article.article_id + ".json")
-                if result_path.exists():
-                    record = json.loads(result_path.read_text())
-                    if record.get("cache_key") != key:
-                        raise ValueError("Saved result configuration mismatch")
-                    if record.get("analysis"):
-                        validate_cached(record, text, eid)
-                    records.append(record)
-                    continue
-                if cache.exists():
-                    record = json.loads(cache.read_text())
-                    if record.get("cache_key") != key:
-                        raise ValueError("Cache key mismatch")
-                    validate_cached(record, text, eid)
-                    record = record | {"cache_hit": True, "usage": {}, "estimated_cost_usd": 0.0}
-                elif not args.dry_run and article.article_id not in attempted and len(attempted) < args.max_analyses and budget.requests < budget.max_requests:
-                    attempted.append(article.article_id)
-                    atomic_json(attempted_path, attempted)
-                    evidence = Evidence(
-                        evidence_id=eid,
-                        source_id=article.source_id,
-                        url=article.canonical_url,
-                        publication_date=article.publication_date,
-                        retrieved_at=article.retrieved_at,
-                        locator="API/feed title and short description",
-                        excerpt=text[:1200],
-                        content_sha256=hashlib.sha256(text.encode()).hexdigest(),
-                        license_note=sources[article.source_id].reuse_restrictions,
-                    )
-                    usage = {}
-                    analysis = run(
-                        "grounded",
-                        text,
-                        [eid],
-                        usage=usage,
-                        budget=budget,
-                        max_tokens=args.max_output_tokens,
-                        source_kind=kind,
-                    )
-                    record = {
-                        "article_id": article.article_id,
-                        "cache_key": key,
-                        "cache_hit": False,
-                        "model": model,
-                        "prompt_version": PROMPT_VERSION,
-                        "input": text,
-                        "evidence": evidence.model_dump(mode="json"),
-                        "usage": usage,
-                        "estimated_cost_usd": estimated_cost(usage),
-                        "analysis": analysis.model_dump(mode="json") if analysis else None,
-                    }
-                    if analysis:
-                        validate_cached(record, text, eid)
-                        atomic_json(cache, record)
-                else:
-                    continue
-                atomic_json(result_path, record)
-                records.append(record)
-            draft = write_draft(bundle, records, decisions, args)
-            usage = {
-                k: sum(r["usage"].get(k, 0) for r in records)
-                for k in (
-                    "attempts",
-                    "prompt_tokens",
-                    "completion_tokens",
-                    "total_tokens",
-                    "prompt_cache_hit_tokens",
-                )
-            }
-            report = {
-                "collected_articles": len(bundle.articles),
-                "candidate_records_considered": sum(c["considered"] for c in collection.values()),
-                "coverage_by_source_kind": dict(
-                    Counter(source_kind(sources[a.source_id]) for a in bundle.articles)
-                ),
-                "promising_candidates": len(eligible),
-                "ecosystem_briefs": sum(d["reason"] == BRIEF for d in decisions.values()),
-                "new_analyses_attempted": len(attempted),
-                "new_analyses_validated": sum(bool(r["analysis"]) and not r["cache_hit"] for r in records),
-                "cache_hits": sum(r["cache_hit"] for r in records),
-                "dry_run": args.dry_run,
-                "max_new_analyses": args.max_analyses,
-                "max_spend_usd": args.max_spend_usd,
-                "reserved_cost_usd": budget.reserved_cost_microusd / 1_000_000,
-                "rate_ceiling_usd_per_million": args.rate_ceiling,
-                "usage": usage,
-                "requests_reserved": budget.requests,
-                "tokens_charged_to_budget": budget.charged_tokens,
-                "estimated_cost_usd": round(sum(r["estimated_cost_usd"] or 0 for r in records), 8),
-                "cost_complete": all(r["estimated_cost_usd"] is not None for r in records),
-                "pricing": PRICING,
-                "draft": str(draft),
-                "triage": decisions,
-                "records": records,
-            }
-            atomic_json(report_path, report)
-            print(json.dumps({k: v for k, v in report.items() if k not in ("records", "triage")}, indent=2))
-            return report
+            return _run(args, store, budget, stage_roles, pricing, config, categories, endpoint, balance_before)
         finally:
             store.close()
+
+
+def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint, balance_before):
+    sources = {s.source_id: s for s in registry()}
+    limits = [(s.source_id, min(s.run_limit, args.source_limit or s.run_limit))
+              for s in sources.values() if s.run_limit and s.active and s.automated_access_approved]
+    collection_file = args.output / "collection.json"
+    collection = json.loads(collection_file.read_text()) if collection_file.exists() else {}
+    for source_id, limit in limits:
+        if source_id not in collection:
+            collection[source_id] = collect(store, args.since, args.until, source_id, limit,
+                                            '"carbon dioxide" utilization')
+            atomic_json(collection_file, collection)
+    bundle = store.bundle()
+    atomic_json(args.output / "bundle.json", bundle.model_dump(mode="json"))
+    if len(bundle.articles) > sum(limit for _, limit in limits):
+        raise ValueError("Candidate cap exceeded")
+    articles = {a.article_id: a for a in bundle.articles}
+    decisions = {a.article_id: triage(a, sources[a.source_id], args.since, args.until) for a in bundle.articles}
+    gated = sorted([a for a in bundle.articles if decisions[a.article_id]["eligible"]],
+                   key=lambda a: (-decisions[a.article_id]["priority"], a.article_id))
+
+    # Full text: robots-respecting extraction and open-access papers. Text stays in memory and a private cache.
+    texts: dict[str, SourceText] = {}
+    fetcher = Fetcher()
+    try:
+        papers = {}
+        if args.fetch_full_text:
+            dois = [a.doi for a in gated[:FULLTEXT_FETCH_CAP] if a.doi and decisions[a.article_id]["kind"] == "academic"]
+            papers = openalex_records(fetcher, dois) if dois else {}
+        reader = PageReader(fetcher)
+        for index, article in enumerate(gated):
+            source = sources[article.source_id]
+            if args.fetch_full_text and index < FULLTEXT_FETCH_CAP:
+                texts[article.article_id] = obtain(article, source, reader, papers.get(article.doi or ""))
+            else:
+                summary = plain(article.summary).replace(article.title, "").strip()
+                texts[article.article_id] = SourceText("headline", article.title + ("\n" + summary if summary else ""),
+                                                       None, "feed title and snippet")
+    finally:
+        fetcher.client.close()
+
+    caller = Caller(stage_roles, budget, config, paid=not args.dry_run)
+    records = {a.article_id: {
+        "article_id": a.article_id, "title": a.title, "url": str(a.canonical_url), "source_id": a.source_id,
+        "source_name": sources[a.source_id].organization, "evidence_role": sources[a.source_id].evidence_role,
+        "publication_date": str(a.publication_date), "triage": decisions[a.article_id],
+        "input": texts[a.article_id].record() if a.article_id in texts else None,
+    } for a in bundle.articles}
+
+    # Stage 1: relevance gate and decision-value score (screening model) on every gated item, within the cap.
+    attempted_path = args.output / "attempted.json"
+    attempted = json.loads(attempted_path.read_text()) if attempted_path.exists() else []
+    guard = threading.Lock()
+    schema = screening_schema(categories)
+
+    def screen(article):
+        record, text = records[article.article_id], texts[article.article_id]
+        payload = item_metadata(article, sources[article.source_id], decisions[article.article_id], text) | {
+            "content": select_content(text.text, SCREENING_CHARS)}
+        key = caller.key("screening", schema, payload)
+        cached = (Path("data/runtime/llm-cache") / f"{key}.json").exists()
+        with guard:
+            if not cached and article.article_id not in attempted:
+                if len(attempted) >= args.max_analyses or args.dry_run:
+                    record["screening_status"] = "not analysed: dry run" if args.dry_run else "not analysed: cap"
+                    return
+                attempted.append(article.article_id)
+                atomic_json(attempted_path, attempted)
+        result = caller("screening", schema, payload, article.article_id)
+        if result is None:
+            record["screening_status"] = "failed or budget exhausted" if not args.dry_run else "not analysed: dry run"
+            return
+        score = 0.0 if not result.ccu_relevant else float(result.score)
+        if text.basis == "headline":
+            score = min(score, config["headline_score_cap"])
+        record["screening_status"] = "screened"
+        record["screening"] = result.model_dump() | {"score": score, "model_score": result.score, "band": band(score)}
+
+    with ThreadPoolExecutor(WORKERS) as pool:
+        list(pool.map(screen, gated))
+
+    entries = []
+    for article in gated:
+        record = records[article.article_id]
+        screening = record.get("screening")
+        if screening and screening["ccu_relevant"]:
+            entries.append({"article_id": article.article_id, "score": screening["score"],
+                            "category": screening["category"], "evidence_role": record["evidence_role"],
+                            "input_basis": texts[article.article_id].basis, "record": record})
+
+    # Cross-source dedup of the same event (strong model) over everything that could be selected.
+    eligible = sorted([e for e in entries if e["score"] >= config["threshold"]], key=lambda e: (-e["score"]))
+    for number, entry in enumerate(eligible, 1):
+        entry["sid"] = f"D{number}"
+    merged = {}
+    if len(eligible) > 1:
+        payload = {"items": [{"id": e["sid"], "title": e["record"]["title"], "source": e["record"]["source_name"],
+                              "evidence_role": e["evidence_role"], "date": e["record"]["publication_date"],
+                              "score": e["score"], "category": e["category"],
+                              "tags": e["record"]["screening"]["tags"],
+                              "summary": e["record"]["screening"]["summary"]} for e in eligible]}
+        merged = dedup_groups(caller("dedup", DedupResult, payload, "dedup"), eligible)
+    also: dict[str, list] = {}
+    for duplicate, kept in merged.items():
+        records[duplicate]["selection"] = f"duplicate of {kept}"
+        also.setdefault(kept, []).append(records[duplicate])
+    chosen, selection = select([e for e in entries if e["article_id"] not in merged], config)
+    for article_id, status in selection.items():
+        records[article_id]["selection"] = status
+
+    # Stage 2: enrichment, deterministic grounding, independent verification (strong model).
+    def enrich(entry):
+        article = articles[entry["article_id"]]
+        record, text = entry["record"], texts[article.article_id]
+        content = select_content(text.text, ENRICHMENT_CHARS)
+        payload = item_metadata(article, sources[article.source_id], decisions[article.article_id], text) | {
+            "screening": {k: record["screening"][k] for k in ("category", "tags", "summary")}, "content": content}
+        result = caller("enrichment", Enrichment, payload, article.article_id)
+        if result is None:
+            record["enrichment_status"] = "failed or not run"
+            return None
+        result, removed = ground_enrichment(result, content)
+        record["grounding_removed"] = removed
+        allowed = allowed_numbers(article, content)
+        checks = caller("verification", VerificationResult,
+                        {"source_text": content, "items_to_check": checklist(result)}, article.article_id)
+        if checks is None:
+            record["enrichment_status"] = "verification unavailable: excluded"
+            return None
+        verified, log = apply_verification(result, checks, content, allowed, article.title)
+        record["verification"] = log
+        if verified is None:
+            record["enrichment_status"] = "core claim unsupported: excluded"
+            return None
+        record["enrichment_status"] = "verified"
+        record["enrichment"] = verified.model_dump(mode="json")
+        record["fields"] = field_coverage(verified)
+        record["brief_words"] = word_count(verified)
+        return entry | {"enrichment": record["enrichment"], "content": content}
+
+    with ThreadPoolExecutor(WORKERS) as pool:
+        verified = [e for e in pool.map(enrich, chosen) if e]
+    kept_ids = {e["article_id"] for e in verified}
+    for entry in chosen:
+        if entry["article_id"] not in kept_ids:
+            records[entry["article_id"]]["selection"] = "selected, then excluded at enrichment/verification"
+    verified.sort(key=lambda e: (categories.index(e["category"]), -e["score"]))
+    final = []
+    for number, entry in enumerate(verified, 1):
+        record = entry["record"]
+        final.append({"sid": f"S{number}", "article_id": entry["article_id"], "title": record["title"],
+                      "url": record["url"], "source_name": record["source_name"],
+                      "evidence_role": entry["evidence_role"], "publication_date": record["publication_date"],
+                      "input_basis": entry["input_basis"], "category": entry["category"], "score": entry["score"],
+                      "enrichment": entry["enrichment"], "content": entry["content"]})
+    leads = takeaways(final, config)
+
+    # Final synthesis (strong model) over verified briefs only, then deterministic citation/number/quote checks.
+    synthesis, synthesis_issues = None, []
+    if final:
+        items = {}
+        for e in final:
+            brief = e["enrichment"]
+            items[e["sid"]] = {
+                "source_id": e["sid"], "category": e["category"], "title": e["title"],
+                "source_name": e["source_name"], "evidence_role": e["evidence_role"],
+                "input_basis": e["input_basis"], "publication_date": e["publication_date"],
+                "brief": {k: brief[k] for k in ("headline", "what_changed", "why_it_matters",
+                                                "practical_implication", "next_action")},
+                "facts": {k: v["value"] for k, v in brief["fields"].items() if v["value"] != NOT_STATED},
+                "technical": [d["text"] for d in brief["technical_information"]],
+                "economic": [d["text"] for d in brief["economic_information"]],
+                "milestones": [{k: d[k] for k in ("text", "event_type", "event_date", "project_name")}
+                               for d in brief["milestone_proposals"]],
+                "quotes": brief["quotes"], "uncertainty": brief["uncertainty"],
+                "also_reported_by": [d["source_name"] for d in also.get(e["article_id"], [])],
+            }
+        payload = {
+            "coverage": {"start": str(args.since), "end_inclusive": str(args.until)},
+            "section_order": [{"category": k, "name": config["categories"][k]["name"]} for k in categories
+                              if any(e["category"] == k for e in final)],
+            "takeaway_plan": [{"category": e["category"], "source_id": e["sid"]} for e in leads],
+            "items": list(items.values()),
+        }
+        result = caller("synthesis", Synthesis, payload, "synthesis")
+        if result is not None:
+            result, synthesis_issues = validate_synthesis(result, items, {e["sid"]: e["content"] for e in final},
+                                                          categories)
+            synthesis = result.model_dump()
+
+    notes = list((synthesis or {}).get("editor_notes", []))
+    if any(e["input_basis"] == "headline" for e in final):
+        notes.append("Some items rest on a headline only; open the original before using them.")
+    if final and synthesis is None:
+        notes.append("Synthesis was unavailable; sections show the verified per-item briefs.")
+    briefs = [r for r in records.values() if r.get("screening") and r["screening"]["ccu_relevant"]
+              and r.get("selection") in ("below threshold", "category cap", "overall cap")
+              and r["screening"]["score"] >= 3]
+    briefs.sort(key=lambda r: (-r["screening"]["score"], r["title"]))
+    pending = [records[e["article_id"]] for e in chosen if e["article_id"] not in {f["article_id"] for f in final}]
+    inbox = [r | {"status": r.get("screening_status", "")} for r in records.values()
+             if r["triage"]["eligible"] and not r.get("screening")]
+    draft = args.output / "draft.md"
+    draft.write_text(render(
+        args=args, meta_counts={"collected": len(bundle.articles),
+                                "screened": sum(bool(r.get("screening")) for r in records.values())},
+        config=config, selected=final, synthesis=synthesis, takeaway_entries=leads, briefs=briefs, also=also,
+        notes=notes, pending=pending, inbox=inbox))
+    validate_issue(draft, bundle)
+
+    calls = caller.calls
+    for call in calls:
+        if call.get("usage") and "cost" not in call:
+            call["cost"] = call_cost(call["model"], call["usage"], datetime.fromisoformat(call["at"]), pricing)
+    by_model = {}
+    for call in calls:
+        if call.get("usage"):
+            agg = by_model.setdefault(call["model"], Counter())
+            agg.update({k: v or 0 for k, v in call["usage"].items()} | {"calls": 1})
+            agg.update({"upper_bound_usd_micro": int(call["cost"]["upper_bound_usd"] * 1e6),
+                        "estimate_usd_micro": int(call["cost"]["estimate_usd"] * 1e6)})
+    balance_after = None if args.dry_run else account_balance(endpoint)
+    balance_delta = ({c: round(balance_before[c] - balance_after.get(c, balance_before[c]), 6)
+                      for c in balance_before} if balance_before and balance_after else None)
+    summary = {
+        "collected_articles": len(bundle.articles),
+        "candidate_records_considered": sum(c["considered"] for c in collection.values()),
+        "coverage_by_source_kind": dict(Counter(source_kind(sources[a.source_id]) for a in bundle.articles)),
+        "gated_for_llm": len(gated),
+        "promising_candidates": len(gated),
+        "dropped_by_keyword": sum(not d["eligible"] for d in decisions.values()),
+        "input_basis": dict(Counter(t.basis for t in texts.values())),
+        "screened": sum(bool(r.get("screening")) for r in records.values()),
+        "ccu_relevant": len(entries),
+        "above_threshold": len(eligible),
+        "duplicates_merged": len(merged),
+        "selected_for_enrichment": len(chosen),
+        "verified_in_draft": len(final),
+        "takeaways": len(leads),
+        "synthesis": "validated" if synthesis else ("unavailable" if final else "not needed"),
+        "synthesis_issues": len(synthesis_issues),
+        "new_analyses_attempted": len(attempted),
+        "cache_hits": sum(c.get("status") == "cache_hit" for c in calls),
+        "dry_run": args.dry_run,
+        "max_new_analyses": args.max_analyses,
+        "max_spend_usd": args.max_spend_usd,
+        "token_budget": args.token_budget,
+        "requests_reserved": budget.requests,
+        "tokens_charged_to_budget": budget.charged_tokens,
+        "reserved_cost_usd": budget.reserved_cost_microusd / 1_000_000,
+        "usage_by_model": {m: dict(v) for m, v in by_model.items()},
+        "cost_upper_bound_usd": round(sum(c["cost"]["upper_bound_usd"] for c in calls if c.get("cost")), 6),
+        "cost_estimate_usd": round(sum(c["cost"]["estimate_usd"] for c in calls if c.get("cost")), 6),
+        "cost_complete": all(c.get("usage_reported", True) for c in calls if c.get("http_status") == 200),
+        "balance_delta": balance_delta,
+        "pricing": {"source": pricing["source"], "checked": pricing["checked"]},
+        "draft": str(draft),
+    }
+    report = {"summary": summary, "triage": decisions, "promising_candidates": len(gated),
+              "ecosystem_briefs": len(briefs), "records": list(records.values()),
+              "synthesis_issues": synthesis_issues, "calls": calls}
+    atomic_json(args.output / "report.json", report)
+    print(json.dumps(summary, indent=2))
+    return report
 
 
 def main():
@@ -488,16 +537,13 @@ def main():
     parser.add_argument("--until", type=date.fromisoformat, default=date.today())
     parser.add_argument("--scheduled-publication", type=date.fromisoformat)
     parser.add_argument("--output", type=Path, default=Path("data/runtime") / f"biweekly-{date.today()}")
-    parser.add_argument("--max-analyses", type=int, default=30)
-    parser.add_argument("--max-requests", type=int, default=60)
-    parser.add_argument("--token-budget", type=int, default=120000)
-    parser.add_argument("--max-output-tokens", type=int, default=1200)
-    parser.add_argument("--source-limit", type=int, default=15)
+    parser.add_argument("--max-analyses", type=int, default=MAX_ANALYSES_CAP)
+    parser.add_argument("--max-requests", type=int, default=200)
+    parser.add_argument("--token-budget", type=int, default=2_000_000)
+    parser.add_argument("--source-limit", type=int)
     parser.add_argument("--dry-run", action="store_true", help="Collect and draft; zero paid requests")
     parser.add_argument("--allow-paid", action="store_true", help="Explicitly authorize bounded model calls")
-    parser.add_argument("--max-spend-usd", type=float, default=0.50)
-    parser.add_argument("--rate-ceiling", type=float, default=1.20,
-                        help="Conservative USD per million tokens, at least the higher current peak price")
+    parser.add_argument("--max-spend-usd", type=float, default=MAX_SPEND_USD_CAP)
     execute(parser.parse_args())
 
 

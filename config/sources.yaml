@@ -1,5 +1,7 @@
 sources:
 - source_id: crossref
+  run_limit: 3
+  query: CO2 conversion utilization electroreduction hydrogenation mineralization e-fuels
   organization: Crossref
   source_type: scholarly_metadata
   base_url: https://www.crossref.org
@@ -15,6 +17,8 @@ sources:
   minimum_interval_seconds: 1
   limitation: null
 - source_id: openalex
+  run_limit: 10
+  query: '("CO2 reduction" OR "CO2 electroreduction" OR "CO2 electrolysis" OR "CO2 conversion" OR "CO2 hydrogenation" OR "CO2 utilization" OR "CO2 utilisation" OR "carbon dioxide utilization" OR "carbon dioxide conversion" OR "CO2 mineralization" OR "CO2 mineralisation" OR "e-methanol" OR "e-fuels" OR "power-to-liquid")'
   organization: OpenAlex
   source_type: scholarly_metadata
   base_url: https://openalex.org
@@ -46,6 +50,8 @@ sources:
   limitation: No automated adapter approved; use manual ingestion. Availability and
     rights require review.
 - source_id: co2-value-europe
+  run_limit: 5
+  content_extractor: trafilatura
   organization: CO2 Value Europe
   source_type: industry_association
   base_url: https://co2value.eu
@@ -214,6 +220,8 @@ sources:
   limitation: Monitoring candidate; specific IR/report URL and automation rights not
     verified.
 - source_id: dioxycle
+  run_limit: 5
+  content_extractor: trafilatura
   organization: Dioxycle
   source_type: company_announcements_and_annual_reports
   base_url: https://dioxycle.com
@@ -258,6 +266,8 @@ sources:
   limitation: Monitoring candidate; specific IR/report URL and automation rights not
     verified.
 - source_id: liquid-wind
+  run_limit: 5
+  content_extractor: trafilatura
   organization: Liquid Wind
   source_type: company_announcements_and_annual_reports
   base_url: https://www.liquidwind.com
@@ -302,6 +312,8 @@ sources:
   limitation: Monitoring candidate; specific IR/report URL and automation rights not
     verified.
 - source_id: covestro
+  run_limit: 5
+  content_extractor: trafilatura
   organization: Covestro
   source_type: company_announcements_and_annual_reports
   base_url: https://www.covestro.com
@@ -347,6 +359,8 @@ sources:
   limitation: Monitoring candidate; specific IR/report URL and automation rights not
     verified.
 - source_id: carbicrete
+  run_limit: 5
+  content_extractor: trafilatura
   organization: CarbiCrete
   source_type: company_announcements_and_annual_reports
   base_url: https://carbicrete.com
@@ -363,6 +377,8 @@ sources:
     materials and government support. Feed availability is not a completeness guarantee.
   endpoint: https://carbicrete.com/feed/
 - source_id: uk-desnz
+  run_limit: 8
+  content_extractor: trafilatura
   organization: UK Department for Energy Security and Net Zero
   source_type: government
   base_url: https://www.gov.uk/government/organisations/department-for-energy-security-and-net-zero
@@ -404,3 +420,253 @@ sources:
   automated_access_approved: false
   limitation: Primary-source reporting is not independent verification of throughput
     or lifecycle performance.
+
+- source_id: openalex-oa
+  organization: OpenAlex (open-access subset)
+  source_type: scholarly_metadata
+  base_url: https://openalex.org
+  access_method: openalex
+  endpoint: https://api.openalex.org/works
+  query: '("CO2 reduction" OR "CO2 electroreduction" OR "CO2 electrolysis" OR "CO2 conversion" OR "CO2 hydrogenation" OR "CO2 utilization" OR "CO2 utilisation" OR "carbon dioxide utilization" OR "carbon dioxide conversion" OR "CO2 mineralization" OR "CO2 mineralisation" OR "e-methanol" OR "e-fuels" OR "power-to-liquid")'
+  filters: open_access.is_oa:true
+  run_limit: 10
+  update_frequency: biweekly on demand
+  reliability_tier: 2
+  reuse_restrictions: Metadata only; open-access full text is read privately for analysis and never republished.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 1
+  limitation: Same CCU title/abstract query restricted to open-access works so full text can be read legally.
+- source_id: federal-register-ccu
+  organization: US Federal Register
+  source_type: government
+  base_url: https://www.federalregister.gov
+  access_method: federal_register
+  endpoint: https://www.federalregister.gov/api/v1/documents.json
+  query: 45Q | 45V | "carbon utilization" | "carbon dioxide utilization" | "carbon oxide sequestration" | "clean hydrogen production credit"
+  run_limit: 6
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 1
+  reuse_restrictions: US federal government works; retain attribution and original links.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 1
+  limitation: API and robots verified 2026-10-09 (/api allowed; /documents/search disallowed and not used). Term
+    search over US rules and notices; relevance is decided by the analysis gate.
+- source_id: news-efuels-carbonherald
+  organization: "Carbon Herald (site search: e-fuels)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=e-fuels&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. E-fuels, e-methanol and e-SAF projects. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-emethanol-h2central
+  organization: "Hydrogen Central (site search: e-methanol)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://hydrogen-central.com
+  access_method: rss
+  endpoint: 'https://hydrogen-central.com/?s=e-methanol&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. E-methanol projects and offtakes. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-esaf-h2central
+  organization: "Hydrogen Central (site search: e-SAF)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://hydrogen-central.com
+  access_method: rss
+  endpoint: 'https://hydrogen-central.com/?s=e-SAF&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. E-SAF and e-kerosene projects. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-electrolysis-carbonherald
+  organization: "Carbon Herald (site search: CO2 electrolysis)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=%22CO2+electrolysis%22&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. CO2 electrolysis. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-electrolysis-h2central
+  organization: "Hydrogen Central (site search: CO2 electrolysis)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://hydrogen-central.com
+  access_method: rss
+  endpoint: 'https://hydrogen-central.com/?s=%22CO2+electrolysis%22&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. CO2 electrolysis. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-mineralization-carbonherald
+  organization: "Carbon Herald (site search: mineralization)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=mineralization&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. CO2 mineralization. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-concrete-carbonherald
+  organization: "Carbon Herald (site search: concrete)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=concrete&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. CO2 in concrete and building materials. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-utilization-carbonherald
+  organization: "Carbon Herald (site search: utilization)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=utilization&feed=rss2&orderby=date&order=DESC'
+  pages: 3
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. CCU projects, FIDs, financing and offtakes. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-offtake-carbonherald
+  organization: "Carbon Herald (site search: offtake)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=offtake&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. Offtakes and financing (gate keeps only CCU). Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-rfnbo-h2central
+  organization: "Hydrogen Central (site search: RFNBO)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://hydrogen-central.com
+  access_method: rss
+  endpoint: 'https://hydrogen-central.com/?s=RFNBO&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. EU RFNBO and delegated-act policy. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-45q-carbonherald
+  organization: "Carbon Herald (site search: 45Q)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=45Q&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. US 45Q/45V and CO2 transport policy. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.
+- source_id: news-efuel-biofuels
+  organization: "Biofuels International (site search: e-fuel)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://biofuels-news.com
+  access_method: rss
+  endpoint: 'https://biofuels-news.com/?s=e-fuel&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. E-fuels and power-to-liquid. Replaces Google News RSS, whose robots.txt
+    disallows /rss/search for all agents.

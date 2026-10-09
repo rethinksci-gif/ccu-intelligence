@@ -7,9 +7,10 @@ import logging
 import os
 import socket
 import time
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
 
 import httpx
@@ -20,10 +21,12 @@ from .analysis import analyze, event_candidates
 from .extraction import extract_metrics
 from .models import Source
 from .normalize import normalize
+from .normalize import parse_date as normalize_date
 from .store import Store
 
 LOG = logging.getLogger(__name__)
 MAX_BYTES = 5_000_000
+AGENT = "CCUIntelligence"
 
 
 def registry(path: Path = Path("config/sources.yaml")) -> list[Source]:
@@ -42,6 +45,14 @@ def public_url(url: str):
         raise ValueError("Private and reserved network addresses are forbidden")
 
 
+@dataclass
+class Fetched:
+    status: int
+    headers: httpx.Headers
+    body: bytes
+    url: str
+
+
 class Fetcher:
     def __init__(self, client: httpx.Client | None = None):
         self.client = client or httpx.Client(
@@ -49,11 +60,13 @@ class Fetcher:
             follow_redirects=False,
             # Identify the bot with a contact URL. Avoid the word "research": co2value.eu's firewall returns 403
             # to any User-Agent containing it (diagnosed 2026-10-09; robots.txt allows all agents).
-            headers={"User-Agent": "CCUIntelligence/0.1 (+https://rethinksci-gif.github.io/ccu-intelligence/)"},
+            headers={"User-Agent": AGENT + "/0.1 (+https://rethinksci-gif.github.io/ccu-intelligence/)"},
         )
         self.last_request: dict[str, float] = {}
+        self.robots_cache: dict[str, RobotFileParser | None] = {}
 
-    def get(self, url: str, *, params=None, headers=None, interval=1.0) -> bytes:
+    def fetch(self, url: str, *, params=None, headers=None, interval=1.0, max_bytes=MAX_BYTES) -> Fetched:
+        """One polite GET: public HTTPS only, per-host spacing, bounded retries on 429/5xx, no redirects."""
         public_url(url)
         host = urlsplit(url).hostname
         for attempt in range(3):
@@ -73,32 +86,76 @@ class Fetcher:
                         pause = float(retry_after) if retry_after.isdigit() else 2**attempt
                         time.sleep(max(pause, 2**attempt))
                         continue
-                    response.raise_for_status()  # redirects require a reviewed registry endpoint
                     chunks, size = [], 0
-                    for chunk in response.iter_bytes():
-                        size += len(chunk)
-                        if size > MAX_BYTES:
-                            raise ValueError("Response exceeds preservation limit")
-                        chunks.append(chunk)
-                    return b"".join(chunks)
+                    if 200 <= response.status_code < 300:
+                        for chunk in response.iter_bytes():
+                            size += len(chunk)
+                            if size > max_bytes:
+                                raise ValueError("Response exceeds preservation limit")
+                            chunks.append(chunk)
+                    return Fetched(response.status_code, response.headers, b"".join(chunks), str(response.url))
             except (httpx.TimeoutException, httpx.NetworkError):
                 if attempt == 2:
                     raise
                 time.sleep(2**attempt)
         raise RuntimeError("Retrieval failed")
 
-    def rss(self, source: Source) -> bytes:
+    def get(self, url: str, *, params=None, headers=None, interval=1.0) -> bytes:
+        result = self.fetch(url, params=params, headers=headers, interval=interval)
+        if not 200 <= result.status < 300:
+            # Redirects require a reviewed registry endpoint; 4xx are not retried.
+            request = httpx.Request("GET", url)
+            raise httpx.HTTPStatusError(
+                f"HTTP {result.status}", request=request, response=httpx.Response(result.status, request=request)
+            )
+        return result.body
+
+    def robots(self, url: str) -> RobotFileParser | None:
+        """robots.txt per RFC 9309: 4xx means no restrictions (None); 5xx or network failure disallows all."""
+        p = urlsplit(url)
+        origin = f"{p.scheme}://{p.netloc}"
+        if origin not in self.robots_cache:
+            parser = RobotFileParser()
+            target = origin + "/robots.txt"
+            try:
+                for _ in range(5):  # RFC 9309: follow at least five redirects
+                    result = self.fetch(target)
+                    location = result.headers.get("location")
+                    if result.status in (301, 302, 303, 307, 308) and location:
+                        target = urljoin(target, location)
+                        continue
+                    break
+            except (httpx.HTTPError, ValueError, RuntimeError, OSError):
+                parser.disallow_all = True
+            else:
+                if 200 <= result.status < 300:
+                    parser.parse(result.body.decode("utf-8", errors="replace").splitlines())
+                elif 400 <= result.status < 500:
+                    parser = None
+                else:
+                    parser.disallow_all = True  # server errors and redirect loops fail closed
+            self.robots_cache[origin] = parser
+        return self.robots_cache[origin]
+
+    def allowed(self, url: str, minimum_interval: float = 1.0) -> tuple[bool, float]:
+        """Whether robots.txt permits our agent, and the polite interval for that host."""
+        robots = self.robots(url)
+        if robots is None:
+            return True, minimum_interval
+        if not robots.can_fetch(AGENT, url):
+            return False, minimum_interval
+        delay = robots.crawl_delay(AGENT) or 0
+        rate = robots.request_rate(AGENT)
+        return True, max(minimum_interval, float(delay), rate.seconds / rate.requests if rate else 0)
+
+    def rss(self, source: Source, page: int = 1) -> bytes:
         endpoint = str(source.endpoint or source.base_url)
-        p = urlsplit(endpoint)
-        robots_url = f"{p.scheme}://{p.netloc}/robots.txt"
+        if page > 1:
+            endpoint += ("&" if "?" in endpoint else "?") + f"paged={page}"
         # Fail closed when robots cannot be read. Manual ingestion stays available.
-        robots = RobotFileParser()
-        robots.parse(self.get(robots_url).decode("utf-8", errors="replace").splitlines())
-        if not robots.can_fetch("CCUIntelligence", endpoint):
+        permitted, interval = self.allowed(endpoint, source.minimum_interval_seconds)
+        if not permitted:
             raise ValueError("robots.txt disallows collection")
-        delay = robots.crawl_delay("CCUIntelligence") or 0
-        rate = robots.request_rate("CCUIntelligence")
-        interval = max(source.minimum_interval_seconds, delay, rate.seconds / rate.requests if rate else 0)
         return self.get(endpoint, interval=interval)
 
 
@@ -167,6 +224,19 @@ def openalex_items(raw: bytes) -> list[dict]:
     ]
 
 
+def federal_register_items(raw: bytes) -> list[dict]:
+    # Federal Register abstracts are US government works; the analysis may read them.
+    return [
+        {
+            "title": r.get("title") or "",
+            "url": r.get("html_url") or "",
+            "publication_date": r.get("publication_date"),
+            "summary": r.get("abstract") or "",
+        }
+        for r in json.loads(raw).get("results", [])
+    ]
+
+
 def collect(
     store: Store,
     since: date,
@@ -203,17 +273,18 @@ def collect(
                 continue
             try:
                 endpoint = str(source.endpoint or source.base_url)
+                source_query = source.query or query
                 if source.access_method == "crossref":
                     params = {
-                        "query.title": query,
+                        "query.title": source_query,
                         "filter": f"from-pub-date:{since},until-pub-date:{until}",
-                        "rows": limit,
+                        "rows": min(100, limit * 3),
                         "sort": "score",
                         "order": "desc",
                     }
                     if os.getenv("CCU_CONTACT_EMAIL"):
                         params["mailto"] = os.environ["CCU_CONTACT_EMAIL"]
-                    raw = fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)
+                    pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
                     parser = crossref_items
                 elif source.access_method == "openalex":
                     headers = (
@@ -221,44 +292,70 @@ def collect(
                         if os.getenv("OPENALEX_API_KEY")
                         else {}
                     )
-                    raw = fetcher.get(
-                        endpoint,
-                        params={
-                            "search": query,
-                            "filter": f"from_publication_date:{since},to_publication_date:{until}",
-                            "per_page": limit,
-                        },
-                        headers=headers,
-                        interval=source.minimum_interval_seconds,
-                    )
+                    window = f"from_publication_date:{since},to_publication_date:{until}"
+                    if source.query:
+                        # Boolean title/abstract search; plain full-text search returned mostly off-topic works.
+                        clauses = [f"title_and_abstract.search:{source.query}", window, "has_abstract:true",
+                                   "type:article|review"]
+                        params = {"filter": ",".join(clauses + ([source.filters] if source.filters else [])),
+                                  "per_page": min(100, limit * 3)}
+                    else:
+                        params = {"search": query, "filter": window, "per_page": limit}
+                    if os.getenv("CCU_CONTACT_EMAIL"):
+                        params["mailto"] = os.environ["CCU_CONTACT_EMAIL"]
+                    pages = [fetcher.get(endpoint, params=params, headers=headers,
+                                         interval=source.minimum_interval_seconds)]
                     parser = openalex_items
+                elif source.access_method == "federal_register":
+                    params = {
+                        "conditions[term]": source_query,
+                        "conditions[publication_date][gte]": str(since),
+                        "conditions[publication_date][lte]": str(until),
+                        "per_page": min(100, limit * 3),
+                        "order": "relevance",
+                        "fields[]": ["title", "publication_date", "html_url", "abstract", "type"],
+                    }
+                    pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
+                    parser = federal_register_items
                 else:
-                    raw = fetcher.rss(source)
+                    pages = []
+                    for page in range(1, source.pages + 1):
+                        raw = fetcher.rss(source, page)
+                        pages.append(raw)
+                        dates = [normalize_date(i.get("publication_date")) for i in rss_items(raw)]
+                        # Newest-first feeds: stop once a page reaches back before the window.
+                        if not dates or any(d and d < since for d in dates):
+                            break
                     parser = rss_items
-                digest = hashlib.sha256(raw).hexdigest()
-                folder = Path("data/raw") / source.source_id
-                folder.mkdir(parents=True, exist_ok=True)
-                (folder / f"{digest}.bin").write_bytes(raw)
-                # URLs contain no keys; credentials and request query strings are never logged.
-                (folder / f"{digest}.json").write_text(
-                    json.dumps(
-                        {
-                            "source_id": source.source_id,
-                            "url": endpoint,
-                            "retrieved_at": datetime.now(UTC).isoformat(),
-                            "sha256": digest,
-                            "reuse_restrictions": source.reuse_restrictions,
-                            "since": str(since),
-                            "until": str(until),
-                            "query": query,
-                            "limit": limit,
-                        },
-                        indent=2,
+                items = []
+                for raw in pages:
+                    digest = hashlib.sha256(raw).hexdigest()
+                    folder = Path("data/raw") / source.source_id
+                    folder.mkdir(parents=True, exist_ok=True)
+                    (folder / f"{digest}.bin").write_bytes(raw)
+                    # URLs contain no keys; credentials and request query strings are never logged.
+                    (folder / f"{digest}.json").write_text(
+                        json.dumps(
+                            {
+                                "source_id": source.source_id,
+                                "url": endpoint,
+                                "retrieved_at": datetime.now(UTC).isoformat(),
+                                "sha256": digest,
+                                "reuse_restrictions": source.reuse_restrictions,
+                                "since": str(since),
+                                "until": str(until),
+                                "query": source_query,
+                                "limit": limit,
+                            },
+                            indent=2,
+                        )
                     )
-                )
-                counts["raw_files"].append(str(folder / f"{digest}.bin"))
-                items = parser(raw)
-                for item in items[:limit]:
+                    counts["raw_files"].append(str(folder / f"{digest}.bin"))
+                    items += parser(raw)
+                kept = 0
+                for item in items:
+                    if kept >= limit:
+                        break
                     counts["considered"] += 1
                     try:
                         article = analyze(normalize(item, source.source_id), companies)
@@ -269,6 +366,7 @@ def collect(
                         if effective_date is None:
                             counts["unknown_date"] += 1
                             continue
+                        kept += 1
                         _, added = store.add_article(article)
                         counts["added" if added else "duplicates"] += 1
                     except (ValueError, KeyError, TypeError):
@@ -284,7 +382,7 @@ def collect(
                         "INSERT INTO sources VALUES(?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload",
                         (source.source_id, source.model_dump_json()),
                     )
-                if len(items) >= limit:
+                if kept >= limit:
                     counts["limited"] += 1
                     store.log(
                         source.source_id,

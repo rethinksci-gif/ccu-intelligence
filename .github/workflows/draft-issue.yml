@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   draft:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       PYTHONPATH: src
@@ -24,8 +24,8 @@ jobs:
       LLM_BASE_URL: https://api.deepseek.com
       # No LLM_API_KEY is supplied: scheduled runs never make paid calls.
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - run: pip install -r requirements.lock
