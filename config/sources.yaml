@@ -377,3 +377,29 @@ sources:
   limitation: Atom and robots verified 2026-10-08. Broad activity feed, not CCU-specific.
     Updated timestamps are not original publication dates; undated entries excluded
     from newsletter.
+
+- source_id: european-energy
+  organization: European Energy
+  source_type: company_or_consortium_report
+  base_url: https://europeanenergy.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  reuse_restrictions: Original attributed paraphrase and link only; no full-text redistribution.
+  active: true
+  automated_access_approved: false
+  limitation: Primary-source reporting is not independent verification of throughput
+    or lifecycle performance.
+
+- source_id: poseidon
+  organization: POSEIDON project consortium
+  source_type: company_or_consortium_report
+  base_url: https://project-poseidon.eu
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  reuse_restrictions: Original attributed paraphrase and link only; no full-text redistribution.
+  active: true
+  automated_access_approved: false
+  limitation: Primary-source reporting is not independent verification of throughput
+    or lifecycle performance.

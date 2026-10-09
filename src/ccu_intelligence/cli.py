@@ -108,10 +108,14 @@ def main():
         return
     if args.command == "export":
         bundle = curated()  # only checked-in, reviewed material; NEVER runtime candidates
+        bundle = Bundle.model_validate({
+            key: [r for r in records if not getattr(r, "sample", False)]
+            for key, records in bundle
+        })
         target = Path("public/data")
         target.mkdir(parents=True, exist_ok=True)
         (target / "intelligence.json").write_text(bundle.model_dump_json(indent=2))
-        print("Exported curated public data (sample flags preserved)")
+        print("Exported curated public data (fictional samples excluded)")
         return
     store = Store(args.db)
     try:

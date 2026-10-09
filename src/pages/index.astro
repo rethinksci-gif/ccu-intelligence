@@ -4,12 +4,12 @@ import { getCollection } from 'astro:content';
 import { projects, articles, href, label } from '../lib/data';
 const issues = (
   await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
-).sort((a, b) => +b.data.publication_date - +a.data.publication_date);
+).sort((a, b) => +b.data.publication_date! - +a.data.publication_date!);
 const latest = issues[0];
 const live = articles.filter((a) => !a.sample && a.editorial_status === 'reviewed' && !a.review_required);
-const signals = live.length ? live.slice(0, 3) : articles.filter((a) => a.sample).slice(0, 3);
+const signals = live.slice(0, 3);
 const liveProjects = projects.filter((p) => !p.sample);
-const watchProjects = (liveProjects.length ? liveProjects : projects).slice(0, 3);
+const watchProjects = liveProjects.slice(0, 3);
 ---
 
 <Base title="Industrial progress, in perspective">
@@ -27,21 +27,22 @@ const watchProjects = (liveProjects.length ? liveProjects : projects).slice(0, 3
   {
     !latest && (
       <div class="notice">
-        <strong>Initial research edition.</strong> No live issue has been published. Fictional demonstrations
-        are marked as samples; learning articles and calculations are separate reference material.
+        <strong>Initial research edition.</strong> The first newsletter is awaiting editorial review. Project
+        records link to primary sources; company and consortium reporting is attributed. Learning articles and
+        calculations are reference material.
       </div>
     )
   }
   <div class="hero-grid">
     <section class="lead-card">
       <p class="eyebrow">
-        {latest ? `Issue ${latest.data.issue_number}` : 'Biweekly briefing · sample edition'}
+        {latest ? `Issue ${latest.data.issue_number}` : 'Biweekly briefing · editorial review pending'}
       </p><h2>{latest ? latest.data.title : 'From promising chemistry to a working industrial system.'}</h2><p
       >
         Connect scientific progress to engineering constraints, project execution, production costs and
         climate performance.
-      </p><a class="button" href={latest ? href(`issues/${latest.id}/`) : href('samples/issue/')}
-        >{latest ? 'Read the latest issue' : 'Explore the sample issue'}</a
+      </p><a class="button" href={latest ? href(`issues/${latest.id}/`) : href('projects/')}
+        >{latest ? 'Read the latest issue' : 'Explore sourced projects'}</a
       ><div class="metrics">
         <div class="metric"><strong>05</strong><span>Intelligence domains</span></div><div class="metric">
           <strong>14</strong><span>Day reporting window</span>
@@ -65,7 +66,7 @@ const watchProjects = (liveProjects.length ? liveProjects : projects).slice(0, 3
   </div>
   <div class="section-head">
     <h2>Executive signals</h2><span class="badge sample"
-      >{live.length ? 'Reviewed evidence' : 'Sample signals · not news'}</span
+      >{live.length ? 'Reviewed evidence' : 'Awaiting editorial review'}</span
     >
   </div>
   <div class="cards">
@@ -77,7 +78,7 @@ const watchProjects = (liveProjects.length ? liveProjects : projects).slice(0, 3
             <h3>{a.title.replace('Sample: ', '')}</h3>
             <p>{a.industrial_implications}</p>
             <p class="meta">Uncertainty: {a.uncertainty}</p>
-            <a href={href(a.sample ? 'samples/issue/' : 'issues/')}>Read the context</a>
+            <a href={href('issues/')}>Read the context</a>
           </>
         </article>
       ))
@@ -101,7 +102,8 @@ const watchProjects = (liveProjects.length ? liveProjects : projects).slice(0, 3
       </ul>
     ) : (
       <p class="empty">
-        No reviewed live developments have been added. Sample signals above illustrate the editorial format.
+        The first issue is being prepared from real sources. Developments appear here after human editorial
+        review.
       </p>
     )
   }
@@ -111,7 +113,7 @@ const watchProjects = (liveProjects.length ? liveProjects : projects).slice(0, 3
       <caption
         >{
           liveProjects.length
-            ? 'Reviewed project records'
+            ? 'Primary-source project records · reported status, not audited throughput'
             : 'Sample project updates · fictional, not verified commercial records'
         }</caption
       ><thead

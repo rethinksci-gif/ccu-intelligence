@@ -53,7 +53,7 @@ const refs = evidence.filter((e) => p.sources.includes(e.evidence_id));
               'Hydrogen requirements',
               p.hydrogen_requirements.length ? JSON.stringify(p.hydrogen_requirements) : null,
             ],
-            ['Last verified', p.date_last_verified],
+            ['Source checked', p.date_last_verified],
             ['Location', p.location],
           ].map(([k, v]) => (
             <div>
@@ -120,4 +120,9 @@ const refs = evidence.filter((e) => p.sources.includes(e.evidence_id));
       ))
     }
   </ol>
+  {
+    history.length === 0 && (
+      <p class="meta">Baseline record only. No dated event history has been established.</p>
+    )
+  }
 </Base>

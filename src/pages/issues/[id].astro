@@ -5,7 +5,7 @@ import { href } from '../../lib/data';
 export async function getStaticPaths() {
   const issues = (
     await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
-  ).sort((a, b) => +a.data.publication_date - +b.data.publication_date);
+  ).sort((a, b) => +a.data.publication_date! - +b.data.publication_date!);
   return issues.map((issue, i) => ({
     params: { id: issue.id },
     props: { issue, previous: issues[i - 1]?.id, next: issues[i + 1]?.id },
@@ -18,7 +18,7 @@ const { Content } = await render(issue);
 <Base title={issue.data.title}
   ><div class="prose-title">
     <p class="eyebrow">
-      Issue {issue.data.issue_number} · {issue.data.publication_date.toISOString().slice(0, 10)}
+      Issue {issue.data.issue_number} · {issue.data.publication_date!.toISOString().slice(0, 10)}
     </p><h1>{issue.data.title}</h1><p class="meta">
       {issue.data.source_count} original sources · Reviewed by {issue.data.reviewer}
     </p>

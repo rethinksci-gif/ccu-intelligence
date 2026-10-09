@@ -136,118 +136,97 @@
       "sample": false
     },
     {
-      "company_id": "sample-company-0",
-      "name": "Example Nordic Chemicals",
+      "company_id": "kasso-midco",
+      "name": "Kassø MidCo / Solar Park Kassø",
       "aliases": [],
-      "country": null,
-      "website": null,
+      "country": "Denmark",
+      "website": "https://europeanenergy.com/kasso/",
       "watchlist_only": false,
-      "sample": true
+      "sample": false
     },
     {
-      "company_id": "sample-company-1",
-      "name": "Example Mineral Systems",
+      "company_id": "jiangsu-sailboat",
+      "name": "Jiangsu Sailboat",
       "aliases": [],
-      "country": null,
+      "country": "China",
       "website": null,
       "watchlist_only": false,
-      "sample": true
+      "sample": false
     },
     {
-      "company_id": "sample-company-2",
-      "name": "Example Electrochemical Works",
+      "company_id": "icodos",
+      "name": "ICODOS",
       "aliases": [],
-      "country": null,
-      "website": null,
+      "country": "Germany",
+      "website": "https://icodos.com/",
       "watchlist_only": false,
-      "sample": true
-    },
-    {
-      "company_id": "sample-company-3",
-      "name": "Example Polymer Research",
-      "aliases": [],
-      "country": null,
-      "website": null,
-      "watchlist_only": false,
-      "sample": true
+      "sample": false
     }
   ],
   "evidence": [
     {
-      "evidence_id": "sample-evidence-0",
-      "source_id": "sample-fixture",
-      "url": "https://example.org/ccu-fixtures/northport-methanol",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "publication_date": "2026-10-02",
-      "locator": "Fictional test record",
-      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
-      "content_sha256": null,
-      "license_note": "Original synthetic fixture",
-      "sample": true
+      "evidence_id": "source-kasso",
+      "source_id": "european-energy",
+      "url": "https://europeanenergy.com/2025/05/13/kasso-e-methanol-facility-officially-inaugurated/",
+      "retrieved_at": "2026-10-09T06:07:28.510919Z",
+      "publication_date": "2025-05-13",
+      "locator": "Opening paragraphs: inauguration, ownership, annual design capacity and feedstocks.",
+      "excerpt": "European Energy reports the inauguration of Kassø on 13 May 2025 and a design capacity of 42,000 tonnes of e-methanol per year.",
+      "content_sha256": "34d90e0162d438ef79b9d8cdf1ca077a24678cb918e9aa4b8d9ff348f63040b9",
+      "license_note": "Link and original attributed paraphrase only; no images or full source text redistributed.",
+      "sample": false
     },
     {
-      "evidence_id": "sample-evidence-1",
-      "source_id": "sample-fixture",
-      "url": "https://example.org/ccu-fixtures/riverbend-carbonate",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "publication_date": "2026-10-02",
-      "locator": "Fictional test record",
-      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
-      "content_sha256": null,
-      "license_note": "Original synthetic fixture",
-      "sample": true
+      "evidence_id": "source-sailboat",
+      "source_id": "carbon-recycling-international",
+      "url": "https://carbonrecycling.com/projects/sailboat",
+      "retrieved_at": "2026-10-09T06:07:28.510919Z",
+      "publication_date": null,
+      "locator": "Project description and Key facts; commissioning year, feedstocks and design capacity.",
+      "excerpt": "CRI identifies Jiangsu Sailboat as commissioned in 2023, with a design output of 100,000 tonnes of methanol per year.",
+      "content_sha256": "23a815da7a39b72f6fed53ab3249240ea994b05dad663678183a3014c73c6a9b",
+      "license_note": "Link and original attributed paraphrase only; no images or full source text redistributed.",
+      "sample": false
     },
     {
-      "evidence_id": "sample-evidence-2",
-      "source_id": "sample-fixture",
-      "url": "https://example.org/ccu-fixtures/eastbay-electrolysis",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "publication_date": "2026-10-02",
-      "locator": "Fictional test record",
-      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
-      "content_sha256": null,
-      "license_note": "Original synthetic fixture",
-      "sample": true
-    },
-    {
-      "evidence_id": "sample-evidence-3",
-      "source_id": "sample-fixture",
-      "url": "https://example.org/ccu-fixtures/coastal-polyol",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "publication_date": "2026-10-02",
-      "locator": "Fictional test record",
-      "excerpt": "Fictional data created to exercise software behavior; no real-world claim.",
-      "content_sha256": null,
-      "license_note": "Original synthetic fixture",
-      "sample": true
+      "evidence_id": "source-poseidon",
+      "source_id": "poseidon",
+      "url": "https://project-poseidon.eu/about/synthetic-methanol-pilot-plant/",
+      "retrieved_at": "2026-10-09T06:07:28.510919Z",
+      "publication_date": null,
+      "locator": "Progress Highlights, September 2026; pilot design and biogas feedstock paragraphs.",
+      "excerpt": "POSEIDON reports installation of three pilot modules in September 2026 at EBS Mannheim; this is construction progress, not verified continuous operation.",
+      "content_sha256": "57608cb50ab9082e67df7d5fe3cebdcb042173d50a54d65e88677724b6099ea7",
+      "license_note": "Link and original attributed paraphrase only; no images or full source text redistributed.",
+      "sample": false
     }
   ],
   "projects": [
     {
-      "project_id": "northport-methanol",
-      "project_name": "Northport Methanol Demonstrator",
-      "company": "sample-company-0",
-      "country": "Sweden",
+      "project_id": "kasso-methanol",
+      "project_name": "Kassø e-methanol facility",
+      "company": "kasso-midco",
+      "country": "Denmark",
       "region": "Europe",
-      "location": null,
-      "co2_source": "Fictional industrial point source",
+      "location": "Aabenraa",
+      "co2_source": "Biogenic CO₂ from biogas",
       "capture_technology": null,
-      "conversion_pathway": "CO₂ hydrogenation",
+      "conversion_pathway": "CO₂ hydrogenation to methanol",
       "primary_product": "Methanol",
-      "development_status": "FEED",
-      "technology_trl": 6,
+      "development_status": "operation_reported",
+      "technology_trl": null,
       "announced_capacity": {
-        "value": 12000.0,
+        "value": 42000.0,
         "unit": "t/year",
         "basis": "product_output",
         "substance": "Methanol",
         "evidence_ids": [
-          "sample-evidence-0"
+          "source-kasso"
         ]
       },
       "operational_capacity": null,
-      "capacity_units": "t/year product output",
-      "expected_startup_date": "2028",
+      "capacity_units": "t/year",
+      "expected_startup_date": null,
       "actual_startup_date": null,
       "capex": null,
       "opex": null,
@@ -256,86 +235,38 @@
       "climate_claims": [],
       "lca_evidence": [],
       "sources": [
-        "sample-evidence-0"
+        "source-kasso"
       ],
-      "date_last_verified": null,
-      "confidence_level": "low",
-      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
-      "sample": true
+      "date_last_verified": "2026-10-09",
+      "confidence_level": "medium",
+      "limitations": "European Energy company announcement dated 13 May 2025. Design capacity is not measured annual production. Present throughput, uptime and independently verified lifecycle performance are not established here.",
+      "sample": false
     },
     {
-      "project_id": "riverbend-carbonate",
-      "project_name": "Riverbend Carbonate Pilot",
-      "company": "sample-company-1",
-      "country": "United States",
-      "region": "North America",
-      "location": null,
-      "co2_source": "Fictional industrial point source",
-      "capture_technology": null,
-      "conversion_pathway": "Mineralization",
-      "primary_product": "Carbonate aggregate",
-      "development_status": "PILOT",
-      "technology_trl": 5,
-      "announced_capacity": {
-        "value": 2500.0,
-        "unit": "t/year",
-        "basis": "product_output",
-        "substance": "Carbonate aggregate",
-        "evidence_ids": [
-          "sample-evidence-1"
-        ]
-      },
-      "operational_capacity": {
-        "value": 500.0,
-        "unit": "t/year",
-        "basis": "product_output",
-        "substance": "Carbonate aggregate",
-        "evidence_ids": [
-          "sample-evidence-1"
-        ]
-      },
-      "capacity_units": "t/year product output",
-      "expected_startup_date": "2027",
-      "actual_startup_date": null,
-      "capex": null,
-      "opex": null,
-      "energy_requirements": [],
-      "hydrogen_requirements": [],
-      "climate_claims": [],
-      "lca_evidence": [],
-      "sources": [
-        "sample-evidence-1"
-      ],
-      "date_last_verified": null,
-      "confidence_level": "low",
-      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
-      "sample": true
-    },
-    {
-      "project_id": "eastbay-electrolysis",
-      "project_name": "Eastbay Electrolysis Pilot",
-      "company": "sample-company-2",
+      "project_id": "jiangsu-sailboat",
+      "project_name": "Jiangsu Sailboat CO₂-to-methanol plant",
+      "company": "jiangsu-sailboat",
       "country": "China",
       "region": "China",
-      "location": null,
-      "co2_source": "Fictional industrial point source",
+      "location": "Lianyungang, Jiangsu",
+      "co2_source": "CO₂ from ethylene oxide production",
       "capture_technology": null,
-      "conversion_pathway": "Electrochemical reduction",
-      "primary_product": "Carbon monoxide",
-      "development_status": "STARTUP_DELAYED",
-      "technology_trl": 5,
+      "conversion_pathway": "CO₂ hydrogenation to methanol",
+      "primary_product": "Methanol",
+      "development_status": "commissioned_reported",
+      "technology_trl": null,
       "announced_capacity": {
-        "value": 1000.0,
+        "value": 100000.0,
         "unit": "t/year",
         "basis": "product_output",
-        "substance": "Carbon monoxide",
+        "substance": "Methanol",
         "evidence_ids": [
-          "sample-evidence-2"
+          "source-sailboat"
         ]
       },
       "operational_capacity": null,
-      "capacity_units": "t/year product output",
-      "expected_startup_date": "2029",
+      "capacity_units": "t/year",
+      "expected_startup_date": null,
       "actual_startup_date": null,
       "capex": null,
       "opex": null,
@@ -344,25 +275,25 @@
       "climate_claims": [],
       "lca_evidence": [],
       "sources": [
-        "sample-evidence-2"
+        "source-sailboat"
       ],
-      "date_last_verified": null,
-      "confidence_level": "low",
-      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
-      "sample": true
+      "date_last_verified": "2026-10-09",
+      "confidence_level": "medium",
+      "limitations": "CRI reports commissioning in 2023. This is a historical baseline, not a new 2026 event. Design output is not verified operating throughput; no carbon-saving claim is adopted.",
+      "sample": false
     },
     {
-      "project_id": "coastal-polyol",
-      "project_name": "Coastal Polyol Demonstrator",
-      "company": "sample-company-3",
-      "country": "Japan",
-      "region": "Other",
-      "location": null,
-      "co2_source": "Fictional industrial point source",
+      "project_id": "poseidon-mannheim",
+      "project_name": "POSEIDON Mannheim pilot",
+      "company": "icodos",
+      "country": "Germany",
+      "region": "Europe",
+      "location": "EBS Mannheim wastewater treatment site",
+      "co2_source": "CO₂ separated from wastewater-treatment biogas",
       "capture_technology": null,
-      "conversion_pathway": "Copolymerization",
-      "primary_product": "Polyol",
-      "development_status": "ANNOUNCED",
+      "conversion_pathway": "CO₂ hydrogenation to methanol",
+      "primary_product": "Methanol",
+      "development_status": "module_installation_reported",
       "technology_trl": null,
       "announced_capacity": null,
       "operational_capacity": null,
@@ -376,92 +307,15 @@
       "climate_claims": [],
       "lca_evidence": [],
       "sources": [
-        "sample-evidence-3"
+        "source-poseidon"
       ],
-      "date_last_verified": null,
-      "confidence_level": "low",
-      "limitations": "SAMPLE: entirely fictional; figures and statuses are for interface testing only.",
-      "sample": true
+      "date_last_verified": "2026-10-09",
+      "confidence_level": "medium",
+      "limitations": "Consortium progress page reports module installation in September 2026; exact day and page publication date are unknown. Planned 500 L/day is a design target, not demonstrated output, and is not converted to tonnes. No commissioning or achieved TRL is inferred.",
+      "sample": false
     }
   ],
-  "events": [
-    {
-      "event_id": "sample-event-0",
-      "project_id": "northport-methanol",
-      "event_type": "FEED_STARTED",
-      "event_date": "2026-10-01",
-      "reporting_date": "2026-10-02",
-      "previous_value": {
-        "development_status": "ANNOUNCED"
-      },
-      "new_value": {
-        "development_status": "FEED"
-      },
-      "description": "Fictional feed started milestone.",
-      "evidence_links": [
-        "sample-evidence-0"
-      ],
-      "confidence_level": "low",
-      "sample": true
-    },
-    {
-      "event_id": "sample-event-1",
-      "project_id": "riverbend-carbonate",
-      "event_type": "CAPACITY_EXPANDED",
-      "event_date": "2026-10-01",
-      "reporting_date": "2026-10-02",
-      "previous_value": {
-        "development_status": "ANNOUNCED"
-      },
-      "new_value": {
-        "development_status": "PILOT"
-      },
-      "description": "Fictional capacity expanded milestone.",
-      "evidence_links": [
-        "sample-evidence-1"
-      ],
-      "confidence_level": "low",
-      "sample": true
-    },
-    {
-      "event_id": "sample-event-2",
-      "project_id": "eastbay-electrolysis",
-      "event_type": "STARTUP_DELAYED",
-      "event_date": "2026-10-01",
-      "reporting_date": "2026-10-02",
-      "previous_value": {
-        "expected_startup_date": "2027"
-      },
-      "new_value": {
-        "expected_startup_date": "2029"
-      },
-      "description": "Fictional startup moved from 2027 to 2029.",
-      "evidence_links": [
-        "sample-evidence-2"
-      ],
-      "confidence_level": "low",
-      "sample": true
-    },
-    {
-      "event_id": "sample-event-3",
-      "project_id": "coastal-polyol",
-      "event_type": "ANNOUNCED",
-      "event_date": "2026-10-01",
-      "reporting_date": "2026-10-02",
-      "previous_value": {
-        "development_status": "ANNOUNCED"
-      },
-      "new_value": {
-        "development_status": "ANNOUNCED"
-      },
-      "description": "Fictional announced milestone.",
-      "evidence_links": [
-        "sample-evidence-3"
-      ],
-      "confidence_level": "low",
-      "sample": true
-    }
-  ],
+  "events": [],
   "technologies": [
     {
       "technology_id": "co2-to-methanol",
@@ -612,166 +466,5 @@
       "last_updated": "2026-10-08"
     }
   ],
-  "articles": [
-    {
-      "article_id": "sample-article-0",
-      "source_id": "sample-fixture",
-      "canonical_url": "https://example.org/ccu-fixtures/northport-methanol",
-      "title": "Sample: engineering study precedes investment decision",
-      "publication_date": "2026-10-02",
-      "source_updated_date": null,
-      "event_date": "2026-10-01",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "doi": null,
-      "content_fingerprint": "sample-0",
-      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
-      "organization_ids": [
-        "sample-company-0"
-      ],
-      "domains": [
-        "commercialization"
-      ],
-      "claims": [
-        {
-          "claim_id": "sample-claim-0",
-          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
-          "kind": "unverified_information",
-          "evidence_ids": [
-            "sample-evidence-0"
-          ],
-          "uncertainty": "Sample data only.",
-          "reviewer": null,
-          "reviewed_at": null
-        }
-      ],
-      "scores": null,
-      "overall_score": 75.0,
-      "review_required": true,
-      "editorial_status": "candidate",
-      "technical_significance": "Reported scale must be linked to the specific operating system.",
-      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
-      "uncertainty": "No real-world inference is possible from this sample.",
-      "sample": true
-    },
-    {
-      "article_id": "sample-article-1",
-      "source_id": "sample-fixture",
-      "canonical_url": "https://example.org/ccu-fixtures/riverbend-carbonate",
-      "title": "Sample: pilot capacity differs from announced expansion",
-      "publication_date": "2026-10-02",
-      "source_updated_date": null,
-      "event_date": "2026-10-01",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "doi": null,
-      "content_fingerprint": "sample-1",
-      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
-      "organization_ids": [
-        "sample-company-1"
-      ],
-      "domains": [
-        "commercialization"
-      ],
-      "claims": [
-        {
-          "claim_id": "sample-claim-1",
-          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
-          "kind": "unverified_information",
-          "evidence_ids": [
-            "sample-evidence-1"
-          ],
-          "uncertainty": "Sample data only.",
-          "reviewer": null,
-          "reviewed_at": null
-        }
-      ],
-      "scores": null,
-      "overall_score": 70.0,
-      "review_required": true,
-      "editorial_status": "candidate",
-      "technical_significance": "Reported scale must be linked to the specific operating system.",
-      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
-      "uncertainty": "No real-world inference is possible from this sample.",
-      "sample": true
-    },
-    {
-      "article_id": "sample-article-2",
-      "source_id": "sample-fixture",
-      "canonical_url": "https://example.org/ccu-fixtures/eastbay-electrolysis",
-      "title": "Sample: startup delay changes the delivery outlook",
-      "publication_date": "2026-10-02",
-      "source_updated_date": null,
-      "event_date": "2026-10-01",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "doi": null,
-      "content_fingerprint": "sample-2",
-      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
-      "organization_ids": [
-        "sample-company-2"
-      ],
-      "domains": [
-        "commercialization"
-      ],
-      "claims": [
-        {
-          "claim_id": "sample-claim-2",
-          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
-          "kind": "unverified_information",
-          "evidence_ids": [
-            "sample-evidence-2"
-          ],
-          "uncertainty": "Sample data only.",
-          "reviewer": null,
-          "reviewed_at": null
-        }
-      ],
-      "scores": null,
-      "overall_score": 65.0,
-      "review_required": true,
-      "editorial_status": "candidate",
-      "technical_significance": "Reported scale must be linked to the specific operating system.",
-      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
-      "uncertainty": "No real-world inference is possible from this sample.",
-      "sample": true
-    },
-    {
-      "article_id": "sample-article-3",
-      "source_id": "sample-fixture",
-      "canonical_url": "https://example.org/ccu-fixtures/coastal-polyol",
-      "title": "Sample: polymer announcement lacks operating data",
-      "publication_date": "2026-10-02",
-      "source_updated_date": null,
-      "event_date": "2026-10-01",
-      "retrieved_at": "2026-10-04T10:00:00Z",
-      "doi": null,
-      "content_fingerprint": "sample-3",
-      "summary": "Fictional development used to demonstrate evidence-aware editorial review.",
-      "organization_ids": [
-        "sample-company-3"
-      ],
-      "domains": [
-        "commercialization"
-      ],
-      "claims": [
-        {
-          "claim_id": "sample-claim-3",
-          "text": "This fictional project illustrates an editorial distinction, not a verified industrial development.",
-          "kind": "unverified_information",
-          "evidence_ids": [
-            "sample-evidence-3"
-          ],
-          "uncertainty": "Sample data only.",
-          "reviewer": null,
-          "reviewed_at": null
-        }
-      ],
-      "scores": null,
-      "overall_score": 60.0,
-      "review_required": true,
-      "editorial_status": "candidate",
-      "technical_significance": "Reported scale must be linked to the specific operating system.",
-      "industrial_implications": "Engineering, finance and offtake must be evaluated separately.",
-      "uncertainty": "No real-world inference is possible from this sample.",
-      "sample": true
-    }
-  ]
+  "articles": []
 }

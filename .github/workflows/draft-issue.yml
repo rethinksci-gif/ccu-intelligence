@@ -1,6 +1,8 @@
 name: Draft biweekly issue
 on:
-  # Manual-only for the initial public deployment; scheduled drafting is disabled.
+  # Check daily for a new completed 14-day window; existing branches make retries idempotent.
+  schedule:
+    - cron: '17 7 * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,6 +20,9 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      LLM_MODEL: deepseek-flash
+      LLM_BASE_URL: https://api.deepseek.com
+      # No LLM_API_KEY is supplied: scheduled runs never make paid calls.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,7 +38,10 @@ jobs:
         env:
           ISSUE_END: ${{ steps.window.outputs.end }}
         run: |
-          if [ -f "src/content/issues/$ISSUE_END.md" ]; then
+          if [[ "$ISSUE_END" < "2026-10-12" ]]; then
+            echo 'merged=true' >> "$GITHUB_OUTPUT"
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          elif [ -f "src/content/issues/$ISSUE_END.md" ]; then
             echo 'merged=true' >> "$GITHUB_OUTPUT"
             echo 'skip=true' >> "$GITHUB_OUTPUT"
           elif git ls-remote --exit-code --heads origin "editorial/$ISSUE_END" >/dev/null 2>&1; then
@@ -43,13 +51,10 @@ jobs:
             echo 'merged=false' >> "$GITHUB_OUTPUT"
             echo 'skip=false' >> "$GITHUB_OUTPUT"
           fi
-      - if: steps.exists.outputs.skip != 'true'
-        run: bash scripts/restore-state.sh
       - name: Generate a draft, never publish
         if: steps.exists.outputs.skip != 'true'
         run: |
-          python -m ccu_intelligence.cli init
-          python -m ccu_intelligence.cli draft
+          python scripts/prepare-draft.py
           python -m ccu_intelligence.cli validate
       - name: Push draft review branch
         if: steps.exists.outputs.skip != 'true'
@@ -59,7 +64,7 @@ jobs:
           git switch -c "editorial/$ISSUE_END"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add "src/content/issues/$ISSUE_END.md"
+          git add "src/content/issues/$ISSUE_END.md" "data/review/$ISSUE_END"
           git commit -m "Draft CCU issue $ISSUE_END for editorial review"
           git push origin "editorial/$ISSUE_END"
       - name: Ensure editorial pull request exists
@@ -69,5 +74,5 @@ jobs:
         run: |
           count="$(gh pr list --head "editorial/$ISSUE_END" --state all --json number --jq 'length')"
           if [ "$count" = 0 ]; then
-            gh pr create --base "$DEFAULT_BRANCH" --head "editorial/$ISSUE_END" --title "Editorial review: CCU issue $ISSUE_END" --body-file docs/draft-pr.md
+            gh pr create --draft --base "$DEFAULT_BRANCH" --head "editorial/$ISSUE_END" --title "Editorial review: CCU issue $ISSUE_END" --body-file docs/draft-pr.md
           fi

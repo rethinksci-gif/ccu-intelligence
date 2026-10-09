@@ -1,0 +1,168 @@
+{
+  "companies": [
+    {
+      "company_id": "kasso-midco",
+      "name": "Kassø MidCo / Solar Park Kassø",
+      "country": "Denmark",
+      "website": "https://europeanenergy.com/kasso/",
+      "watchlist_only": false,
+      "sample": false
+    },
+    {
+      "company_id": "jiangsu-sailboat",
+      "name": "Jiangsu Sailboat",
+      "country": "China",
+      "website": null,
+      "watchlist_only": false,
+      "sample": false
+    },
+    {
+      "company_id": "icodos",
+      "name": "ICODOS",
+      "country": "Germany",
+      "website": "https://icodos.com",
+      "watchlist_only": false,
+      "sample": false
+    }
+  ],
+  "projects": [
+    {
+      "project_id": "kasso-methanol",
+      "project_name": "Kassø e-methanol facility",
+      "company": "kasso-midco",
+      "country": "Denmark",
+      "region": "Europe",
+      "location": "Aabenraa",
+      "co2_source": "Biogenic CO₂ from biogas",
+      "capture_technology": null,
+      "conversion_pathway": "CO₂ hydrogenation to methanol",
+      "primary_product": "Methanol",
+      "development_status": "operation_reported",
+      "technology_trl": null,
+      "announced_capacity": {
+        "value": 42000,
+        "unit": "t/year",
+        "basis": "product_output",
+        "substance": "Methanol",
+        "evidence_ids": [
+          "source-kasso"
+        ]
+      },
+      "operational_capacity": null,
+      "capacity_units": "t/year",
+      "expected_startup_date": null,
+      "actual_startup_date": null,
+      "capex": null,
+      "opex": null,
+      "sources": [
+        "source-kasso"
+      ],
+      "date_last_verified": "2026-10-09",
+      "confidence_level": "medium",
+      "limitations": "European Energy company announcement dated 13 May 2025. Design capacity is not measured annual production. Present throughput, uptime and independently verified lifecycle performance are not established here.",
+      "sample": false
+    },
+    {
+      "project_id": "jiangsu-sailboat",
+      "project_name": "Jiangsu Sailboat CO₂-to-methanol plant",
+      "company": "jiangsu-sailboat",
+      "country": "China",
+      "region": "China",
+      "location": "Lianyungang, Jiangsu",
+      "co2_source": "CO₂ from ethylene oxide production",
+      "capture_technology": null,
+      "conversion_pathway": "CO₂ hydrogenation to methanol",
+      "primary_product": "Methanol",
+      "development_status": "commissioned_reported",
+      "technology_trl": null,
+      "announced_capacity": {
+        "value": 100000,
+        "unit": "t/year",
+        "basis": "product_output",
+        "substance": "Methanol",
+        "evidence_ids": [
+          "source-sailboat"
+        ]
+      },
+      "operational_capacity": null,
+      "capacity_units": "t/year",
+      "expected_startup_date": null,
+      "actual_startup_date": null,
+      "capex": null,
+      "opex": null,
+      "sources": [
+        "source-sailboat"
+      ],
+      "date_last_verified": "2026-10-09",
+      "confidence_level": "medium",
+      "limitations": "CRI reports commissioning in 2023. This is a historical baseline, not a new 2026 event. Design output is not verified operating throughput; no carbon-saving claim is adopted.",
+      "sample": false
+    },
+    {
+      "project_id": "poseidon-mannheim",
+      "project_name": "POSEIDON Mannheim pilot",
+      "company": "icodos",
+      "country": "Germany",
+      "region": "Europe",
+      "location": "EBS Mannheim wastewater treatment site",
+      "co2_source": "CO₂ separated from wastewater-treatment biogas",
+      "capture_technology": null,
+      "conversion_pathway": "CO₂ hydrogenation to methanol",
+      "primary_product": "Methanol",
+      "development_status": "module_installation_reported",
+      "technology_trl": null,
+      "announced_capacity": null,
+      "operational_capacity": null,
+      "capacity_units": null,
+      "expected_startup_date": null,
+      "actual_startup_date": null,
+      "capex": null,
+      "opex": null,
+      "sources": [
+        "source-poseidon"
+      ],
+      "date_last_verified": "2026-10-09",
+      "confidence_level": "medium",
+      "limitations": "Consortium progress page reports module installation in September 2026; exact day and page publication date are unknown. Planned 500 L/day is a design target, not demonstrated output, and is not converted to tonnes. No commissioning or achieved TRL is inferred.",
+      "sample": false
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "source-kasso",
+      "source_id": "european-energy",
+      "url": "https://europeanenergy.com/2025/05/13/kasso-e-methanol-facility-officially-inaugurated/",
+      "retrieved_at": "2026-10-09T06:07:28.510919+00:00",
+      "publication_date": "2025-05-13",
+      "locator": "Opening paragraphs: inauguration, ownership, annual design capacity and feedstocks.",
+      "excerpt": "European Energy reports the inauguration of Kassø on 13 May 2025 and a design capacity of 42,000 tonnes of e-methanol per year.",
+      "content_sha256": "34d90e0162d438ef79b9d8cdf1ca077a24678cb918e9aa4b8d9ff348f63040b9",
+      "license_note": "Link and original attributed paraphrase only; no images or full source text redistributed.",
+      "sample": false
+    },
+    {
+      "evidence_id": "source-sailboat",
+      "source_id": "carbon-recycling-international",
+      "url": "https://carbonrecycling.com/projects/sailboat",
+      "retrieved_at": "2026-10-09T06:07:28.510919+00:00",
+      "publication_date": null,
+      "locator": "Project description and Key facts; commissioning year, feedstocks and design capacity.",
+      "excerpt": "CRI identifies Jiangsu Sailboat as commissioned in 2023, with a design output of 100,000 tonnes of methanol per year.",
+      "content_sha256": "23a815da7a39b72f6fed53ab3249240ea994b05dad663678183a3014c73c6a9b",
+      "license_note": "Link and original attributed paraphrase only; no images or full source text redistributed.",
+      "sample": false
+    },
+    {
+      "evidence_id": "source-poseidon",
+      "source_id": "poseidon",
+      "url": "https://project-poseidon.eu/about/synthetic-methanol-pilot-plant/",
+      "retrieved_at": "2026-10-09T06:07:28.510919+00:00",
+      "publication_date": null,
+      "locator": "Progress Highlights, September 2026; pilot design and biogas feedstock paragraphs.",
+      "excerpt": "POSEIDON reports installation of three pilot modules in September 2026 at EBS Mannheim; this is construction progress, not verified continuous operation.",
+      "content_sha256": "57608cb50ab9082e67df7d5fe3cebdcb042173d50a54d65e88677724b6099ea7",
+      "license_note": "Link and original attributed paraphrase only; no images or full source text redistributed.",
+      "sample": false
+    }
+  ]
+}

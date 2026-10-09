@@ -7,7 +7,7 @@ const issues = defineCollection({
     .object({
       title: z.string(),
       issue_number: z.number(),
-      publication_date: z.coerce.date(),
+      publication_date: z.coerce.date().nullable(),
       coverage_start: z.coerce.date(),
       coverage_end: z.coerce.date(),
       featured_topics: z.array(z.string()),
@@ -19,7 +19,9 @@ const issues = defineCollection({
       reviewed_at: z.coerce.date().nullable().optional(),
     })
     .refine(
-      (d) => d.editorial_status !== 'published' || (!d.sample && !!d.reviewer && !!d.reviewed_at),
+      (d) =>
+        d.editorial_status !== 'published' ||
+        (!d.sample && !!d.publication_date && !!d.reviewer && !!d.reviewed_at),
       'Published content must be non-sample and human reviewed',
     ),
 });

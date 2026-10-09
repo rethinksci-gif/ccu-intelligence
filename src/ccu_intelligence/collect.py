@@ -203,10 +203,10 @@ def collect(
                 endpoint = str(source.endpoint or source.base_url)
                 if source.access_method == "crossref":
                     params = {
-                        "query": query,
+                        "query.title": query,
                         "filter": f"from-pub-date:{since},until-pub-date:{until}",
                         "rows": limit,
-                        "sort": "published",
+                        "sort": "score",
                         "order": "desc",
                     }
                     if os.getenv("CCU_CONTACT_EMAIL"):
@@ -225,7 +225,6 @@ def collect(
                             "search": query,
                             "filter": f"from_publication_date:{since},to_publication_date:{until}",
                             "per_page": limit,
-                            "sort": "publication_date:desc",
                         },
                         headers=headers,
                         interval=source.minimum_interval_seconds,

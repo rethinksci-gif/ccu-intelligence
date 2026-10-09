@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 import { href } from '../../lib/data';
 const issues = (
   await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
-).sort((a, b) => +b.data.publication_date - +a.data.publication_date);
+).sort((a, b) => +b.data.publication_date! - +a.data.publication_date!);
 const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
 ---
 
@@ -37,7 +37,7 @@ const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
             <div>
               <>
                 <p class="meta">
-                  {i.data.publication_date.toISOString().slice(0, 10)} · {i.data.source_count} sources
+                  {i.data.publication_date!.toISOString().slice(0, 10)} · {i.data.source_count} sources
                 </p>
                 <h2>
                   <a class="title-link" href={href(`issues/${i.id}/`)}>
@@ -55,17 +55,7 @@ const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
   <p id="issue-empty" class="empty" hidden={issues.length > 0}>
     No published issues yet. Evidence collection and human editorial review must precede publication.
   </p>
-  <section class="card issue-card" style="margin-top:26px">
-    <div class="issue-number">DEMO</div><div>
-      <span class="badge sample">Fictional sample · excluded from RSS</span><h2 style="margin-top:14px">
-        Explore the editorial format
-      </h2><p>
-        A sample issue demonstrates the seven editorial sections and citation structure. It is not a published
-        briefing or a report of real industry events.
-      </p><a href={href('samples/issue/')}>Read the sample issue</a>
-    </div>
-  </section></Base
->
+</Base>
 <script>
   const form = document.querySelector<HTMLFormElement>('#issue-search');
   function filter() {

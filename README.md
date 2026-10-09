@@ -2,7 +2,9 @@
 
 An evidence-driven, static-first intelligence platform connecting scientific progress, engineering feasibility, industrial deployment, economics and climate performance.
 
-**Status:** MVP configured for GitHub Pages at https://rethinksci-gif.github.io/ccu-intelligence/ (repository: https://github.com/rethinksci-gif/ccu-intelligence). The initial project records and newsletter example are explicitly fictional; there are no published live issues. Public reference articles and transparent calculations are separate from news. Real metadata collection does not constitute factual verification.
+**Status:** Live on GitHub Pages at https://rethinksci-gif.github.io/ccu-intelligence/. The public tracker contains three primary-source project baselines (Kassø, Jiangsu Sailboat and POSEIDON Mannheim), with company/consortium reporting explicitly attributed and measured output left unknown. Fictional fixtures remain for tests but are excluded from public JSON and routes. Issue 001 is a real-source draft awaiting human review and sufficient dated evidence; no newsletter is published yet.
+
+Biweekly draft preparation is enabled through GitHub Actions. A daily 07:17 UTC check opens one draft PR per completed 14-day window, starting **12 October 2026**, then 26 October. Branch/file checks prevent duplicate drafts. Collection is bounded to 20 candidate records; scheduled runs have no model key and permit **zero paid API calls**. Publication still requires manual editorial approval and all existing validation gates. See [operational status](docs/operational-status.md).
 
 ## Architecture
 
@@ -60,11 +62,11 @@ npm run preview
 - Three pathway profiles, original process diagrams, and seven sourced technical primers.
 - Interactive methanol feedstock/energy sensitivity model, backed by the same documented Python formula.
 - English seven-section Markdown newsletter drafts with structured metadata, date windows and adjacent citations.
-- Published-only archive and RSS; draft content has no public route. A separate noindex sample issue demonstrates the format.
+- Published-only archive and RSS; draft content has no public route. Fictional issue examples are retained only as test fixtures.
 - Semantic HTML, keyboard navigation, mobile menu, print CSS, canonical/SEO/social text metadata and sitemap.
 - Crossref/OpenAlex collectors, configurable RSS/Atom adapter, manual ingestion, raw preservation, deduplication, conservative classification, literal metric extraction, entity matching, scoring and event proposals.
 - Optional configurable OpenAI-compatible JSON analysis, without automatic authority to approve or publish.
-- Manual collection and biweekly-window draft PR workflows; main-branch deployment with validation gates. Scheduled collection and drafting are disabled for the first deployment.
+- Manual collection and biweekly-window draft PR workflows; main-branch deployment with validation gates. Scheduled unpaid drafting is enabled; standalone collection remains manual.
 
 ## Pipeline commands
 
@@ -162,7 +164,7 @@ The public repository is `rethinksci-gif/ccu-intelligence`. Pages uses GitHub Ac
 
 The production build sets `SITE_URL=https://rethinksci-gif.github.io` and `BASE_PATH=/ccu-intelligence/`, uploads only `dist/`, and deploys through the `github-pages` environment. The build has `contents: read`; deployment has `pages: write` and `id-token: write`.
 
-Collection and draft workflows are **manual-only**. No scheduled industry collection, automated newsletter publication, API secrets, or paid LLM calls are enabled by this deployment. Any future automation requires a separate operational decision. Optional branch protection and human environment reviewers can be configured in repository settings.
+The standalone collection workflow is **manual-only**. The draft workflow performs bounded biweekly collection and opens a draft PR. Automated newsletter publication and scheduled paid LLM calls are disabled. Optional branch protection and human environment reviewers can be configured in repository settings.
 
 Collection restores the latest successful default-branch `collection-state` artifact and uploads a new SQLite snapshot. Raw responses are **not uploaded**. Working state retention is 90 days; candidate artifacts last 30 days. Export and commit reviewed history regularly and maintain backups. If a previous run exists but its artifact cannot be retrieved, restoration fails rather than silently discarding history. See the operations runbook for recovery.
 
@@ -194,11 +196,11 @@ package-lock.json        exact npm dependency resolution
 
 ## Known limitations and next work
 
-- No real project database or current newsletter has been editorially verified yet. Human review is the remaining content work, not an API-key workaround.
+- The tracker has three attributed primary-source baselines. Issue 001 still needs human editorial review and enough dated developments/events before publication.
 - Collection is bounded keyword search, not exhaustive discovery. Add cursor pagination, per-source incremental checkpoints, retrieval checksums across dates and broader regional/language queries next.
 - Exact URL/DOI/text deduplication works. Semantic syndication clustering and a project alias-resolution interface remain future work.
 - Event detection is conservative keyword triage; structured extraction and optional LLM outputs require review before insertion. LLM tasks use one common validated envelope and were tested with mocked failures, not a paid provider call.
 - The database is a single-editor SQLite working store; repository review and immutable events preserve curated history. Multi-editor conflict handling, explicit migration tooling, long-term backups and richer audit identities are next operational improvements.
 - Only methanol has a quantitative scenario model. Broader TEA/LCA, commercial-readiness assessment, project delay analytics and time-series regional trends need curated longitudinal data.
-- Collection and draft PR workflows remain manual-only and have not been exercised remotely during the first Pages deployment.
+- A scheduled draft is an editorial candidate inbox, not a publication approval. Coverage gaps remain explicit.
 - Native fonts avoid third-party font requests. No copyrighted images, articles or proprietary databases are redistributed. Accessible behavior is tested, but a full WCAG audit is not claimed.
