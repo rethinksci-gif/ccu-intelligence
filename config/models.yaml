@@ -27,11 +27,12 @@ rate_ceilings:
   deepseek-v4-pro: {input: 1.32, output: 3.96}
 # Stage roles. The screening model is overridable with LLM_SCREENING_MODEL and the strong model
 # (enrichment, verification, dedup, synthesis) with LLM_MODEL. Thinking output counts toward
-# max_output_tokens and is billed as output.
+# max_output_tokens and is billed as output. Paid run 1 (2026-10-09): two enrichments spent all 12,000
+# output tokens on reasoning, so quality stages allow 32,000.
 roles:
   screening: {tier: screening, thinking: false, max_output_tokens: 2000}
-  enrichment: {tier: strong, thinking: true, max_output_tokens: 12000}
-  verification: {tier: strong, thinking: true, max_output_tokens: 12000}
+  enrichment: {tier: strong, thinking: true, max_output_tokens: 32000}
+  verification: {tier: strong, thinking: true, max_output_tokens: 32000}
   dedup: {tier: strong, thinking: true, max_output_tokens: 6000}
   synthesis: {tier: strong, thinking: true, max_output_tokens: 32000}
 defaults:

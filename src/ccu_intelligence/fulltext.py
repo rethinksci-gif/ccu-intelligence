@@ -24,7 +24,8 @@ CACHE = Path("data/runtime/fulltext-cache")  # private: never inside an uploaded
 HTML_BYTES = 5_000_000
 PDF_BYTES = 15_000_000
 PDF_PAGES = 40
-FULL_TEXT_MIN = {"paper": 2500, "page": 1200}
+# A landing page with only the abstract and front matter is not a paper's full text.
+FULL_TEXT_MIN = {"paper": 8000, "page": 1200}
 ABSTRACT_MIN = 300
 MARKERS = ("[Opening excerpt]\n", "\n\n[Middle excerpt]\n", "\n\n[Closing excerpt]\n")
 

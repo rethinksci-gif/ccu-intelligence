@@ -11,6 +11,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -311,9 +312,16 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         fetcher.client.close()
 
     caller = Caller(stage_roles, budget, config, paid=not args.dry_run)
+
+    def label(article, source) -> str:
+        """Citation label: the outlet for GDELT results, the organization otherwise (without search notes)."""
+        if source.access_method == "gdelt":
+            return urlsplit(str(article.canonical_url)).hostname.removeprefix("www.")
+        return re.sub(r"\s*\((?:site search|open-access subset)[^)]*\)", "", source.organization)
+
     records = {a.article_id: {
         "article_id": a.article_id, "title": a.title, "url": str(a.canonical_url), "source_id": a.source_id,
-        "source_name": sources[a.source_id].organization, "evidence_role": sources[a.source_id].evidence_role,
+        "source_name": label(a, sources[a.source_id]), "evidence_role": sources[a.source_id].evidence_role,
         "publication_date": str(a.publication_date), "triage": decisions[a.article_id],
         "input": texts[a.article_id].record() if a.article_id in texts else None,
     } for a in bundle.articles}
@@ -459,7 +467,9 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
                                                           categories)
             synthesis = result.model_dump()
 
-    notes = list((synthesis or {}).get("editor_notes", []))
+    headlines = {e["sid"]: e["enrichment"]["headline"] for e in final}
+    notes = [re.sub(r"\bS\d+\b", lambda m: f"'{headlines[m.group(0)]}'" if m.group(0) in headlines else m.group(0), n)
+             for n in (synthesis or {}).get("editor_notes", [])]
     if any(e["input_basis"] == "headline" for e in final):
         notes.append("Some items rest on a headline only; open the original before using them.")
     if final and synthesis is None:
