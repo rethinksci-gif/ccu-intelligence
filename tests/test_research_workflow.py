@@ -476,3 +476,124 @@ def test_recommended_first_paid_run_parameters_accepted(monkeypatch):
     monkeypatch.setenv('MAX_SPEND_USD', '0.10')
     options = entrypoint().configuration()
     assert options.max_analyses == 6 and options.max_spend_usd == 0.10 and options.dry_run
+
+
+# --- Ecosystem briefs ---------------------------------------------------------------------------------
+
+ASSOCIATION = SimpleNamespace(source_id='co2-value-europe', source_type='industry_association')
+GOVERNMENT = SimpleNamespace(source_id='uk-desnz', source_type='government')
+
+
+@pytest.mark.parametrize('source,title', [
+    (ASSOCIATION, 'MVV Umwelt Joins CO₂ Value Europe'),
+    (ASSOCIATION, 'CO2 Value Europe annual general assembly'),
+    (SPECIALIST, 'Dioxycle joins CO2 industry alliance'),
+])
+def test_specialist_ecosystem_news_becomes_unanalysed_brief(source, title):
+    result = triage(headline(title), source, DAY, DAY)
+    assert result['reason'] == 'specialist source: headline-only brief' and not result['eligible']
+
+
+@pytest.mark.parametrize('source,title', [
+    (GENERAL, 'Ultrasonic-Swing Carbon Dioxide Release Using Aralkylamines for Direct Air Capture'),
+    (GENERAL, 'A Research Strategy for Ocean-based Carbon Dioxide Removal and Sequestration'),
+    (GOVERNMENT, 'Carbon capture and storage cluster sequencing update'),
+    (ASSOCIATION, 'Welcome to our new events officer'),  # no CCU term: dropped, not a brief
+    (SPECIALIST, 'Solar park financing'),
+])
+def test_pure_capture_removal_and_non_ccu_items_still_dropped(source, title):
+    result = triage(headline(title), source, DAY, DAY)
+    assert not result['eligible'] and result['reason'] != 'specialist source: headline-only brief'
+
+
+def test_briefs_appear_in_draft_without_model_analysis(research, monkeypatch):
+    args, calls = research
+    working = Fetcher.get
+    item = ('<rss><channel><item><title>{}</title><link>{}</link>'
+            '<pubDate>Mon, 21 Sep 2026 09:00:00 GMT</pubDate></item></channel></rss>')
+
+    def get(self, url, **kwargs):
+        if url.endswith('robots.txt'):
+            return working(self, url, **kwargs)
+        if 'co2value.eu' in url:
+            return item.format('MVV Umwelt Joins CO₂ Value Europe', 'https://example.org/mvv').encode()
+        if 'gov.uk' in url:
+            return item.format('Direct air capture hub selected', 'https://example.org/dac').encode()
+        return working(self, url, **kwargs)
+
+    monkeypatch.setattr(Fetcher, 'get', get)
+    report = execute(args)
+    assert report['ecosystem_briefs'] == 1
+    assert not any('MVV' in text or 'Direct air capture' in text for text in calls)
+    body = Path(report['draft']).read_text()
+    briefs = body.split('## CCU Ecosystem Briefs')[1].split('## Candidate inbox')[0]
+    assert '[MVV Umwelt Joins CO₂ Value Europe](https://example.org/mvv) — co2-value-europe, 2026-09-21.' in briefs
+    assert 'example.org/dac' not in body
+
+
+# --- Fetcher politeness: low frequency, backoff, no hammering on 403/429 --------------------------------
+
+@pytest.fixture
+def polite(monkeypatch):
+    sleeps, requests, responses = [], [], []
+    monkeypatch.setattr('ccu_intelligence.collect.public_url', lambda url: None)
+    monkeypatch.setattr('ccu_intelligence.collect.time.sleep', sleeps.append)
+
+    def handler(request):
+        requests.append(request)
+        return responses.pop(0)
+
+    fetcher = Fetcher(client=httpx.Client(transport=httpx.MockTransport(handler)))
+    yield fetcher, responses, requests, sleeps
+    fetcher.client.close()
+
+
+def test_forbidden_403_is_not_retried(polite):
+    fetcher, responses, requests, sleeps = polite
+    responses.append(httpx.Response(403))
+    with pytest.raises(httpx.HTTPStatusError):
+        fetcher.get('https://example.org/feed')
+    assert len(requests) == 1 and sleeps == []
+
+
+def test_429_backs_off_and_gives_up_after_three_attempts(polite):
+    fetcher, responses, requests, sleeps = polite
+    responses.extend([httpx.Response(429)] * 3)
+    with pytest.raises(httpx.HTTPStatusError):
+        fetcher.get('https://example.org/feed', interval=0)
+    assert len(requests) == 3 and sleeps == [1, 2]
+
+
+def test_long_retry_after_defers_to_next_run(polite):
+    fetcher, responses, requests, sleeps = polite
+    responses.append(httpx.Response(429, headers={'Retry-After': '120'}))
+    with pytest.raises(ValueError, match='deferred'):
+        fetcher.get('https://example.org/feed')
+    assert len(requests) == 1 and sleeps == []
+
+
+def test_short_retry_after_is_honoured(polite):
+    fetcher, responses, requests, sleeps = polite
+    responses.extend([httpx.Response(503, headers={'Retry-After': '7'}), httpx.Response(200, content=b'ok')])
+    assert fetcher.get('https://example.org/feed', interval=0) == b'ok'
+    assert len(requests) == 2 and sleeps == [7]
+
+
+def test_minimum_interval_between_requests_to_same_host(polite):
+    fetcher, responses, requests, sleeps = polite
+    responses.extend([httpx.Response(200, content=b'robots'), httpx.Response(200, content=b'feed')])
+    fetcher.get('https://example.org/robots.txt', interval=5)
+    fetcher.get('https://example.org/feed', interval=5)
+    assert len(requests) == 2 and len(sleeps) == 1 and 4.5 < sleeps[0] <= 5
+
+
+# --- Prompt v4 dates ----------------------------------------------------------------------------------
+
+@pytest.mark.parametrize('event_date', ['2026-10-10', '2026-11-09', '2025-10-09', '2026-09-10'])
+def test_month_name_date_absent_from_source_is_rejected(event_date):
+    text = 'FlagshipONE was commissioned on 9 October 2026.'
+    milestone = dict(text='Reported commissioning.', quote='FlagshipONE was commissioned', uncertainty='?',
+                     event_type='COMMISSIONED', event_date=event_date)
+    assert not date_supported(date.fromisoformat(event_date), text)
+    with pytest.raises(ValueError, match='Event date'):
+        grounded_analysis(proposal(milestone_proposals=[milestone]), text, ['e1'], 'company')

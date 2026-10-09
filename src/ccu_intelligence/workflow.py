@@ -59,6 +59,10 @@ CONVERSION = re.compile(
     r"from (?:co2|carbon.dioxide)|e-?kerosene|e-fuel|synthetic fuel|solar fuel|power.to.|ptx",
     re.I,
 )
+# CCU-specialist sources: ecosystem news (memberships, association updates) that mentions a CCU term but
+# has no utilization step is kept as a headline-only brief. Briefs are never sent to the model.
+CCU_SPECIALIST_SOURCES = {"co2-value-europe", "liquid-wind", "dioxycle", "carbicrete"}
+BRIEF = "specialist source: headline-only brief"
 # Unrelated energy topics on specialist feeds (corporate news about adjacent assets) are not CCU leads.
 OFF_TOPIC = re.compile(r"\b(?:solar|photovoltaic|pv park|batter(?:y|ies)|hydropower|nuclear)\b", re.I)
 EVENT = re.compile(
@@ -109,6 +113,8 @@ def triage(article, source, since, until):
         reason = "specialist feed: unrelated energy topic"
     elif specialist and event:
         reason = "specialist milestone"
+    elif matched and source.source_id in CCU_SPECIALIST_SOURCES:
+        reason = BRIEF
     elif matched:
         reason = "CCU term without utilization context"
     else:
@@ -244,6 +250,14 @@ def write_draft(bundle, records, decisions, args):
                           "", citation(r), "", "Uncertainty: " + safe_text(a["uncertainty"]), ""]
         if not wrote:
             lines += ["No supported analysis available. Additional evidence and editorial review required."]
+    briefs = [a for a in bundle.articles if decisions[a.article_id]["reason"] == BRIEF]
+    lines += ["", "## CCU Ecosystem Briefs", "",
+              "Headline-only items from CCU-specialist sources. Not analysed by the model; title and link only.", ""]
+    for article in briefs:
+        lines += [f"- [{safe_text(article.title)}]({article.canonical_url}) — "
+                  f"{safe_text(article.source_id)}, {article.publication_date}."]
+    if not briefs:
+        lines += ["No ecosystem briefs in this window."]
     lines += ["", "## Candidate inbox and limitations", "",
               "Coverage is bounded; unavailable sources and exact-date gaps are recorded in collection.json. "
               "No project events or human approvals are applied. Quotes and interpretations require original-source review.", ""]
@@ -430,6 +444,7 @@ def execute(args):
                     Counter(source_kind(sources[a.source_id]) for a in bundle.articles)
                 ),
                 "promising_candidates": len(eligible),
+                "ecosystem_briefs": sum(d["reason"] == BRIEF for d in decisions.values()),
                 "new_analyses_attempted": len(attempted),
                 "new_analyses_validated": sum(bool(r["analysis"]) and not r["cache_hit"] for r in records),
                 "cache_hits": sum(r["cache_hit"] for r in records),
