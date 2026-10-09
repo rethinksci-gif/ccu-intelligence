@@ -1,0 +1,46 @@
+{
+  "articles": [
+    {
+      "article_id": "a-bc4d43645ad7eb2a14ac",
+      "source_id": "crossref",
+      "canonical_url": "https://doi.org/10.26434/chemrxiv.15009603/v1",
+      "title": "Playing Domino with Carbon: Electrochemical CO2 Reduction to Methanol with Cobalt Phthalocyanine",
+      "publication_date": "2026-09-29",
+      "source_updated_date": null,
+      "event_date": null,
+      "retrieved_at": "2026-10-09T06:05:58.560132Z",
+      "doi": "10.26434/chemrxiv.15009603/v1",
+      "content_fingerprint": "3370459797b5e6ea61abf1f2467c54d75a4d274cfd6887dcd42ccdec200371ab",
+      "summary": "",
+      "organization_ids": [],
+      "domains": [
+        "conversion",
+        "products"
+      ],
+      "claims": [],
+      "scores": {
+        "industrial_relevance": 2,
+        "technical_significance": 3,
+        "economic_implications": 2,
+        "climate_relevance": 2,
+        "evidence_quality": 1,
+        "novelty": 2,
+        "rationales": {
+          "industrial_relevance": "Industrial relevance not established from metadata.",
+          "technical_significance": "Conservative metadata-only triage; requires source and analyst review.",
+          "economic_implications": "Conservative metadata-only triage; requires source and analyst review.",
+          "climate_relevance": "Conservative metadata-only triage; requires source and analyst review.",
+          "evidence_quality": "Conservative metadata-only triage; requires source and analyst review.",
+          "novelty": "Conservative metadata-only triage; requires source and analyst review."
+        }
+      },
+      "overall_score": 26.25,
+      "review_required": true,
+      "editorial_status": "candidate",
+      "technical_significance": null,
+      "industrial_implications": null,
+      "uncertainty": "Source metadata alone does not establish industrial readiness.",
+      "sample": false
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "model": "deepseek-flash",
+  "endpoint": "https://api.deepseek.com",
+  "paid_calls_enabled_for_schedule": false,
+  "budget": {
+    "max_requests": 5,
+    "max_tokens": 16000,
+    "requests": 5,
+    "charged_tokens": 3335
+  },
+  "screening": [
+    {
+      "source": "primary-research",
+      "status": "validated",
+      "tokens": 694,
+      "analysis": {
+        "scores": null,
+        "relevant": true,
+        "domains": [
+          "electrochemical CO2 reduction",
+          "CO2 conversion to methanol",
+          "catalysis"
+        ],
+        "summary": "Source-grounded screening; see evidence and separate AI interpretation.",
+        "technical_significance": "The title indicates a study of electrochemical CO2 reduction to methanol using cobalt phthalocyanine as a catalyst. This is a conditional interpretation based solely on bibliographic metadata; no performance data, selectivity, faradaic efficiency, or mechanism details are available in the provided text.",
+        "industrial_implications": "Unknown. No scale, cost, durability, or process-integration information is present in the retrieved metadata, so any industrial relevance cannot be assessed from this source.",
+        "uncertainty": "Only bibliographic metadata was retrieved; no full-text results, metrics, or independent verification are available. The preprint status and 2026 date are as stated in the source and are not independently confirmed here.",
+        "proposed_events": []
+      }
+    },
+    {
+      "source": "primary-kasso",
+      "status": "validated",
+      "tokens": 637,
+      "analysis": {
+        "scores": null,
+        "relevant": true,
+        "domains": [
+          "CO2 conversion",
+          "e-methanol",
+          "renewable energy"
+        ],
+        "summary": "Source-grounded screening; see evidence and separate AI interpretation.",
+        "technical_significance": "Source describes commercial-scale e-methanol production using renewable energy, a CO2 utilization pathway. No process details, feedstock CO2 source, or conversion technology are provided.",
+        "industrial_implications": "Claims commercial scale and 42,000 t/y capacity, but this is a company announcement, not independent verification; actual output, costs, and market impact remain unknown.",
+        "uncertainty": "Company-sourced claim; no independent verification, no process or CO2 sourcing detail, and no evidence on real-world performance or climate impact.",
+        "proposed_events": []
+      }
+    },
+    {
+      "source": "primary-sailboat",
+      "status": "validated",
+      "tokens": 614,
+      "analysis": {
+        "scores": null,
+        "relevant": true,
+        "domains": [
+          "CO2 utilization",
+          "CO2 capture",
+          "chemicals"
+        ],
+        "summary": "Source-grounded screening; see evidence and separate AI interpretation.",
+        "technical_significance": "Describes a CO2 utilization route where CO2 from an ethylene oxide plant is combined with a valorized hydrogen by-product stream. The specific conversion chemistry, catalyst, and product are not stated in the source.",
+        "industrial_implications": "Suggests integration of CO2 capture/use with existing ethylene oxide and hydrogen by-product streams at an industrial site. Scale, economics, product, and lifecycle climate benefit are not provided and remain unknown.",
+        "uncertainty": "Source is a company announcement, not independent verification; no performance metrics, capacity, TRL, cost, or dates beyond commissioning year are given.",
+        "proposed_events": []
+      }
+    },
+    {
+      "source": "primary-poseidon",
+      "status": "validated",
+      "tokens": 625,
+      "analysis": {
+        "scores": null,
+        "relevant": true,
+        "domains": [
+          "CO2 capture",
+          "utilization"
+        ],
+        "summary": "Source-grounded screening; see evidence and separate AI interpretation.",
+        "technical_significance": "Interpretation: a pilot plant is being assembled at a test site, indicating hardware for a CO2-related process is moving toward on-site testing. The source does not state the capture or conversion route, capacity, or performance.",
+        "industrial_implications": "Interpretation: module installation suggests progression from fabrication to site integration, but this is a company announcement, not independent verification, and no commercial scale, cost, or deployment timeline is established.",
+        "uncertainty": "Source is a company statement; no independent verification. Technology pathway, capacity, TRL, costs, and climate impact are unknown.",
+        "proposed_events": []
+      }
+    }
+  ]
+}
