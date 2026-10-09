@@ -16,7 +16,8 @@ BASIS_NOTE = {"full_text": "", "abstract": "abstract only", "headline": "headlin
 def cite(item: dict) -> str:
     label = f"{item['source_name']}, {item['publication_date']}"
     notes = [n for n in ("news report" if item["evidence_role"] == "news" else "",
-                         BASIS_NOTE[item["input_basis"]]) if n]
+                         BASIS_NOTE[item["input_basis"]], "editor-submitted" if item.get("editor_submitted") else "")
+             if n]
     return f"[{safe_text(label)}]({item['url']})" + (f" ({'; '.join(notes)})" if notes else "")
 
 
@@ -71,7 +72,8 @@ def limitation(item: dict, items: dict) -> str | None:
 
 def headline_list(entries: list[dict]) -> list[str]:
     return [f"- [{safe_text(b['title'])}]({b['url']}) — {safe_text(b['source_name'])}, {b['publication_date']}"
-            + (" (news report)" if b["evidence_role"] == "news" else "") + "." for b in entries]
+            + (" (news report)" if b["evidence_role"] == "news" else "")
+            + (" (editor-submitted)" if b.get("editor_submitted") else "") + "." for b in entries]
 
 
 def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synthesis: dict | None,

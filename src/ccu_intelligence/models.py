@@ -86,7 +86,8 @@ class Source(Record):
     organization: str
     source_type: str
     base_url: HttpUrl
-    access_method: Literal["crossref", "openalex", "rss", "federal_register", "gdelt", "govuk_search", "manual"]
+    access_method: Literal["crossref", "openalex", "rss", "federal_register", "gdelt", "govuk_search", "manual",
+                           "editor_list"]
     endpoint: HttpUrl | None = None
     update_frequency: str
     reliability_tier: Literal[1, 2, 3]

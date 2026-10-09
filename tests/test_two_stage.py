@@ -703,6 +703,7 @@ def routes():
 
 
 SCREEN = {
+    "Kandla e-methanol": dict(ccu_relevant=True, score=7, category="commercialization"),
     "Liquid Wind secures": dict(ccu_relevant=True, score=8.5, category="commercialization"),
     "Liquid Wind closes": dict(ccu_relevant=True, score=8, category="commercialization"),
     "CO2 electroreduction": dict(ccu_relevant=True, score=6, category="conversion"),
@@ -734,6 +735,10 @@ def llm_handler(log):
             stage = "enrichment"
             if payload["title"].startswith("Liquid Wind"):
                 content = enrichment().model_dump(mode="json")
+            elif payload["title"].startswith("Kandla"):
+                content = Enrichment(headline="Foundation stone laid for Kandla e-methanol plant",
+                                     what_changed="A foundation stone was laid for a 150 tonnes per day e-methanol "
+                                                  "plant at Kandla.", uncertainty="Press report.").model_dump(mode="json")
             elif payload["input_basis"] == "headline":
                 content = Enrichment(headline="CO2 mineralization startup raises funds",
                                      what_changed="Only the headline was available: a CO2 mineralization startup "
@@ -874,6 +879,38 @@ def test_story_members_render_as_one_item_citing_every_source(research, monkeypa
     section = body.split("## Projects, finance & deployment")[1].split("\n## ")[0]
     assert "https://blocked.example/minerals" in section and "## Products & markets" not in body
     assert section.count("### ") == 1  # one story item citing both sources
+
+
+def test_editor_submitted_list_is_valid():
+    items = yaml.safe_load((ROOT / "config/editor-submitted.yaml").read_text())["items"]
+    sources = {s["source_id"] for s in yaml.safe_load((ROOT / "config/sources.yaml").read_text())["sources"]}
+    for item in items:
+        assert item["source"] in sources and item["url"].startswith("https://") and item["title"]
+        date.fromisoformat(str(item["publication_date"]))
+
+
+def test_editor_submitted_items_go_through_the_same_pipeline_and_are_marked(research):
+    args, stages, web = research
+    sources = yaml.safe_load(Path("config/sources.yaml").read_text())["sources"]
+    base = {s["source_id"]: s for s in yaml.safe_load((ROOT / "config/sources.yaml").read_text())["sources"]}
+    Path("config/sources.yaml").write_text(yaml.safe_dump({"sources": sources + [base["editor-submitted-news"]]}))
+    Path("config/editor-submitted.yaml").write_text(yaml.safe_dump({"items": [
+        {"source": "editor-submitted-news", "title": "Kandla e-methanol plant foundation stone laid",
+         "url": "https://news.example/kandla", "publication_date": "2026-09-26", "note": "test"},
+        {"source": "editor-submitted-news", "title": "Kandla e-methanol outside the window",
+         "url": "https://news.example/old", "publication_date": "2026-08-31", "note": "test"}]}))
+    web.routes["https://news.example/kandla"] = (200, "text/html", page(long_text(
+        "A foundation stone was laid on 26 September 2026 for a 150 tonnes per day e-methanol plant at Kandla.")))
+    report = execute(args)
+    by_title = records(report)
+    item = by_title["Kandla e-methanol plant foundation stone laid"]
+    assert "Kandla e-methanol outside the window" not in by_title and "https://news.example/old" not in web.requests
+    assert item["editor_submitted"] and item["input"]["basis"] == "full_text"  # text fetched from the URL
+    assert item["screening"]["score"] == 7 and item["enrichment_status"] == "verified"
+    assert [e["title"] for e in report["summary"]["editor_submitted"]] == [item["title"]]
+    assert not by_title["Liquid Wind secures financing for e-methanol plant"]["editor_submitted"]
+    body = Path(report["summary"]["draft"]).read_text()
+    assert "[news.example, 2026-09-26](https://news.example/kandla) (news report; editor-submitted)" in body
 
 
 def test_cache_makes_reruns_free_and_prompt_change_invalidates(research, monkeypatch):
