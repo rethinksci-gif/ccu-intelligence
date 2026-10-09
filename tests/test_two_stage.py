@@ -152,12 +152,20 @@ def test_page_extraction_falls_back_to_headline(web, routes, disallow, why):
 
 
 def test_open_access_paper_full_text_from_pdf(web):
-    pdf = tiny_pdf("Copper converts CO2 to ethylene " + "with stable operation " * 150)
+    pdf = tiny_pdf("Copper converts CO2 to ethylene " + "with stable operation " * 450)
     web({"https://oa.example/paper.pdf": (200, "application/pdf", pdf)})
     paper = {"abstract": "A" * 400, "oa_urls": ["https://oa.example/paper.pdf"]}
     result = obtain(article(doi="10.1/x"), PAPER_SOURCE, PageReader(Fetcher()), paper)
     assert result.basis == "full_text" and result.method == "open-access copy"
     assert "Copper converts CO2" in result.text
+
+
+def test_abstract_only_landing_page_is_not_labelled_full_text(web):
+    # Paid run 1: a publisher page gave ~4,000 characters (abstract and front matter); that is not full text.
+    web({"https://oa.example/landing": (200, "text/html", page(long_text("Abstract of the paper.", filler=20)))})
+    paper = {"abstract": "We report CO2 electroreduction to ethylene. " * 10, "oa_urls": ["https://oa.example/landing"]}
+    result = obtain(article(doi="10.1/landing"), PAPER_SOURCE, PageReader(Fetcher()), paper)
+    assert result.basis == "abstract"
 
 
 def test_paper_falls_back_to_abstract_then_title(web):
@@ -454,7 +462,7 @@ LW = long_text("Liquid Wind said it secured EUR 100 million on 21 September 2026
                "The plant will convert 70,000 tonnes of biogenic CO2 per year into e-methanol in "
                "Örnsköldsvik, Sweden.")
 PAPER = long_text("We report CO2 electroreduction to ethylene on copper with a Faradaic efficiency of 62% "
-                  "at 300 mA/cm2 for 500 hours.", filler=25)
+                  "at 300 mA/cm2 for 500 hours.", filler=60)
 SOURCES = [
     {"source_id": "liquid-wind", "organization": "Liquid Wind", "endpoint": "https://www.liquidwind.com/news/rss.xml"},
     {"source_id": "news-utilization-carbonherald", "organization": "Carbon Herald (site search: utilization)",
@@ -639,6 +647,8 @@ def test_end_to_end_full_text_two_stage_verification_and_synthesis(research, cap
     assert "Also reported: [Liquid Wind closes e-methanol financing](https://carbonherald.com/lw)" in body
     assert "999" not in body and "unknown item" not in body and "S99" not in body
     assert "headline only" in body  # the headline-only item is labelled wherever cited
+    assert "[Carbon Herald, 2026-09-21](https://blocked.example/minerals)" in body  # clean outlet label
+    assert "site search" not in body and "open-access subset" not in body
     assert {i["issue"] for i in report["synthesis_issues"]} >= {"unsupported number", "uncited text removed"}
     # Publisher text never leaves the private cache: not in the draft, report, bundle or stage cache.
     for path in [*args.output.rglob("*"), *Path("data/runtime/llm-cache").rglob("*")]:

@@ -1,7 +1,7 @@
 # Selection and layout for the biweekly research draft. Category keys must exist in taxonomy.yaml;
 # the analysis prompt lists them with these descriptions and the model picks one from the content.
 threshold: 5            # minimum 0–10 decision-value score for enrichment and the draft
-per_category_cap: 4     # never fill a category with weak items to reach this number
+per_category_cap: 5     # as in the reference digest; never fill a category with weak items
 overall_cap: 16
 max_takeaways: 5        # opening takeaways, each from a distinct category
 headline_score_cap: 6   # a headline-only input cannot score above useful context
