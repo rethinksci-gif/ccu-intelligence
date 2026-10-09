@@ -84,7 +84,7 @@ class Fetcher:
                         if retry_after.isdigit() and int(retry_after) > 30:
                             raise ValueError("Server requested a long retry delay; deferred")
                         pause = float(retry_after) if retry_after.isdigit() else 2**attempt
-                        time.sleep(max(pause, 2**attempt))
+                        time.sleep(max(pause, 2**attempt, interval))  # never retry faster than the polite interval
                         continue
                     chunks, size = [], 0
                     if 200 <= response.status_code < 300:
@@ -237,6 +237,32 @@ def federal_register_items(raw: bytes) -> list[dict]:
     ]
 
 
+def gdelt_items(raw: bytes) -> list[dict]:
+    # GDELT DOC 2.0 article list: real publisher URLs; seendate is when GDELT saw the article (YYYYMMDDTHHMMSSZ).
+    items = []
+    for a in json.loads(raw).get("articles", []):
+        seen = a.get("seendate") or ""
+        items.append({
+            "title": a.get("title") or "",
+            "url": a.get("url") or "",
+            "publication_date": f"{seen[:4]}-{seen[4:6]}-{seen[6:8]}" if len(seen) >= 8 else None,
+            "summary": "",
+        })
+    return items
+
+
+def govuk_items(raw: bytes) -> list[dict]:
+    return [
+        {
+            "title": r.get("title") or "",
+            "url": "https://www.gov.uk" + r["link"] if r.get("link", "").startswith("/") else r.get("link", ""),
+            "publication_date": r.get("public_timestamp"),
+            "summary": r.get("description") or "",
+        }
+        for r in json.loads(raw).get("results", [])
+    ]
+
+
 def collect(
     store: Store,
     since: date,
@@ -244,6 +270,7 @@ def collect(
     only: str | None = None,
     limit: int = 50,
     query: str = "carbon dioxide utilization",
+    fetcher: "Fetcher | None" = None,
 ) -> dict:
     if since > until or not 1 <= limit <= 100:
         raise ValueError("Invalid date window or limit (1–100)")
@@ -260,7 +287,8 @@ def collect(
         "unknown_date": 0,
         "raw_files": [],
     }
-    fetcher = Fetcher()
+    owned = fetcher is None
+    fetcher = fetcher or Fetcher()  # a shared fetcher keeps one robots.txt cache and host spacing per run
     companies = store.bundle().companies
     try:
         for source in sources:
@@ -317,6 +345,27 @@ def collect(
                     }
                     pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
                     parser = federal_register_items
+                elif source.access_method == "gdelt":
+                    params = {
+                        "query": f"{source_query} sourcelang:english",
+                        "mode": "artlist",
+                        "format": "json",
+                        "maxrecords": min(75, limit * 3),
+                        "sort": "hybridrel",
+                        "startdatetime": since.strftime("%Y%m%d000000"),
+                        "enddatetime": until.strftime("%Y%m%d235959"),
+                    }
+                    pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
+                    parser = gdelt_items
+                elif source.access_method == "govuk_search":
+                    params = {
+                        "q": source_query,
+                        "filter_public_timestamp": f"from:{since},to:{until}",
+                        "count": min(100, limit * 3),
+                        "fields": ["title", "link", "public_timestamp", "description"],
+                    }
+                    pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
+                    parser = govuk_items
                 else:
                     pages = []
                     for page in range(1, source.pages + 1):
@@ -393,12 +442,16 @@ def collect(
             except Exception as exc:
                 # Do not log exception text: HTTP errors can contain request secrets.
                 counts["failed"] += 1
-                store.log(
-                    source.source_id, "failed", type(exc).__name__ + "; use manual ingestion or retry later"
-                )
+                detail = type(exc).__name__ + "; use manual ingestion or retry later"
+                if isinstance(exc, (ET.ParseError, json.JSONDecodeError)):
+                    # Typically an anti-bot challenge served to datacenter IPs. Never bypassed.
+                    detail = "non-feed response (possible bot challenge; not bypassed)"
+                counts.setdefault("errors", []).append(detail)
+                store.log(source.source_id, "failed", detail)
                 LOG.warning("Source %s unavailable (%s)", source.source_id, type(exc).__name__)
     finally:
-        fetcher.client.close()
+        if owned:
+            fetcher.client.close()
     candidates = Path("data/candidates")
     candidates.mkdir(parents=True, exist_ok=True)
     (candidates / "articles.json").write_text(
