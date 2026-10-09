@@ -1162,7 +1162,7 @@ def test_wordpress_feed_pages_stop_once_before_the_window(monkeypatch, tmp_path)
     store = Store(tmp_path / "s.sqlite")
     try:
         counts = collect(store, date(2026, 9, 14), date(2026, 9, 27), news["source_id"], 10)
-        assert seen == [1, 2] and counts["added"] == 1 and counts["outside_window"] == 2
+        assert seen == [1, 2, 3] and counts["added"] == 1 and counts["outside_window"] == 2
         assert [a.title for a in store.articles()] == ["In window"]
     finally:
         store.close()
@@ -1174,9 +1174,9 @@ def test_gdelt_and_govuk_parsers():
     gdelt = json.dumps({"articles": [{"title": "Port e-methanol plant", "url": "https://news.example/x",
                                       "seendate": "20260927T101500Z"}, {"title": "No date", "url": "https://n.example/y"}]})
     assert gdelt_items(gdelt.encode()) == [
-        {"title": "Port e-methanol plant", "url": "https://news.example/x", "publication_date": "2026-09-27",
+        {"title": "Port e-methanol plant", "url": "https://news.example/x", "publication_date": None, "discovery_date": "2026-09-27",
          "summary": ""},
-        {"title": "No date", "url": "https://n.example/y", "publication_date": None, "summary": ""}]
+        {"title": "No date", "url": "https://n.example/y", "publication_date": None, "discovery_date": None, "summary": ""}]
     govuk = json.dumps({"results": [{"title": "UK carbon management challenge", "link": "/government/x",
                                      "public_timestamp": "2026-09-14T10:00:00Z", "description": "Funding."}]})
     assert govuk_items(govuk.encode())[0]["url"] == "https://www.gov.uk/government/x"

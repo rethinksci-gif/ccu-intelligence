@@ -49,7 +49,7 @@ class Store:
 
     def add_article(self, article: Article) -> tuple[str, bool]:
         row = self.db.execute(
-            "SELECT id FROM articles WHERE canonical_url=? OR fingerprint=? OR (doi IS NOT NULL AND doi=?)",
+            "SELECT id, payload FROM articles WHERE canonical_url=? OR fingerprint=? OR (doi IS NOT NULL AND doi=?)",
             (str(article.canonical_url), article.content_fingerprint, article.doi),
         ).fetchone()
         article_id = row[0] if row else article.article_id
@@ -65,6 +65,18 @@ class Store:
                         article.model_dump_json(),
                     ),
                 )
+            if row:
+                existing = Article.model_validate_json(row[1])
+                same_identity = (str(existing.canonical_url) == str(article.canonical_url)
+                                 or bool(existing.doi and existing.doi == article.doi))
+                if (same_identity and existing.editorial_status == "candidate"
+                        and existing.publication_date is None and article.publication_date is not None):
+                    # A dated publisher/feed record can resolve an undated discovery lead. Never infer
+                    # a publication date from identical prose at a different URL, or rewrite reviewed data.
+                    updated = existing.model_copy(update={"publication_date": article.publication_date,
+                                                           "source_id": article.source_id})
+                    self.db.execute("UPDATE articles SET payload=? WHERE id=?",
+                                    (updated.model_dump_json(), article_id))
             self.db.execute(
                 "INSERT OR IGNORE INTO article_sources VALUES(?,?,?,?)",
                 (article_id, article.source_id, str(article.canonical_url), article.retrieved_at.isoformat()),

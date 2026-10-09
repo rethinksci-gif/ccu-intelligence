@@ -345,7 +345,8 @@ def gdelt_items(raw: bytes) -> list[dict]:
         items.append({
             "title": a.get("title") or "",
             "url": a.get("url") or "",
-            "publication_date": f"{seen[:4]}-{seen[4:6]}-{seen[6:8]}" if len(seen) >= 8 else None,
+            "publication_date": None,
+            "discovery_date": f"{seen[:4]}-{seen[4:6]}-{seen[6:8]}" if len(seen) >= 8 else None,
             "summary": "",
         })
     return items
@@ -388,6 +389,10 @@ def collect(
         "considered": 0,
         "outside_window": 0,
         "unknown_date": 0,
+        "discovery_only": 0,
+        "invalid_items": 0,
+        "source_failures": 0,
+        "pages_fetched": 0,
         "raw_files": [],
     }
     owned = fetcher is None
@@ -488,12 +493,15 @@ def collect(
                     pages = []
                     for page in range(1, source.pages + 1):
                         raw = fetcher.rss(source, page)
+                        if raw in pages:
+                            break  # a server ignoring pagination must not repeat the same page
                         pages.append(raw)
                         dates = [normalize_date(i.get("publication_date")) for i in rss_items(raw)]
-                        # Newest-first feeds: stop once a page reaches back before the window.
-                        if not dates or any(d and d < since for d in dates):
+                        # A pinned old item must not hide newer records on subsequent pages.
+                        if not dates or all(d and d < since for d in dates):
                             break
                     parser = rss_items
+                counts["pages_fetched"] += len(pages)
                 items = []
                 for raw in pages:
                     digest = hashlib.sha256(raw).hexdigest()
@@ -532,7 +540,7 @@ def collect(
                         if source.access_method == "google_news":
                             date_seen = normalize_date(item.get("publication_date"))
                             if not date_seen or not since <= date_seen <= until:
-                                counts["outside_window"] += 1
+                                counts["unknown_date" if date_seen is None else "outside_window"] += 1
                                 continue
                             resolved = resolve_publisher(fetcher, item)
                             counts["publisher_resolved" if resolved else "publisher_unresolved"] = counts.get(
@@ -540,18 +548,21 @@ def collect(
                             item = item | {"url": resolved or item["url"],
                                            "summary": f"Publisher: {item['publisher']}" if item["publisher"] else ""}
                         article = analyze(normalize(item, source.source_id), companies)
-                        effective_date = article.publication_date or article.source_updated_date
+                        effective_date = article.publication_date or article.source_updated_date or article.discovery_date
                         if effective_date and not since <= effective_date <= until:
                             counts["outside_window"] += 1
                             continue
                         if effective_date is None:
                             counts["unknown_date"] += 1
                             continue
-                        kept += 1
                         _, added = store.add_article(article)
+                        kept += int(added)  # duplicate records do not consume the new-candidate allowance
                         counts["added" if added else "duplicates"] += 1
+                        if added and article.discovery_date and not article.publication_date:
+                            counts["discovery_only"] += 1
                     except (ValueError, KeyError, TypeError):
                         counts["failed"] += 1
+                        counts["invalid_items"] += 1
                         store.log(
                             source.source_id,
                             "invalid_item",
@@ -574,6 +585,7 @@ def collect(
             except Exception as exc:
                 # Do not log exception text: HTTP errors can contain request secrets.
                 counts["failed"] += 1
+                counts["source_failures"] += 1
                 detail = type(exc).__name__ + "; use manual ingestion or retry later"
                 if type(exc) is ValueError:  # raised by this module with fixed, secret-free messages
                     detail = "ValueError: " + str(exc)

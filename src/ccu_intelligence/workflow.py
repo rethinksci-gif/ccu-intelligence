@@ -369,7 +369,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     records = {a.article_id: {
         "article_id": a.article_id, "title": a.title, "url": str(a.canonical_url), "source_id": a.source_id,
         "source_name": label(a, sources[a.source_id]), "evidence_role": sources[a.source_id].evidence_role,
-        "publication_date": str(a.publication_date), "triage": decisions[a.article_id],
+        "publication_date": str(a.publication_date) if a.publication_date else None,
+        "discovery_date": str(a.discovery_date) if a.discovery_date else None, "triage": decisions[a.article_id],
         "editor_submitted": sources[a.source_id].access_method == "editor_list",
         "input": texts[a.article_id].record() if a.article_id in texts else None,
     } for a in bundle.articles}
@@ -652,6 +653,14 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         "coverage": {"start": str(args.since), "end_inclusive": str(args.until)},
         "collected_articles": len(bundle.articles),
         "candidate_records_considered": sum(c["considered"] for c in collection.values()),
+        "collection_health": {
+            "failed_sources": [sid for sid, c in collection.items() if c.get("source_failures", bool(c.get("errors")))],
+            "capped_sources": [sid for sid, c in collection.items() if c.get("limited")],
+            "invalid_items": sum(c.get("invalid_items", 0) for c in collection.values()),
+            "undated_items_skipped": sum(c.get("unknown_date", 0) for c in collection.values()),
+            "discovery_only_leads": sum(c.get("discovery_only", 0) for c in collection.values()),
+            "duplicates": sum(c.get("duplicates", 0) for c in collection.values()),
+        },
         "coverage_by_source_kind": dict(Counter(source_kind(sources[a.source_id]) for a in bundle.articles)),
         "gated_for_llm": len(gated),
         "promising_candidates": len(gated),

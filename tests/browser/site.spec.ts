@@ -207,3 +207,56 @@ test('homepage sections and mobile navigation work without JavaScript', async ({
   await expect(page.locator('.issue-card')).toHaveCount(1);
   await context.close();
 });
+
+test('project search handles accents, CO2 spelling and word order', async ({ page }) => {
+  await page.goto('projects/');
+  await page.getByLabel('Search projects').fill('CO2 Kasso');
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
+  await expect(page.locator('tr[data-project]:visible')).toContainText('Kassø');
+  await page.getByLabel('Search projects').fill('methanol Jiangsu');
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
+  await expect(page.locator('tr[data-project]:visible')).toContainText('Sailboat');
+});
+
+test('project availability and verification filters persist and handle unknown values', async ({ page }) => {
+  await page.goto('projects/?availability=no-capacity&verifiedSince=2026-10-09&confidence_level=medium');
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
+  await expect(page.locator('tr[data-project]:visible')).toContainText('POSEIDON');
+  await page.reload();
+  await expect(page.getByLabel('Data availability')).toHaveValue('no-capacity');
+  await page.getByLabel('Source checked on or after').fill('2026-10-10');
+  await expect(page.locator('#project-empty')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Download filtered JSON' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Reset filters' }).click();
+  await page.getByLabel('Data availability').selectOption('output');
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(0);
+  await page.getByLabel('Data availability').selectOption('no-output');
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(3);
+});
+
+test('capacity sorting and exported records respect the chosen comparable group', async ({ page }) => {
+  const { readFile } = await import('node:fs/promises');
+  await page.goto('projects/');
+  await expect(page.locator('[name="sort"] option[value="capacity"]')).toHaveJSProperty('disabled', true);
+  await page.screenshot({ path: test.info().outputPath('project-filters.png'), fullPage: true });
+  await page.getByLabel('Comparable capacity group').selectOption('product_output|Methanol|t/year');
+  await page.getByLabel('Sort by').selectOption('capacity');
+  const visible = page.locator('tr[data-project]:visible');
+  await expect(visible).toHaveCount(2);
+  await expect(visible.first()).toContainText('Sailboat');
+  const pending = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download filtered JSON' }).click();
+  const download = await pending;
+  const result = JSON.parse(await readFile((await download.path())!, 'utf8'));
+  expect(result.projects.map((p: { project_id: string }) => p.project_id)).toEqual([
+    'jiangsu-sailboat',
+    'kasso-methanol',
+  ]);
+  expect(result.projects.every((p: { operational_capacity: null }) => p.operational_capacity === null)).toBe(
+    true,
+  );
+  expect(result.filters.capacityGroup).toBe('product_output|Methanol|t/year');
+  await page.getByLabel('Comparable capacity group').selectOption('');
+  await expect(page.getByLabel('Sort by')).toHaveValue('');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

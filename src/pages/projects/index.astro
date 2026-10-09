@@ -11,6 +11,7 @@ const facets = [
   ['primary_product', 'Product'],
   ['development_status', 'Status'],
   ['technology_trl', 'TRL'],
+  ['confidence_level', 'Evidence confidence'],
 ] as const;
 const capacityKeys = [
   ...new Set(
@@ -92,16 +93,41 @@ const capacityKeys = [
         disabled
       /></label
     >
+    <label
+      >Data availability<select name="availability">
+        <option value="">All records</option>
+        <option value="output">Operational capacity reported</option>
+        <option value="no-output">Operational capacity not reported</option>
+        <option value="capacity">Announced capacity reported</option>
+        <option value="no-capacity">Announced capacity not reported</option>
+        <option value="lca">LCA evidence linked</option>
+        <option value="no-lca">No linked LCA evidence</option>
+      </select></label
+    >
+    <label>Source checked on or after<input type="date" name="verifiedSince" /></label>
+    <label
+      >Sort by<select name="sort">
+        <option value="">Default order</option>
+        <option value="name">Project name A–Z</option>
+        <option value="verified">Most recently checked</option>
+        <option value="capacity" disabled>Announced capacity: high to low (choose group)</option>
+      </select></label
+    >
     <button type="reset" class="button">Reset filters</button>
   </form>
-  <p class="meta" id="project-count" role="status">{projects.length} projects shown</p>
+  <div class="row project-tools">
+    <p class="meta" id="project-count" role="status">{projects.length} projects shown</p>
+    <button type="button" class="button" id="export-projects" hidden>Download filtered JSON</button>
+  </div>
   <div class="table-wrap">
     <table id="projects-table">
       <thead
         ><tr
           ><th scope="col">Project / company</th><th scope="col">Region / pathway</th><th scope="col"
             >Status / TRL</th
-          ><th scope="col">Announced capacity</th><th scope="col">Operational capacity</th></tr
+          ><th scope="col">Announced capacity</th><th scope="col">Operational capacity</th><th scope="col"
+            >Evidence / source check</th
+          ></tr
         ></thead
       ><tbody
         >{
@@ -127,6 +153,17 @@ const capacityKeys = [
                 </td>
                 <td class="capacity">{quantity(p.announced_capacity)}</td>
                 <td class="capacity">{quantity(p.operational_capacity)}</td>
+                <td>
+                  <>
+                    <span class="badge">{p.confidence_level} confidence</span>
+                    <span class="meta">
+                      Source checked: {p.date_last_verified ?? 'Not reported'}
+                      <br />
+                      {p.sources.length} linked sources ·{' '}
+                      {p.lca_evidence.length ? 'LCA evidence linked' : 'No linked LCA evidence'}
+                    </span>
+                  </>
+                </td>
               </>
             </tr>
           ))
@@ -144,6 +181,7 @@ const capacityKeys = [
   >
 </Base>
 <script>
+  import { searchText } from '../../lib/project-search';
   import type { projects } from '../../lib/data';
   type Project = (typeof projects)[number] & { company_name: string };
   const form = document.querySelector<HTMLFormElement>('#project-filters');
@@ -159,6 +197,7 @@ const capacityKeys = [
     'primary_product',
     'development_status',
     'technology_trl',
+    'confidence_level',
   ] as const;
   const controls = form
     ? [...form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')]
@@ -188,21 +227,47 @@ const capacityKeys = [
   function filter() {
     if (!form) return;
     const data = new FormData(form),
-      query = String(data.get('query') ?? '')
-        .trim()
-        .toLowerCase(),
+      query = searchText(String(data.get('query') ?? '').trim()),
       group = String(data.get('capacityGroup') ?? '');
     const minimum = form.elements.namedItem('minCapacity') as HTMLInputElement;
     minimum.disabled = !group;
     if (!group) minimum.value = '';
+    const sort = form.elements.namedItem('sort') as HTMLSelectElement;
+    sort.querySelector<HTMLOptionElement>('[value="capacity"]')!.disabled = !group;
+    if (!group && sort.value === 'capacity') sort.value = '';
+    const terms = query.split(/\s+/).filter(Boolean);
+    const availability = String(data.get('availability') ?? '');
+    const verifiedSince = String(data.get('verifiedSince') ?? '');
     let count = 0;
     for (const { row, project: p } of rows) {
       const capacity = p.announced_capacity;
       const matches =
-        [p.project_name, p.company_name, p.country, p.region, p.primary_product, p.conversion_pathway]
-          .join(' ')
-          .toLowerCase()
-          .includes(query) &&
+        terms.every((term) =>
+          searchText(
+            [
+              p.project_name,
+              p.company_name,
+              p.country,
+              p.region,
+              p.location,
+              p.primary_product,
+              p.conversion_pathway,
+              p.co2_source,
+            ].join(' '),
+          ).includes(term),
+        ) &&
+        (!verifiedSince || (!!p.date_last_verified && p.date_last_verified >= verifiedSince)) &&
+        (!availability ||
+          (
+            {
+              output: !!p.operational_capacity,
+              'no-output': !p.operational_capacity,
+              capacity: !!p.announced_capacity,
+              'no-capacity': !p.announced_capacity,
+              lca: p.lca_evidence.length > 0,
+              'no-lca': p.lca_evidence.length === 0,
+            } as Record<string, boolean>
+          )[availability]) &&
         fields.every((k) => !data.get(k) || String(p[k] ?? 'Unknown') === data.get(k)) &&
         (data.get('scope') !== 'live' || !p.sample) &&
         (data.get('scope') !== 'sample' || p.sample) &&
@@ -213,6 +278,23 @@ const capacityKeys = [
       row.hidden = !matches;
       if (matches) count++;
     }
+    const ordered = [...rows];
+    if (sort.value)
+      ordered.sort((a, b) => {
+        let result = 0;
+        if (sort.value === 'name')
+          result = searchText(a.project.project_name).localeCompare(searchText(b.project.project_name));
+        if (sort.value === 'verified')
+          result = (b.project.date_last_verified ?? '').localeCompare(a.project.date_last_verified ?? '');
+        if (sort.value === 'capacity')
+          result = (b.project.announced_capacity?.value ?? -1) - (a.project.announced_capacity?.value ?? -1);
+        return result || a.project.project_id.localeCompare(b.project.project_id);
+      });
+    const tbody = document.querySelector('#projects-table tbody')!;
+    ordered.forEach(({ row }) => tbody.append(row));
+    const download = document.querySelector<HTMLButtonElement>('#export-projects')!;
+    download.hidden = false;
+    download.disabled = count === 0;
     document.querySelector('#project-count')!.textContent = `${count} project${count === 1 ? '' : 's'} shown`;
     (document.querySelector('#project-empty') as HTMLElement).hidden = count !== 0;
   }
@@ -220,6 +302,24 @@ const capacityKeys = [
     filter();
     saveFilters();
   }
+  document.querySelector('#export-projects')?.addEventListener('click', () => {
+    const visible = [...document.querySelectorAll<HTMLTableRowElement>('tr[data-project]')]
+      .filter((row) => !row.hidden)
+      .map((row) => JSON.parse(row.dataset.project!));
+    const result = {
+      exported_at: new Date().toISOString(),
+      filters: Object.fromEntries(new FormData(form!)),
+      projects: visible,
+    };
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ccu-projects-filtered.json';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
   form?.addEventListener('input', updateFilters);
   form?.addEventListener('change', updateFilters);
   form?.addEventListener('reset', () => setTimeout(updateFilters, 0));

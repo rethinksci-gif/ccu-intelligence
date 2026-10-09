@@ -8,7 +8,21 @@ const { project: p } = Astro.props;
 const history = events
   .filter((e) => e.project_id === p.project_id)
   .sort((a, b) => b.reporting_date.localeCompare(a.reporting_date));
-const refs = evidence.filter((e) => p.sources.includes(e.evidence_id));
+const evidenceIds = new Set([
+  ...p.sources,
+  ...p.lca_evidence,
+  ...p.climate_claims.flatMap((c: { evidence_ids: string[] }) => c.evidence_ids),
+  ...[
+    p.announced_capacity,
+    p.operational_capacity,
+    p.capex,
+    p.opex,
+    ...p.energy_requirements,
+    ...p.hydrogen_requirements,
+  ].flatMap((m) => m?.evidence_ids ?? []),
+  ...history.flatMap((e) => e.evidence_links),
+]);
+const refs = evidence.filter((e) => evidenceIds.has(e.evidence_id));
 ---
 
 <Base title={p.project_name} noindex={p.sample}>

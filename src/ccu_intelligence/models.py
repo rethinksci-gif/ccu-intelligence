@@ -230,6 +230,7 @@ class Article(Record):
     title: str = Field(min_length=1)
     publication_date: date | None
     source_updated_date: date | None = None
+    discovery_date: date | None = None  # index discovery, never proof of publication
     event_date: date | None = None
     retrieved_at: datetime
     doi: str | None = None

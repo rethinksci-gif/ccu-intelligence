@@ -116,3 +116,10 @@ Use the artifact's `report.json`, `budget.json` and `draft.md`:
 - [ ] **Fact sheets**: per record `fields.filled` / `fields.not_stated` against the original source.
 - [ ] **Verification**: per record `grounding_removed` and `verification` (`removed`, `corrected`, `number_removed`, `unchecked`); `synthesis_issues` for the issue text.
 - [ ] **Cost**: `summary.usage_by_model`, `cost_upper_bound_usd`, `cost_estimate_usd` and `balance_delta`, versus the DeepSeek dashboard.
+
+
+### Collection quality and diagnostics (2026-10-09)
+
+Timestamped publication dates are normalized to UTC before applying coverage windows. GDELT `seendate` is stored as `discovery_date`, with publication date unknown; these leads remain in the candidate database but cannot qualify as dated newsletter developments. A subsequent dated feed record with the same URL or DOI can fill a candidate's missing publication date; matching syndicated text at another URL cannot, and known dates/reviewed records are preserved.
+
+RSS paging stops on an empty page, a repeated page, or a page whose dates are all before the window, within each source's page cap. A pinned old entry alone does not stop paging. Duplicate entries preserve source provenance but do not consume the new-candidate allowance. `report.json` → `summary.collection_health` lists failed and capped sources, malformed items, skipped undated items, discovery-only leads and duplicates. Coverage remains bounded, not exhaustive. No additional paid calls or model changes are introduced.

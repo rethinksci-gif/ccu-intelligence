@@ -19,6 +19,7 @@ interface ProjectEvent {
   event_date: string | null;
   event_type: string;
   description: string;
+  evidence_links: string[];
   previous_value: Record<string, unknown>;
   new_value: Record<string, unknown>;
 }

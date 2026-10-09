@@ -30,13 +30,18 @@ def plain(text: str) -> str:
 def parse_date(value) -> date | None:
     if not value:
         return None
+    text = str(value).strip()
     try:
-        return date.fromisoformat(str(value)[:10])
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+            return date.fromisoformat(text)
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
     except ValueError:
         try:
-            return parsedate_to_datetime(str(value)).date()
+            parsed = parsedate_to_datetime(text)
         except (ValueError, TypeError, OverflowError):
             return None
+    return parsed.astimezone(UTC).date() if parsed.tzinfo else parsed.date()
+
 
 
 def normalize(item: dict, source_id: str, sample: bool = False) -> Article:
@@ -57,6 +62,7 @@ def normalize(item: dict, source_id: str, sample: bool = False) -> Article:
         title=title,
         publication_date=parse_date(item.get("publication_date")),
         source_updated_date=parse_date(item.get("source_updated_date")),
+        discovery_date=parse_date(item.get("discovery_date")),
         retrieved_at=datetime.now(UTC),
         doi=doi,
         content_fingerprint=fingerprint,
