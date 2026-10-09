@@ -1,7 +1,8 @@
 ---
 title: Offtake Momentum for e-SAF and e-Methanol, and CO2 Electrolysis Trade-offs
 issue_number: 1
-editorial_status: draft
+editorial_status: research_published
+publication_authorization: "Repository owner explicitly requested direct publication of the existing draft on 2026-10-09."
 sample: false
 publication_date: '2026-10-09'
 coverage_start: '2026-09-25'
@@ -49,7 +50,7 @@ review_checklist:
   rights: false
 ---
 
-> DRAFT — AI-assisted research draft from verified model briefs. Human review required; not published.
+> RESEARCH EDITION — Published at the repository owner’s request. AI-assisted research with editor edits; full editorial review remains incomplete.
 > Text is our paraphrase with short attributed quotes; follow each link for the original source.
 
 Coverage: 2026-09-25 through 2026-10-08 inclusive (UTC). Screened 150 of 185 collected items; 22 selected after scoring, deduplication, caps and verification.
@@ -353,7 +354,7 @@ Relevant news, company and policy items not selected. Headline and link only.
 
 ## Candidate inbox and limitations
 
-Coverage is bounded by per-source caps; failed sources and exact-date gaps are in collection.json. News reports are secondary and never primary evidence. No project events or human approvals are applied. Verify quotes and numbers against the original before publication.
+Coverage is bounded by per-source caps; failed sources and exact-date gaps are in collection.json. News reports are secondary and never primary evidence. No project events or human approvals are applied. Quotes and numbers remain subject to verification against the original sources.
 
 - [Hydrogen Stocks To Watch Now – October 3rd](https://www.dailypolitical.com/2026/10/06/hydrogen-stocks-to-watch-now-october-3rd.html) — 2026-10-06. not analysed: cap.
 - [Neste and United Airlines extended agreements for sustainable aviation fuel (SAF) supply in the US and the Netherlands](https://renewable-carbon.eu/news/neste-and-united-airlines-extended-agreements-for-sustainable-aviation-fuel-saf-supply-in-the-us-and-the-netherlands) — 2026-10-05. not analysed: cap.

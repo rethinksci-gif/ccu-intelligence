@@ -3,7 +3,10 @@ import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { projects, articles, href, label } from '../lib/data';
 const issues = (
-  await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
+  await getCollection(
+    'issues',
+    ({ data }) => ['published', 'research_published'].includes(data.editorial_status) && !data.sample,
+  )
 ).sort((a, b) => +b.data.publication_date! - +a.data.publication_date!);
 const latest = issues[0];
 const live = articles.filter((a) => !a.sample && a.editorial_status === 'reviewed' && !a.review_required);
@@ -36,7 +39,11 @@ const watchProjects = liveProjects.slice(0, 3);
   <div class="hero-grid">
     <section class="lead-card">
       <p class="eyebrow">
-        {latest ? `Issue ${latest.data.issue_number}` : 'Biweekly briefing · editorial review pending'}
+        {
+          latest
+            ? `Issue ${latest.data.issue_number}${latest.data.editorial_status === 'research_published' ? ' · Research edition' : ''}`
+            : 'Biweekly briefing · editorial review pending'
+        }
       </p><h2>{latest ? latest.data.title : 'From promising chemistry to a working industrial system.'}</h2><p
       >
         Connect scientific progress to engineering constraints, project execution, production costs and
@@ -102,8 +109,9 @@ const watchProjects = liveProjects.slice(0, 3);
       </ul>
     ) : (
       <p class="empty">
-        The first issue is being prepared from real sources. Developments appear here after human editorial
-        review.
+        {latest
+          ? 'Read the latest issue for industry developments and their source limitations. Individually reviewed records will appear here as review is completed.'
+          : 'The first issue is being prepared from real sources. Developments appear here after human editorial review.'}
       </p>
     )
   }

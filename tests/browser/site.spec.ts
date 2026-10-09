@@ -56,12 +56,14 @@ test('calculator changes reproducibly and rejects invalid inputs', async ({ page
 
 test('published output excludes fixtures and unapproved drafts', async ({ page, request }) => {
   await page.goto('issues/');
-  await expect(page.locator('#issue-count')).toHaveText('0 published issues');
+  await expect(page.locator('#issue-count')).toHaveText('1 published issues');
   await expect(page.getByRole('link', { name: 'Read the sample issue' })).toHaveCount(0);
   expect((await request.get('samples/issue/')).status()).toBe(404);
   expect((await request.get('projects/northport-methanol/')).status()).toBe(404);
   const response = await request.get('rss.xml');
-  expect(await response.text()).not.toContain('<item>');
+  const feed = await response.text();
+  expect(feed).toContain('<item>');
+  expect(feed).toContain('Research edition; full editorial review incomplete');
   const data = await (await request.get('data/intelligence.json')).json();
   expect(data.projects).toHaveLength(3);
   for (const records of Object.values(data) as { sample?: boolean }[][]) {
@@ -129,4 +131,18 @@ test('invalid URL filters fall back and search ignores surrounding spaces', asyn
   await expect(page).toHaveURL(/ref=shared/);
   await page.getByRole('button', { name: 'Reset filters' }).click();
   await expect(page).toHaveURL(/projects\/\?ref=shared$/);
+});
+
+test('published research edition is reachable and accurately labelled', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('link', { name: 'Read the latest issue' }).click();
+  await expect(page).toHaveURL(/issues\/issue-001-research-2026-10-09\/$/);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Offtake Momentum');
+  await expect(page.locator('.prose-title')).toContainText('Full editorial review incomplete');
+  await expect(page.locator('.prose-title')).not.toContainText('Reviewed by');
+  await expect(page.locator('article')).toContainText('RESEARCH EDITION');
+  await expect(page.locator('article')).not.toContainText('not published');
+  await page.getByRole('link', { name: 'All issues', exact: true }).click();
+  await expect(page.locator('.issue-card')).toHaveCount(1);
+  await expect(page.locator('.issue-card')).toContainText('Research edition');
 });

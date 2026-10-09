@@ -2,7 +2,7 @@
 
 An evidence-driven, static-first intelligence platform connecting scientific progress, engineering feasibility, industrial deployment, economics and climate performance.
 
-**Status:** Live on GitHub Pages at https://rethinksci-gif.github.io/ccu-intelligence/. The public tracker contains three primary-source project baselines (Kassø, Jiangsu Sailboat and POSEIDON Mannheim), with company/consortium reporting explicitly attributed and measured output left unknown. Fictional fixtures remain for tests but are excluded from public JSON and routes. Issue 001 is a real-source draft awaiting human review and sufficient dated evidence; no newsletter is published yet.
+**Status:** Live on GitHub Pages at https://rethinksci-gif.github.io/ccu-intelligence/. The public tracker contains three primary-source project baselines (Kassø, Jiangsu Sailboat and POSEIDON Mannheim), with company/consortium reporting explicitly attributed and measured output left unknown. Fictional fixtures remain for tests but are excluded from public JSON and routes. Issue 001 is published as an owner-authorized research edition with 22 sources; its incomplete editorial review is explicitly disclosed.
 
 Biweekly draft preparation is enabled through GitHub Actions. A daily 07:17 UTC check opens one draft PR per completed 14-day window, starting **12 October 2026**, then 26 October. Branch/file checks prevent duplicate drafts. Collection is bounded to 20 candidate records; scheduled runs have no model key and permit **zero paid API calls**. Publication still requires manual editorial approval and all existing validation gates. See [operational status](docs/operational-status.md).
 
@@ -62,7 +62,7 @@ npm run preview
 - Three pathway profiles, original process diagrams, and seven sourced technical primers.
 - Interactive methanol feedstock/energy sensitivity model, backed by the same documented Python formula.
 - English seven-section Markdown newsletter drafts with structured metadata, date windows and adjacent citations.
-- Published-only archive and RSS; draft content has no public route. Fictional issue examples are retained only as test fixtures.
+- Published issues and explicitly authorized research editions appear in the archive and RSS; ordinary drafts have no public route. Fictional issue examples are retained only as test fixtures.
 - Semantic HTML, keyboard navigation, mobile menu, print CSS, canonical/SEO/social text metadata and sitemap.
 - Crossref/OpenAlex collectors, configurable RSS/Atom adapter, manual ingestion, raw preservation, deduplication, conservative classification, literal metric extraction, entity matching, scoring and event proposals.
 - Optional configurable OpenAI-compatible JSON analysis, without automatic authority to approve or publish.
@@ -196,7 +196,7 @@ package-lock.json        exact npm dependency resolution
 
 ## Known limitations and next work
 
-- The tracker has three attributed primary-source baselines. Issue 001 still needs human editorial review and enough dated developments/events before publication.
+- The tracker has three attributed primary-source baselines. Issue 001 is a public research edition; full editorial review remains incomplete.
 - Collection is bounded keyword search, not exhaustive discovery. Add cursor pagination, per-source incremental checkpoints, retrieval checksums across dates and broader regional/language queries next.
 - Exact URL/DOI/text deduplication works. Semantic syndication clustering and a project alias-resolution interface remain future work.
 - Event detection is conservative keyword triage; structured extraction and optional LLM outputs require review before insertion. LLM tasks use one common validated envelope and were tested with mocked failures, not a paid provider call.

@@ -434,3 +434,28 @@ def test_complete_review_fixture_can_pass_publication_gate(tmp_path):
     issue.write_text("---\n" + yaml.safe_dump(meta) + "---\n" + body)
     with pytest.raises(ValueError, match="Three distinct executive"):
         validate_issue(issue, bundle)
+
+
+def test_research_publication_requires_authorization_and_disclosure(tmp_path):
+    import yaml
+
+    source = Path("src/content/issues/issue-001-research-2026-10-09.md")
+    _, frontmatter, body = source.read_text().split("---", 2)
+    meta = yaml.safe_load(frontmatter)
+    issue = tmp_path / "research.md"
+
+    def write(metadata, text=body):
+        issue.write_text("---\n" + yaml.safe_dump(metadata) + "---\n" + text)
+
+    write(meta)
+    validate_issue(issue, curated())
+    for change in [{"publication_authorization": ""}, {"sample": True}, {"publication_date": None}]:
+        write(meta | change)
+        with pytest.raises(ValueError, match="explicit authorization"):
+            validate_issue(issue, curated())
+    write(meta, body.replace("RESEARCH EDITION", ""))
+    with pytest.raises(ValueError, match="disclose"):
+        validate_issue(issue, curated())
+    write(meta | {"editorial_status": "published"})
+    with pytest.raises(ValueError, match="requires a reviewer"):
+        validate_issue(issue, curated())

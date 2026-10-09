@@ -12,9 +12,10 @@ const issues = defineCollection({
       coverage_end: z.coerce.date(),
       featured_topics: z.array(z.string()),
       source_count: z.number(),
-      editorial_status: z.enum(['draft', 'sample', 'published']),
+      editorial_status: z.enum(['draft', 'sample', 'published', 'research_published']),
       last_updated: z.coerce.date(),
       sample: z.boolean().default(false),
+      publication_authorization: z.string().optional(),
       reviewer: z.string().nullable().optional(),
       reviewed_at: z.coerce.date().nullable().optional(),
     })
@@ -23,6 +24,12 @@ const issues = defineCollection({
         d.editorial_status !== 'published' ||
         (!d.sample && !!d.publication_date && !!d.reviewer && !!d.reviewed_at),
       'Published content must be non-sample and human reviewed',
+    )
+    .refine(
+      (d) =>
+        d.editorial_status !== 'research_published' ||
+        (!d.sample && !!d.publication_date && !!d.publication_authorization?.trim()),
+      'Research publication requires explicit authorization and a publication date',
     ),
 });
 const learning = defineCollection({

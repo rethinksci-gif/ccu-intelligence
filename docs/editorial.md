@@ -34,3 +34,9 @@ Each milestone frontmatter entry needs `hypothesis`, `deadline`, `evidence_url`,
 Keep `article_ids` and `event_ids` aligned with the issue; `executive_signal_ids` must identify three distinct selected articles. Set the five `review_checklist` fields to true after review, add `reviewer` and `reviewed_at`, then set `editorial_status: published`. Run validation and the build, inspect the rendered page and print view, and request the repository's normal editorial approval.
 
 Drafts have no public route and do not appear in RSS. Sample content has its own route, visible warnings and noindex metadata. The default PR workflow never sets `published`. Structural checks cannot verify every sentence: the editor remains responsible for adjacent citations, source interpretation, rights and scientific accuracy.
+
+## Owner-authorized research editions
+
+An explicit owner request to publish an existing draft can use `editorial_status: research_published`, with a dated `publication_authorization` recording that instruction and a publication date. This publishes the existing text in the homepage, archive, issue route and RSS as a research edition. The body must disclose “RESEARCH EDITION” and “full editorial review remains incomplete”. Sample content remains excluded. Do not populate reviewer timestamps or completed checklists to imply checks that did not occur. The full `published` validation gates remain in effect for reviewed editions; automated drafts still use `draft`.
+
+Issue 001 was authorized for direct publication by the repository owner on 2026-10-09. Its existing editor-edited text and source links are retained.

@@ -4,7 +4,10 @@ import { getCollection, render } from 'astro:content';
 import { href } from '../../lib/data';
 export async function getStaticPaths() {
   const issues = (
-    await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
+    await getCollection(
+      'issues',
+      ({ data }) => ['published', 'research_published'].includes(data.editorial_status) && !data.sample,
+    )
   ).sort((a, b) => +a.data.publication_date! - +b.data.publication_date!);
   return issues.map((issue, i) => ({
     params: { id: issue.id },
@@ -20,7 +23,11 @@ const { Content } = await render(issue);
     <p class="eyebrow">
       Issue {issue.data.issue_number} · {issue.data.publication_date!.toISOString().slice(0, 10)}
     </p><h1>{issue.data.title}</h1><p class="meta">
-      {issue.data.source_count} original sources · Reviewed by {issue.data.reviewer}
+      {issue.data.source_count} sources · {
+        issue.data.editorial_status === 'research_published'
+          ? 'Research edition · Full editorial review incomplete'
+          : `Reviewed by ${issue.data.reviewer}`
+      }
     </p>
   </div><article class="prose"><Content /></article><nav class="row rule" aria-label="Issue navigation">
     {previous && <a href={href(`issues/${previous}/`)}>Previous issue</a>}<a href={href('issues/')}

@@ -223,6 +223,17 @@ def validate_issue(path: Path, bundle: Bundle):
     }
     if not required.issubset(meta):
         raise ValueError("Missing required issue metadata")
+    if meta["editorial_status"] == "research_published":
+        if (
+            meta.get("sample")
+            or not meta.get("publication_date")
+            or not str(meta.get("publication_authorization", "")).strip()
+        ):
+            raise ValueError("Research publication requires explicit authorization and a date")
+        date.fromisoformat(str(meta["publication_date"]))
+        if "RESEARCH EDITION" not in body or "full editorial review remains incomplete" not in body:
+            raise ValueError("Research publication must disclose incomplete editorial review")
+        return
     if meta["editorial_status"] != "published":
         return
     if meta.get("sample") or not meta.get("reviewer") or not meta.get("reviewed_at"):

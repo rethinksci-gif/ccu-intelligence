@@ -3,7 +3,10 @@ import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 import { href } from '../../lib/data';
 const issues = (
-  await getCollection('issues', ({ data }) => data.editorial_status === 'published' && !data.sample)
+  await getCollection(
+    'issues',
+    ({ data }) => ['published', 'research_published'].includes(data.editorial_status) && !data.sample,
+  )
 ).sort((a, b) => +b.data.publication_date! - +a.data.publication_date!);
 const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
 ---
@@ -38,6 +41,7 @@ const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
               <>
                 <p class="meta">
                   {i.data.publication_date!.toISOString().slice(0, 10)} · {i.data.source_count} sources
+                  {i.data.editorial_status === 'research_published' && ' · Research edition'}
                 </p>
                 <h2>
                   <a class="title-link" href={href(`issues/${i.id}/`)}>
