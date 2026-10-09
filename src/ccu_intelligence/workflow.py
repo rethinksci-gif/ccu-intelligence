@@ -350,7 +350,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
 
     def label(article, source) -> str:
         """Citation label: the outlet for GDELT results, the organization otherwise (without search notes)."""
-        if source.access_method == "gdelt":
+        if source.access_method in ("gdelt", "editor_list"):
             return urlsplit(str(article.canonical_url)).hostname.removeprefix("www.")
         return re.sub(r"\s*\((?:site search|open-access subset)[^)]*\)", "", source.organization)
 
@@ -358,6 +358,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         "article_id": a.article_id, "title": a.title, "url": str(a.canonical_url), "source_id": a.source_id,
         "source_name": label(a, sources[a.source_id]), "evidence_role": sources[a.source_id].evidence_role,
         "publication_date": str(a.publication_date), "triage": decisions[a.article_id],
+        "editor_submitted": sources[a.source_id].access_method == "editor_list",
         "input": texts[a.article_id].record() if a.article_id in texts else None,
     } for a in bundle.articles}
 
@@ -485,6 +486,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         story = story_of.get(entry["article_id"], entry["article_id"])
         final.append({"sid": f"S{number}", "article_id": entry["article_id"], "title": record["title"],
                       "story": story, "story_category": story_lead[story]["category"],
+                      "editor_submitted": record["editor_submitted"],
                       "url": record["url"], "source_name": record["source_name"],
                       "evidence_role": entry["evidence_role"], "publication_date": record["publication_date"],
                       "input_basis": entry["input_basis"], "category": entry["category"], "score": entry["score"],
@@ -629,6 +631,9 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         "pricing": {"source": pricing["source"], "checked": pricing["checked"]},
         "draft": str(draft),
         "paid_run_projection": projected,
+        "editor_submitted": [{"title": r["title"], "url": r["url"], "gate": (r.get("screening") or {}).get(
+            "ccu_relevant"), "score": (r.get("screening") or {}).get("score"), "selection": r.get("selection"),
+            "input_basis": (r.get("input") or {}).get("basis")} for r in records.values() if r["editor_submitted"]],
     }
     report = {"summary": summary, "triage": decisions, "promising_candidates": len(gated),
               "ecosystem_briefs": len(briefs), "also_noted_research": len(research), "also_noted_other": len(other),

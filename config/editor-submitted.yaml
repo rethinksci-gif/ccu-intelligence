@@ -1,0 +1,24 @@
+# Editor-submitted items: stories the automated sources missed (here because GDELT throttled every query in the
+# 2026-10-09 dry runs). Each entry is only a pointer: the run fetches the text from `url` with the normal
+# robots-respecting reader, applies the coverage window, and sends it through the same gate, scoring, grounding and
+# verification as any collected item. The draft and report mark these items as editor-submitted.
+# `source` selects the evidence role: editor-submitted-company (official announcement text) or
+# editor-submitted-news (press report). Never add text here; titles are the publisher's headline.
+items:
+  - source: editor-submitted-company
+    title: "Plug and Arcadia eFuels Sign Strategic Partnership Covering More Than 1 GW of e-SAF Projects, Starting with 280 MW to Turn Danish Renewable Electricity into Jet Fuel"
+    url: https://www.finanznachrichten.de/nachrichten-2026-09/69704155-plug-power-inc-plug-and-arcadia-efuels-sign-strategic-partnership-covering-more-than-1-gw-of-e-saf-projects-starting-with-280-mw-to-turn-danish-re-399.htm
+    publication_date: '2026-09-29'
+    note: "Plug Power press release (full text as reprinted by finanznachrichten.de; Plug IR, Arcadia eFuels and GlobeNewswire return HTTP 403 to our agent)."
+  - source: editor-submitted-news
+    title: "How first port-based ₹2,300-crore e-methanol plant at Kandla will power India's green shipping push"
+    url: https://www.theweek.in/news/maritime/2026/09/28/how-kandla-s-first-port-based-indian-rupee2300-crore-e-methanol-plant-plans-to-power-india-s-green-shipping-push.html
+    publication_date: '2026-09-28'
+    note: "Foundation stone laid 2026-09-26; no PIB or Deendayal Port Authority release found."
+  - source: editor-submitted-news
+    title: "Gujarat: Union Minister Sonowal, CM Bhupendra Patel lay foundation stone for e-methanol plant in Kutch"
+    url: https://newsonair.gov.in/gujarat-union-minister-sonowal-cm-bhupendra-patel-lay-foundation-stone-for-e-methanol-plant-in-kutch/
+    publication_date: '2026-09-26'
+    note: "All India Radio (public broadcaster) report of the ceremony."
+# Considered and skipped as outside 2026-09-25 to 2026-10-08 (announcement dates): AFRY NorthStarH2 FEED (late
+# August 2026), Uniper NorthStarH2 basic engineering (2026-08-31), Uniper and Arcadia eFuels offtake (2026-09-23).

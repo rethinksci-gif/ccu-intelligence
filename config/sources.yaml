@@ -746,6 +746,36 @@ sources:
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09. E-fuels and power-to-liquid. Replaces Google News RSS, whose robots.txt
     disallows /rss/search for all agents.
+- source_id: editor-submitted-company
+  organization: "Editor-submitted (company announcements)"
+  source_type: company_announcements_and_annual_reports
+  evidence_role: primary
+  base_url: https://rethinksci-gif.github.io/ccu-intelligence/
+  access_method: editor_list
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: per issue, by an editor
+  reliability_tier: 3
+  reuse_restrictions: Pointer to a public article chosen by an editor. Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: Items listed in config/editor-submitted.yaml for stories the automated sources missed. Text is fetched from the original URL (robots.txt respected) and goes through the same gate, scoring, grounding and verification. Marked editor-submitted in the draft and report.
+- source_id: editor-submitted-news
+  organization: "Editor-submitted (press reports)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://rethinksci-gif.github.io/ccu-intelligence/
+  access_method: editor_list
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: per issue, by an editor
+  reliability_tier: 3
+  reuse_restrictions: Pointer to a public article chosen by an editor. Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: Items listed in config/editor-submitted.yaml for stories the automated sources missed. Text is fetched from the original URL (robots.txt respected) and goes through the same gate, scoring, grounding and verification. Marked editor-submitted in the draft and report.
 - source_id: gdelt-efuels
   organization: GDELT news search
   source_type: news_search

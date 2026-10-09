@@ -49,6 +49,10 @@ There are deliberately **no required reviewers** on `deepseek-paid`. Paid spendi
 
 Prompts are profile-style markdown in `config/prompts/profile/` (`match`, `analysis`, `enrichment`, `verification`, `dedup`, `synthesis`); the version is `PROMPT_VERSION` in `src/ccu_intelligence/stages.py`. Validated responses are cached by stage, model, thinking mode, prompt text and input, so reruns are free and any prompt, model or input change re-analyses.
 
+### Editor-submitted items
+
+When the automated sources miss a story (for example when GDELT is throttled), an editor can list it in `config/editor-submitted.yaml`: source (`editor-submitted-company` for official announcement text, `editor-submitted-news` for a press report), publisher headline, URL and publication date. Only pointers are stored, never text. The run applies the coverage window, fetches the text from the URL with the normal robots-respecting reader, and sends the item through the same gate, scoring, dedup, grounding and verification. Citations in the draft carry "editor-submitted", and `summary.editor_submitted` lists each item with its gate result, score and selection.
+
 ### Coverage window
 
 The research workflow covers the most recent **14 complete UTC days, ending yesterday** by default: a dispatch on 2026-10-09 covers 2026-09-25 to 2026-10-08 inclusive. The dispatch inputs `coverage_end` (last covered day, `YYYY-MM-DD`, must be before today) and `coverage_days` (1–31) change it, for example to continue exactly where the previous issue ended. `python scripts/deepseek-research.py --check` prints the window without making any request. Run 37929580610 predates this: it used the anchored biweekly windows of the scheduled draft workflow (`editorial.window`, 14-day periods from Monday 2026-01-05), whose latest completed period on 2026-10-09 was 2026-09-14 to 2026-09-27. Those anchored windows still apply to the scheduled unpaid draft PRs.

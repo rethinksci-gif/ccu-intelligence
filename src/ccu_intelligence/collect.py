@@ -378,6 +378,13 @@ def collect(
                     }
                     pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
                     parser = gdelt_items
+                elif source.access_method == "editor_list":
+                    # Reviewed pointers in config/editor-submitted.yaml; the text is fetched later from each URL.
+                    listed = yaml.safe_load(Path("config/editor-submitted.yaml").read_text()).get("items", [])
+                    chosen = [{"title": i["title"], "url": i["url"], "publication_date": str(i["publication_date"]),
+                               "summary": ""} for i in listed if i["source"] == source.source_id]
+                    pages = [json.dumps(chosen).encode()]
+                    parser = json.loads
                 elif source.access_method == "govuk_search":
                     params = {
                         "q": source_query,
