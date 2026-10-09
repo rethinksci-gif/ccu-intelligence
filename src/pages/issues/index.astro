@@ -1,13 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import { publicIssues, readingMinutes, coverageLabel } from '../../lib/issues';
 import { href } from '../../lib/data';
-const issues = (
-  await getCollection(
-    'issues',
-    ({ data }) => ['published', 'research_published'].includes(data.editorial_status) && !data.sample,
-  )
-).sort((a, b) => +b.data.publication_date! - +a.data.publication_date!);
+const issues = await publicIssues();
 const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
 ---
 
@@ -27,12 +22,14 @@ const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
       ></label
     ><button class="button" type="reset">Reset</button>
   </form>
-  <p id="issue-count" role="status" class="meta">{issues.length} published issues</p><div id="issue-results">
+  <p id="issue-count" role="status" class="meta">
+    {issues.length} published {issues.length === 1 ? 'issue' : 'issues'}
+  </p><div id="issue-results">
     {
       issues.map((i) => (
         <article
           class="card issue-card"
-          data-search={`${i.data.title} ${i.data.featured_topics.join(' ')}`.toLowerCase()}
+          data-search={`${i.data.issue_number} ${i.data.title} ${i.data.featured_topics.join(' ')}`.toLowerCase()}
           data-topics={JSON.stringify(i.data.featured_topics)}
         >
           <>
@@ -49,6 +46,10 @@ const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
                   </a>
                 </h2>
                 <p>{i.data.featured_topics.join(' · ')}</p>
+                <p class="meta">
+                  Coverage: {coverageLabel(i.data.coverage_start, i.data.coverage_end)} · About{' '}
+                  {readingMinutes(i.body)} min read
+                </p>
               </>
             </div>
           </>
@@ -57,26 +58,55 @@ const topics = [...new Set(issues.flatMap((i) => i.data.featured_topics))];
     }
   </div>
   <p id="issue-empty" class="empty" hidden={issues.length > 0}>
-    No published issues yet. Evidence collection and human editorial review must precede publication.
+    {
+      issues.length
+        ? 'No issues match your search. Try another term or reset the filters.'
+        : 'No published issues yet. Check back for the first edition.'
+    }
   </p>
 </Base>
 <script>
   const form = document.querySelector<HTMLFormElement>('#issue-search');
-  function filter() {
+  const query = form?.querySelector<HTMLInputElement>('[name="query"]');
+  const topic = form?.querySelector<HTMLSelectElement>('[name="topic"]');
+  function restore() {
+    const params = new URLSearchParams(location.search);
+    if (query) query.value = params.get('q') || '';
+    if (topic)
+      topic.value = [...topic.options].some((o) => o.value === params.get('topic'))
+        ? params.get('topic')!
+        : '';
+    filter(false);
+  }
+  function filter(updateURL = true) {
     if (!form) return;
     const data = new FormData(form);
     let count = 0;
     document.querySelectorAll<HTMLElement>('[data-search]').forEach((card) => {
       const shown =
-        card.dataset.search!.includes(String(data.get('query')).toLowerCase()) &&
+        card.dataset.search!.includes(String(data.get('query')).trim().toLowerCase()) &&
         (!data.get('topic') || JSON.parse(card.dataset.topics!).includes(data.get('topic')));
       card.hidden = !shown;
       if (shown) count++;
     });
-    document.querySelector('#issue-count')!.textContent = `${count} published issues shown`;
+    document.querySelector('#issue-count')!.textContent =
+      `${count} published ${count === 1 ? 'issue' : 'issues'} shown`;
     (document.querySelector('#issue-empty') as HTMLElement).hidden = count > 0;
+    if (updateURL) {
+      const url = new URL(location.href);
+      for (const [key, value] of [
+        ['q', query?.value.trim()],
+        ['topic', topic?.value],
+      ]) {
+        if (value) url.searchParams.set(key!, value);
+        else url.searchParams.delete(key!);
+      }
+      history.replaceState(null, '', url);
+    }
   }
-  form?.addEventListener('input', filter);
+  form?.addEventListener('input', () => filter());
   form?.addEventListener('submit', (e) => e.preventDefault());
-  form?.addEventListener('reset', () => setTimeout(filter, 0));
+  form?.addEventListener('reset', () => setTimeout(() => filter(), 0));
+  window.addEventListener('popstate', restore);
+  restore();
 </script>

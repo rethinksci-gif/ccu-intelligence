@@ -60,7 +60,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:43
       <nav id="primary-nav" class="shell navigation" aria-label="Main navigation">
         {
           nav.map(([path, name]) => (
-            <a href={href(path)} aria-current={Astro.url.pathname === href(path) ? 'page' : undefined}>
+            <a
+              href={href(path)}
+              aria-current={
+                Astro.url.pathname === href(path)
+                  ? 'page'
+                  : path && Astro.url.pathname.startsWith(href(path))
+                    ? 'location'
+                    : undefined
+              }
+            >
               {name}
             </a>
           ))
@@ -80,6 +89,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:43
     <script>
       const button = document.querySelector<HTMLButtonElement>('.menu-toggle');
       const nav = document.querySelector<HTMLElement>('#primary-nav');
+      button?.classList.add('enhanced');
+      nav?.classList.add('enhanced');
       button?.addEventListener('click', () => {
         const open = button.getAttribute('aria-expanded') !== 'true';
         button.setAttribute('aria-expanded', String(open));

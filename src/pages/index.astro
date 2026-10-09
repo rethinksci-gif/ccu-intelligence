@@ -1,14 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import { render } from 'astro:content';
+import { publicIssues, readingMinutes, coverageLabel } from '../lib/issues';
 import { projects, articles, href, label } from '../lib/data';
-const issues = (
-  await getCollection(
-    'issues',
-    ({ data }) => ['published', 'research_published'].includes(data.editorial_status) && !data.sample,
-  )
-).sort((a, b) => +b.data.publication_date! - +a.data.publication_date!);
+const issues = await publicIssues();
 const latest = issues[0];
+const latestHeadings = latest ? (await render(latest)).headings.filter((h) => h.depth === 2).slice(0, 6) : [];
 const live = articles.filter((a) => !a.sample && a.editorial_status === 'reviewed' && !a.review_required);
 const signals = live.slice(0, 3);
 const liveProjects = projects.filter((p) => !p.sample);
@@ -48,7 +45,17 @@ const watchProjects = liveProjects.slice(0, 3);
       >
         Connect scientific progress to engineering constraints, project execution, production costs and
         climate performance.
-      </p><a class="button" href={latest ? href(`issues/${latest.id}/`) : href('projects/')}
+      </p>
+      {
+        latest && (
+          <p class="meta">
+            Coverage: {coverageLabel(latest.data.coverage_start, latest.data.coverage_end)}
+            <br />
+            {latest.data.source_count} sources · About {readingMinutes(latest.body)} min read
+          </p>
+        )
+      }
+      <a class="button" href={latest ? href(`issues/${latest.id}/`) : href('projects/')}
         >{latest ? 'Read the latest issue' : 'Explore sourced projects'}</a
       ><div class="metrics">
         <div class="metric"><strong>05</strong><span>Intelligence domains</span></div><div class="metric">
@@ -71,49 +78,70 @@ const watchProjects = liveProjects.slice(0, 3);
       </p>
     </section>
   </div>
-  <div class="section-head">
-    <h2>Executive signals</h2><span class="badge sample"
-      >{live.length ? 'Reviewed evidence' : 'Awaiting editorial review'}</span
-    >
-  </div>
-  <div class="cards">
-    {
-      signals.map((a, i) => (
-        <article class="card">
-          <>
-            <span class="card-index">0{i + 1} / INDUSTRIAL READINESS</span>
-            <h3>{a.title.replace('Sample: ', '')}</h3>
-            <p>{a.industrial_implications}</p>
-            <p class="meta">Uncertainty: {a.uncertainty}</p>
-            <a href={href('issues/')}>Read the context</a>
-          </>
-        </article>
-      ))
-    }
-  </div>
-  <div class="section-head">
-    <h2>Recent industry developments</h2><a href={href('issues/')}>Newsletter archive</a>
-  </div>
   {
-    live.length ? (
-      <ul class="list-clean card">
-        {live.slice(0, 6).map((a) => (
-          <li>
-            <a href={a.canonical_url}>{a.title}</a>
-            <p class="meta">
-              Published {a.publication_date} · {a.domains.join(', ')}
-            </p>
-            <p>{a.summary}</p>
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <p class="empty">
-        {latest
-          ? 'Read the latest issue for industry developments and their source limitations. Individually reviewed records will appear here as review is completed.'
-          : 'The first issue is being prepared from real sources. Developments appear here after human editorial review.'}
-      </p>
-    )
+    live.length > 0 ? (
+      <>
+        <div class="section-head">
+          <>
+            <h2>Executive signals</h2>
+            <span class="badge">Reviewed evidence</span>
+          </>
+        </div>
+        <div class="cards">
+          {signals.map((a, i) => (
+            <article class="card">
+              <span class="card-index">0{i + 1} / INDUSTRIAL READINESS</span>
+              <h3>{a.title.replace('Sample: ', '')}</h3>
+              <p>{a.industrial_implications}</p>
+              <p class="meta">Uncertainty: {a.uncertainty}</p>
+              <a href={href('issues/')}>Read the context</a>
+            </article>
+          ))}
+        </div>
+        <div class="section-head">
+          <>
+            <h2>Recent industry developments</h2>
+            <a href={href('issues/')}>Newsletter archive</a>
+          </>
+        </div>
+        <ul class="list-clean card">
+          {live.slice(0, 6).map((a) => (
+            <li>
+              <a href={a.canonical_url}>{a.title}</a>
+              <p class="meta">
+                Published {a.publication_date} · {a.domains.join(', ')}
+              </p>
+              <p>{a.summary}</p>
+            </li>
+          ))}
+        </ul>
+      </>
+    ) : latest ? (
+      <section aria-labelledby="inside-issue">
+        <div class="section-head">
+          <>
+            <h2 id="inside-issue">Inside the latest issue</h2>
+            <a href={href('issues/')}>All issues</a>
+          </>
+        </div>
+        <p class="muted">
+          {latest.data.editorial_status === 'research_published'
+            ? 'Research edition. Source limitations and outstanding review notes are included in the issue.'
+            : 'Explore the analysis, sources and project developments in this issue.'}
+        </p>
+        <div class="cards issue-sections">
+          {latestHeadings.map((heading, i) => (
+            <a class="card" href={href(`issues/${latest.id}/#${heading.slug}`)}>
+              <span class="card-index">
+                {String(i + 1).padStart(2, '0')} / ISSUE {latest.data.issue_number}
+              </span>
+              <h3>{heading.text}</h3>
+              <span>Read section →</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ) : null
   }
   <div class="section-head"><h2>Project watch</h2><a href={href('projects/')}>Explore the tracker</a></div>
   <div class="table-wrap">

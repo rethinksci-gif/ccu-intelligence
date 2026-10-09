@@ -56,7 +56,7 @@ test('calculator changes reproducibly and rejects invalid inputs', async ({ page
 
 test('published output excludes fixtures and unapproved drafts', async ({ page, request }) => {
   await page.goto('issues/');
-  await expect(page.locator('#issue-count')).toHaveText('1 published issues');
+  await expect(page.locator('#issue-count')).toHaveText('1 published issue shown');
   await expect(page.getByRole('link', { name: 'Read the sample issue' })).toHaveCount(0);
   expect((await request.get('samples/issue/')).status()).toBe(404);
   expect((await request.get('projects/northport-methanol/')).status()).toBe(404);
@@ -145,4 +145,65 @@ test('published research edition is reachable and accurately labelled', async ({
   await page.getByRole('link', { name: 'All issues', exact: true }).click();
   await expect(page.locator('.issue-card')).toHaveCount(1);
   await expect(page.locator('.issue-card')).toContainText('Research edition');
+});
+
+test('issue contents links reach real sections on desktop and mobile', async ({ page }) => {
+  await page.goto('issues/issue-001-research-2026-10-09/');
+  await page.screenshot({ path: test.info().outputPath('issue.png') });
+  const contents = page.getByRole('navigation', { name: 'Issue contents' });
+  const links = contents.locator('ol a');
+  expect(await links.count()).toBeGreaterThan(5);
+  for (const link of await links.all()) {
+    const hash = await link.getAttribute('href');
+    expect(await page.locator(`[id="${hash!.slice(1)}"]`).count()).toBe(1);
+  }
+  await contents.getByRole('link', { name: 'What to watch', exact: true }).click();
+  await expect(page).toHaveURL(/#what-to-watch$/);
+  await expect(page.locator('.prose-title')).toContainText('2026-09-25 – 2026-10-08 (UTC)');
+  await expect(
+    page.getByRole('link', { name: 'Biweekly issues', exact: true, includeHidden: true }),
+  ).toHaveAttribute('aria-current', 'location');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.emulateMedia({ media: 'print' });
+  await expect(contents).not.toBeVisible();
+});
+
+test('archive filters handle no results and survive reload and reset', async ({ page }) => {
+  await page.goto('issues/?q=missing-story&ref=shared');
+  await expect(page.locator('#issue-empty')).toContainText('No issues match your search');
+  await expect(page.locator('.issue-card:visible')).toHaveCount(0);
+  await page.getByRole('searchbox', { name: 'Search the archive' }).fill('  Offtake  ');
+  await expect(page.locator('.issue-card:visible')).toHaveCount(1);
+  await expect(page).toHaveURL(/q=Offtake/);
+  await page.reload();
+  await expect(page.getByRole('searchbox', { name: 'Search the archive' })).toHaveValue('Offtake');
+  await page.getByRole('button', { name: 'Reset', exact: true }).click();
+  await expect(page).toHaveURL(/issues\/\?ref=shared$/);
+  await expect(page.locator('.issue-card:visible')).toHaveCount(1);
+});
+
+test('homepage sections and mobile navigation work without JavaScript', async ({
+  browser,
+  baseURL,
+  isMobile,
+}) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL,
+    viewport: isMobile ? { width: 390, height: 844 } : { width: 1280, height: 800 },
+  });
+  const page = await context.newPage();
+  await page.goto('./');
+  await expect(page.getByRole('heading', { name: 'Inside the latest issue' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Executive signals' })).toHaveCount(0);
+  const sectionLink = page.locator('.issue-sections a').first();
+  await sectionLink.click();
+  await expect(page).toHaveURL(/#key-takeaways$/);
+  await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Main navigation' })
+    .getByRole('link', { name: 'Biweekly issues' })
+    .click();
+  await expect(page.locator('.issue-card')).toHaveCount(1);
+  await context.close();
 });

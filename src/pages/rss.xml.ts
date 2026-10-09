@@ -1,16 +1,11 @@
-import { getCollection } from 'astro:content';
+import { publicIssues } from '../lib/issues';
 import type { APIRoute } from 'astro';
 const escape = (s: string) =>
   s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 export const GET: APIRoute = async ({ site }) => {
   const base = import.meta.env.BASE_URL;
   const root = new URL(base, site ?? 'http://localhost:4321');
-  const issues = (
-    await getCollection(
-      'issues',
-      ({ data }) => ['published', 'research_published'].includes(data.editorial_status) && !data.sample,
-    )
-  ).sort((a, b) => +b.data.publication_date! - +a.data.publication_date!);
+  const issues = await publicIssues();
   const items = issues
     .map((i) => {
       const url = new URL(`issues/${i.id}/`, root);

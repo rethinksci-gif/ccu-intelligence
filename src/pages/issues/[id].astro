@@ -1,25 +1,23 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import { href } from '../../lib/data';
+import { publicIssues, readingMinutes, coverageLabel } from '../../lib/issues';
 export async function getStaticPaths() {
-  const issues = (
-    await getCollection(
-      'issues',
-      ({ data }) => ['published', 'research_published'].includes(data.editorial_status) && !data.sample,
-    )
-  ).sort((a, b) => +a.data.publication_date! - +b.data.publication_date!);
+  const issues = (await publicIssues()).reverse();
   return issues.map((issue, i) => ({
     params: { id: issue.id },
     props: { issue, previous: issues[i - 1]?.id, next: issues[i + 1]?.id },
   }));
 }
 const { issue, previous, next } = Astro.props;
-const { Content } = await render(issue);
+const { Content, headings } = await render(issue);
+const sections = headings.filter((h) => h.depth === 2);
 ---
 
 <Base title={issue.data.title}
-  ><div class="prose-title">
+  ><div class="prose-title" id="issue-top">
+    <a class="meta" href={href('issues/')}>← Newsletter archive</a>
     <p class="eyebrow">
       Issue {issue.data.issue_number} · {issue.data.publication_date!.toISOString().slice(0, 10)}
     </p><h1>{issue.data.title}</h1><p class="meta">
@@ -29,7 +27,36 @@ const { Content } = await render(issue);
           : `Reviewed by ${issue.data.reviewer}`
       }
     </p>
-  </div><article class="prose"><Content /></article><nav class="row rule" aria-label="Issue navigation">
+    <p class="meta">
+      Coverage: {coverageLabel(issue.data.coverage_start, issue.data.coverage_end)} · About {
+        readingMinutes(issue.body)
+      } min read
+    </p>
+  </div>
+  <div class="issue-layout">
+    {
+      sections.length > 0 && (
+        <aside class="issue-sidebar">
+          <nav aria-label="Issue contents">
+            <details class="issue-contents" open>
+              <summary>In this issue</summary>
+              <ol>
+                {sections.map((section) => (
+                  <li>
+                    <a href={`#${section.slug}`}>{section.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+            <a class="meta" href="#issue-top">
+              Back to top ↑
+            </a>
+          </nav>
+        </aside>
+      )
+    }
+    <article class="prose issue-body"><Content /></article>
+  </div><nav class="row rule" aria-label="Issue navigation">
     {previous && <a href={href(`issues/${previous}/`)}>Previous issue</a>}<a href={href('issues/')}
       >All issues</a
     >{next && <a href={href(`issues/${next}/`)}>Next issue</a>}
