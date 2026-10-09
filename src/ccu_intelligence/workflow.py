@@ -50,11 +50,12 @@ from .stages import (
 from .store import Store
 
 # Hard ceilings. Dispatch inputs may only lower them; raising one needs a reviewed code change.
-MAX_ANALYSES_CAP = 60
-MAX_REQUESTS_CAP = 300
+MAX_SCREENINGS_CAP = 150  # new screening calls (cheap model)
+MAX_ENRICHMENTS_CAP = 60  # items sent to enrichment + verification (strong model)
+MAX_REQUESTS_CAP = 400  # 150 screenings + 2 x 60 enrichments/verifications + dedup + synthesis + repairs
 MAX_SPEND_USD_CAP = 5.0
 MAX_TOKEN_BUDGET = 5_000_000
-FULLTEXT_FETCH_CAP = 120
+FULLTEXT_FETCH_CAP = MAX_SCREENINGS_CAP
 WORKERS = 4
 
 # CCU terms. Any match also exempts a headline from the unrelated-energy (OFF_TOPIC) rule below,
@@ -235,8 +236,11 @@ def check_args(args):
         raise ValueError("Use a 1–31 day inclusive collection window ending no later than today")
     if args.scheduled_publication and args.scheduled_publication <= args.until:
         raise ValueError("Scheduled publication must follow the coverage window")
-    if not 0 <= args.max_analyses <= MAX_ANALYSES_CAP or not 0 <= args.max_requests <= MAX_REQUESTS_CAP:
-        raise ValueError(f"Caps: <={MAX_ANALYSES_CAP} new analyses and <={MAX_REQUESTS_CAP} requests")
+    args.max_enrichments = getattr(args, "max_enrichments", MAX_ENRICHMENTS_CAP)
+    if not 0 <= args.max_screenings <= MAX_SCREENINGS_CAP or not 0 <= args.max_requests <= MAX_REQUESTS_CAP:
+        raise ValueError(f"Caps: <={MAX_SCREENINGS_CAP} new screenings and <={MAX_REQUESTS_CAP} requests")
+    if not 0 <= args.max_enrichments <= MAX_ENRICHMENTS_CAP:
+        raise ValueError(f"Caps: <={MAX_ENRICHMENTS_CAP} enrichments")
     if not 1 <= args.token_budget <= MAX_TOKEN_BUDGET:
         raise ValueError(f"Token budget must be 1–{MAX_TOKEN_BUDGET}")
     if not 0 <= args.max_spend_usd <= MAX_SPEND_USD_CAP:
@@ -371,7 +375,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         cached = (Path("data/runtime/llm-cache") / f"{key}.json").exists()
         with guard:
             if not cached and article.article_id not in attempted:
-                if len(attempted) >= args.max_analyses or args.dry_run:
+                if len(attempted) >= args.max_screenings or args.dry_run:
                     record["screening_status"] = "not analysed: dry run" if args.dry_run else "not analysed: cap"
                     return
                 attempted.append(article.article_id)
@@ -419,6 +423,11 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         records[duplicate]["selection"] = f"duplicate of {kept}"
         also.setdefault(kept, []).append(records[duplicate])
     chosen, selection = select([e for e in entries if e["article_id"] not in merged], config, story_of)
+    # Enrichment cap: items beyond it (in selection order) are not sent to the strong model.
+    for entry in chosen[args.max_enrichments:]:
+        selection[entry["article_id"]] = "selected, not enriched: enrichment cap"
+    cut_by_enrichment_cap = len(chosen[args.max_enrichments:])
+    chosen = chosen[: args.max_enrichments]
     for article_id, status in selection.items():
         records[article_id]["selection"] = status
         if article_id in story_of:
@@ -567,7 +576,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
                       for c in balance_before} if balance_before and balance_after else None)
     # Cost projection for the calls a paid run would still have to make (cache hits are free).
     to_screen = min(sum(r.get("screening_status") == "not analysed: dry run" for r in records.values()),
-                    max(args.max_analyses - len(attempted), 0))
+                    max(args.max_screenings - len(attempted), 0))
     stories_low, stories_high = config["target_min_items"], config["overall_cap"]
     projected = None
     if args.dry_run:
@@ -601,7 +610,12 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         "new_analyses_attempted": len(attempted),
         "cache_hits": sum(c.get("status") == "cache_hit" for c in calls),
         "dry_run": args.dry_run,
-        "max_new_analyses": args.max_analyses,
+        "max_new_screenings": args.max_screenings,
+        "max_enrichments": args.max_enrichments,
+        "cut_by_screening_cap": sum(r.get("screening_status") == "not analysed: cap" for r in records.values())
+        + max(sum(r.get("screening_status") == "not analysed: dry run" for r in records.values()) - to_screen, 0),
+        "cut_by_enrichment_cap": cut_by_enrichment_cap,
+        "cut_by_fulltext_cap": max(len(gated) - FULLTEXT_FETCH_CAP, 0) if args.fetch_full_text else 0,
         "max_spend_usd": args.max_spend_usd,
         "token_budget": args.token_budget,
         "requests_reserved": budget.requests,
@@ -632,8 +646,9 @@ def main():
     parser.add_argument("--until", type=date.fromisoformat, default=date.today() - timedelta(days=1))
     parser.add_argument("--scheduled-publication", type=date.fromisoformat)
     parser.add_argument("--output", type=Path, default=Path("data/runtime") / f"biweekly-{date.today()}")
-    parser.add_argument("--max-analyses", type=int, default=MAX_ANALYSES_CAP)
-    parser.add_argument("--max-requests", type=int, default=200)
+    parser.add_argument("--max-screenings", type=int, default=MAX_SCREENINGS_CAP)
+    parser.add_argument("--max-enrichments", type=int, default=MAX_ENRICHMENTS_CAP)
+    parser.add_argument("--max-requests", type=int, default=MAX_REQUESTS_CAP)
     parser.add_argument("--token-budget", type=int, default=2_000_000)
     parser.add_argument("--source-limit", type=int)
     parser.add_argument("--dry-run", action="store_true", help="Collect and draft; zero paid requests")

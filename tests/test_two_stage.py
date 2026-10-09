@@ -510,15 +510,17 @@ def entrypoint():
 
 
 def test_default_run_limits(monkeypatch):
-    for name in ("MAX_ANALYSES", "MAX_SPEND_USD", "TOKEN_BUDGET", "LLM_MODEL", "LLM_SCREENING_MODEL"):
+    for name in ("MAX_SCREENINGS", "MAX_ENRICHMENTS", "MAX_SPEND_USD", "TOKEN_BUDGET", "LLM_MODEL",
+                 "LLM_SCREENING_MODEL"):
         monkeypatch.delenv(name, raising=False)
     options = entrypoint().configuration()
-    assert options.max_analyses == 60 and options.max_spend_usd == 5.0 and options.token_budget == 2_000_000
+    assert options.max_screenings == 150 and options.max_enrichments == 60 and options.max_requests == 400
+    assert options.max_spend_usd == 5.0 and options.token_budget == 2_000_000
     assert options.dry_run
 
 
 def test_default_coverage_is_the_most_recent_fourteen_complete_days(monkeypatch):
-    for name in ("COVERAGE_END", "COVERAGE_DAYS", "MAX_ANALYSES", "MAX_SPEND_USD", "TOKEN_BUDGET", "LLM_MODEL",
+    for name in ("COVERAGE_END", "COVERAGE_DAYS", "MAX_SCREENINGS", "MAX_SPEND_USD", "TOKEN_BUDGET", "LLM_MODEL",
                  "LLM_SCREENING_MODEL"):
         monkeypatch.delenv(name, raising=False)
     module = entrypoint()
@@ -541,7 +543,7 @@ def test_invalid_coverage_rejected(monkeypatch, name, value):
 
 
 @pytest.mark.parametrize("name,value", [
-    ("MAX_ANALYSES", "61"), ("MAX_ANALYSES", "-1"), ("MAX_SPEND_USD", "5.01"), ("MAX_SPEND_USD", "nan"),
+    ("MAX_SCREENINGS", "151"), ("MAX_SCREENINGS", "-1"), ("MAX_ENRICHMENTS", "61"), ("MAX_ENRICHMENTS", "-1"), ("MAX_SPEND_USD", "5.01"), ("MAX_SPEND_USD", "nan"),
     ("MAX_SPEND_USD", "inf"), ("TOKEN_BUDGET", "5000001"), ("TOKEN_BUDGET", "0"),
     ("LLM_MODEL", "deepseek-unpriced"), ("LLM_SCREENING_MODEL", "gpt-x"),
 ])
@@ -797,7 +799,7 @@ def research(tmp_path, monkeypatch):
     monkeypatch.setattr("ccu_intelligence.stages.complete_json", lambda *a, **kw: real(*a, **(kw | {"client": client})))
     monkeypatch.setattr("ccu_intelligence.workflow.account_balance", lambda endpoint: None)
     args = argparse.Namespace(since=date(2026, 9, 14), until=date(2026, 9, 27), scheduled_publication=None,
-                              output=Path("data/runtime/test-run"), max_analyses=60, max_requests=200,
+                              output=Path("data/runtime/test-run"), max_screenings=60, max_requests=200,
                               token_budget=2_000_000, max_spend_usd=5.0, allow_paid=True, dry_run=False)
     yield args, stages, web
     client.close()
@@ -888,12 +890,22 @@ def test_cache_makes_reruns_free_and_prompt_change_invalidates(research, monkeyp
     assert len(stages) == 2 * first
 
 
-def test_max_analyses_caps_new_screening_calls(research):
+def test_max_screenings_caps_new_screening_calls(research):
     args, stages, _ = research
-    args.max_analyses = 2
+    args.max_screenings = 2
     report = execute(args)
     assert stages.count("screening") == 2 and report["summary"]["new_analyses_attempted"] == 2
+    assert report["summary"]["cut_by_screening_cap"] == 3
     assert sum(r.get("screening_status") == "not analysed: cap" for r in report["records"]) == 3
+
+
+def test_enrichment_cap_limits_strong_model_items(research):
+    args, stages, _ = research
+    args.max_enrichments = 1
+    report = execute(args)
+    assert stages.count("enrichment") == stages.count("verification") == 1
+    assert report["summary"]["cut_by_enrichment_cap"] == 2 and report["summary"]["verified_in_draft"] == 1
+    assert sum(r.get("selection") == "selected, not enriched: enrichment cap" for r in report["records"]) == 2
 
 
 @pytest.mark.parametrize("mode", ["explicit", "default", "zero-spend"])
@@ -925,8 +937,8 @@ def test_spend_cap_stops_requests_before_exceeding_it(research):
     assert "synthesis" not in stages and stages.count("screening") >= 1
 
 
-@pytest.mark.parametrize("field,value", [("max_analyses", 61), ("max_spend_usd", 5.5), ("token_budget", 0),
-                                         ("max_requests", 301)])
+@pytest.mark.parametrize("field,value", [("max_screenings", 151), ("max_enrichments", 61), ("max_spend_usd", 5.5),
+                                         ("token_budget", 0), ("max_requests", 401)])
 def test_invalid_caps_fail_before_collection(research, field, value):
     args, stages, web = research
     setattr(args, field, value)
@@ -1059,6 +1071,7 @@ def test_retries_never_run_faster_than_the_polite_interval(monkeypatch):
     fetcher = Fetcher(client=httpx.Client(transport=httpx.MockTransport(lambda r: replies.pop(0))))
     try:
         assert fetcher.get("https://api.example/doc", interval=6) == b"ok"
-        assert sleeps[0] >= 6  # back-off after the 429 (later sleeps are ordinary host spacing)
+        # Back-off after the 429: 6 s measured from the end of that response, minus the microseconds since.
+        assert sleeps == [pytest.approx(6, abs=0.01)]
     finally:
         fetcher.client.close()

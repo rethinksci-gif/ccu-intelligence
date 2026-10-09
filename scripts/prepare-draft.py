@@ -15,7 +15,7 @@ start, end = window(args.as_of)
 output = Path('data/runtime') / f'scheduled-{end}'
 report = execute(argparse.Namespace(
     since=start, until=end - timedelta(days=1), scheduled_publication=None,
-    output=output, max_analyses=0, max_requests=0,
+    output=output, max_screenings=0, max_enrichments=0, max_requests=0,
     token_budget=16000, fetch_full_text=False,
 ))
 bundle = Bundle.model_validate_json((output / 'bundle.json').read_text())

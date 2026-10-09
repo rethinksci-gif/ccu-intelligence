@@ -15,7 +15,7 @@ def test_unpaid_draft_preserves_candidate_links_without_review(monkeypatch, tmp_
     }, 'crossref')
 
     def collect_without_model(args):
-        assert args.max_analyses == args.max_requests == 0
+        assert args.max_screenings == args.max_requests == 0
         assert str(args.since) == '2026-09-14'
         assert str(args.until) == '2026-09-27'
         args.output.mkdir(parents=True)

@@ -8,8 +8,12 @@ on:
         type: choice
         options: [dry-run, paid]
         default: dry-run
-      max_analyses:
-        description: 'Maximum NEW screening analyses (0–60, hard cap 60)'
+      max_screenings:
+        description: 'Maximum NEW screening calls, cheap model (0–150, hard cap 150)'
+        type: number
+        default: 150
+      max_enrichments:
+        description: 'Maximum items sent to enrichment + verification, strong model (0–60, hard cap 60)'
         type: number
         default: 60
       token_budget:
@@ -49,7 +53,8 @@ env:
   LLM_MODEL: ${{ inputs.strong_model }}
   LLM_BASE_URL: https://api.deepseek.com
   DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-  MAX_ANALYSES: ${{ inputs.max_analyses }}
+  MAX_SCREENINGS: ${{ inputs.max_screenings }}
+  MAX_ENRICHMENTS: ${{ inputs.max_enrichments }}
   TOKEN_BUDGET: ${{ inputs.token_budget }}
   MAX_SPEND_USD: ${{ inputs.max_spend_usd }}
   COVERAGE_END: ${{ inputs.coverage_end }}

@@ -64,16 +64,23 @@ class Fetcher:
         )
         self.last_request: dict[str, float] = {}
         self.robots_cache: dict[str, RobotFileParser | None] = {}
+        self.robots_errors: dict[str, str] = {}  # origin -> exception class when robots.txt could not be read
 
     def fetch(self, url: str, *, params=None, headers=None, interval=1.0, max_bytes=MAX_BYTES) -> Fetched:
-        """One polite GET: public HTTPS only, per-host spacing, bounded retries on 429/5xx, no redirects."""
+        """One polite GET: public HTTPS only, per-host spacing, bounded retries with backoff, no redirects.
+
+        Spacing is measured from the end of the previous response to the same host, so a slow server (GDELT takes
+        about 10 s to answer) still gets the full interval. 429/5xx responses and transport errors (timeouts, dropped
+        connections) are retried at most twice, waiting max(Retry-After, interval, 1 s) and then double that.
+        """
         public_url(url)
         host = urlsplit(url).hostname
+        wait = interval
         for attempt in range(3):
-            delay = interval - (time.monotonic() - self.last_request.get(host, 0))
+            delay = wait - (time.monotonic() - self.last_request.get(host, 0))
             if delay > 0:
                 time.sleep(delay)
-            self.last_request[host] = time.monotonic()
+            wait = max(interval, 1.0) * 2 ** (attempt + 1) / 2  # backoff before the next attempt, if any
             try:
                 with self.client.stream("GET", url, params=params, headers=headers) as response:
                     if response.status_code == 429 or response.status_code >= 500:
@@ -81,10 +88,9 @@ class Fetcher:
                             response.raise_for_status()
                         retry_after = response.headers.get("Retry-After", "")
                         # Long Retry-After means defer until the next collection run.
-                        if retry_after.isdigit() and int(retry_after) > 30:
+                        if retry_after.isdigit() and int(retry_after) > 60:
                             raise ValueError("Server requested a long retry delay; deferred")
-                        pause = float(retry_after) if retry_after.isdigit() else 2**attempt
-                        time.sleep(max(pause, 2**attempt, interval))  # never retry faster than the polite interval
+                        wait = max(float(retry_after) if retry_after.isdigit() else 0, wait)
                         continue
                     chunks, size = [], 0
                     if 200 <= response.status_code < 300:
@@ -94,10 +100,11 @@ class Fetcher:
                                 raise ValueError("Response exceeds preservation limit")
                             chunks.append(chunk)
                     return Fetched(response.status_code, response.headers, b"".join(chunks), str(response.url))
-            except (httpx.TimeoutException, httpx.NetworkError):
+            except httpx.TransportError:  # timeouts, connection errors, servers that drop the connection
                 if attempt == 2:
                     raise
-                time.sleep(2**attempt)
+            finally:
+                self.last_request[host] = time.monotonic()
         raise RuntimeError("Retrieval failed")
 
     def get(self, url: str, *, params=None, headers=None, interval=1.0) -> bytes:
@@ -125,8 +132,9 @@ class Fetcher:
                         target = urljoin(target, location)
                         continue
                     break
-            except (httpx.HTTPError, ValueError, RuntimeError, OSError):
+            except (httpx.HTTPError, ValueError, RuntimeError, OSError) as exc:
                 parser.disallow_all = True
+                self.robots_errors[origin] = type(exc).__name__
             else:
                 if 200 <= result.status < 300:
                     parser.parse(result.body.decode("utf-8", errors="replace").splitlines())
@@ -155,6 +163,9 @@ class Fetcher:
         # Fail closed when robots cannot be read. Manual ingestion stays available.
         permitted, interval = self.allowed(endpoint, source.minimum_interval_seconds)
         if not permitted:
+            origin = "{0.scheme}://{0.netloc}".format(urlsplit(endpoint))
+            if origin in self.robots_errors:
+                raise ValueError(f"robots.txt unreadable ({self.robots_errors[origin]}); collection fails closed")
             raise ValueError("robots.txt disallows collection")
         return self.get(endpoint, interval=interval)
 
@@ -443,6 +454,10 @@ def collect(
                 # Do not log exception text: HTTP errors can contain request secrets.
                 counts["failed"] += 1
                 detail = type(exc).__name__ + "; use manual ingestion or retry later"
+                if type(exc) is ValueError:  # raised by this module with fixed, secret-free messages
+                    detail = "ValueError: " + str(exc)
+                elif isinstance(exc, httpx.HTTPStatusError):
+                    detail = f"HTTP {exc.response.status_code} after retries; use manual ingestion or retry later"
                 if isinstance(exc, (ET.ParseError, json.JSONDecodeError)):
                     # Typically an anti-bot challenge served to datacenter IPs. Never bypassed.
                     detail = "non-feed response (possible bot challenge; not bypassed)"
