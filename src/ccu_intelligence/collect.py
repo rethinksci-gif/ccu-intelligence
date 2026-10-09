@@ -29,6 +29,10 @@ MAX_BYTES = 5_000_000
 AGENT = "CCUIntelligence"
 
 
+class RateLimited(RuntimeError):
+    """The server asked us to slow down in its response body (GDELT answers some throttled requests this way)."""
+
+
 def registry(path: Path = Path("config/sources.yaml")) -> list[Source]:
     sources = [Source.model_validate(s) for s in yaml.safe_load(path.read_text())["sources"]]
     if len({s.source_id for s in sources}) != len(sources):
@@ -71,12 +75,12 @@ class Fetcher:
 
         Spacing is measured from the end of the previous response to the same host, so a slow server (GDELT takes
         about 10 s to answer) still gets the full interval. 429/5xx responses and transport errors (timeouts, dropped
-        connections) are retried at most twice, waiting max(Retry-After, interval, 1 s) and then double that.
+        connections) are retried once, after max(Retry-After, interval, 1 s); then the source is marked failed.
         """
         public_url(url)
         host = urlsplit(url).hostname
         wait = interval
-        for attempt in range(3):
+        for attempt in range(2):
             delay = wait - (time.monotonic() - self.last_request.get(host, 0))
             if delay > 0:
                 time.sleep(delay)
@@ -84,7 +88,7 @@ class Fetcher:
             try:
                 with self.client.stream("GET", url, params=params, headers=headers) as response:
                     if response.status_code == 429 or response.status_code >= 500:
-                        if attempt == 2:
+                        if attempt == 1:
                             response.raise_for_status()
                         retry_after = response.headers.get("Retry-After", "")
                         # Long Retry-After means defer until the next collection run.
@@ -101,7 +105,7 @@ class Fetcher:
                             chunks.append(chunk)
                     return Fetched(response.status_code, response.headers, b"".join(chunks), str(response.url))
             except httpx.TransportError:  # timeouts, connection errors, servers that drop the connection
-                if attempt == 2:
+                if attempt == 1:
                     raise
             finally:
                 self.last_request[host] = time.monotonic()
@@ -250,6 +254,12 @@ def federal_register_items(raw: bytes) -> list[dict]:
 
 def gdelt_items(raw: bytes) -> list[dict]:
     # GDELT DOC 2.0 article list: real publisher URLs; seendate is when GDELT saw the article (YYYYMMDDTHHMMSSZ).
+    # Errors come back as short plain text, sometimes with HTTP 200: a throttling notice or a query error.
+    if not raw.lstrip().startswith(b"{"):
+        message = raw.decode("utf-8", errors="replace").strip()
+        if "limit requests" in message.lower():
+            raise RateLimited("GDELT rate-limit notice")
+        raise ValueError("GDELT query error: " + message[:120])
     items = []
     for a in json.loads(raw).get("articles", []):
         seen = a.get("seendate") or ""
@@ -458,6 +468,8 @@ def collect(
                     detail = "ValueError: " + str(exc)
                 elif isinstance(exc, httpx.HTTPStatusError):
                     detail = f"HTTP {exc.response.status_code} after retries; use manual ingestion or retry later"
+                elif isinstance(exc, RateLimited):
+                    detail = "RateLimited: " + str(exc)
                 if isinstance(exc, (ET.ParseError, json.JSONDecodeError)):
                     # Typically an anti-bot challenge served to datacenter IPs. Never bypassed.
                     detail = "non-feed response (possible bot challenge; not bypassed)"

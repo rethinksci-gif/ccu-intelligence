@@ -1064,6 +1064,21 @@ def test_bot_challenge_page_is_logged_not_bypassed(monkeypatch, tmp_path):
         store.close()
 
 
+@pytest.mark.parametrize("body,error", [(b"The specified phrase is too short.", "GDELT query error"),
+                                        (b"Please limit requests to one every 5 seconds", "rate-limit")])
+def test_gdelt_text_answers_are_classified(body, error):
+    from ccu_intelligence.collect import gdelt_items
+    with pytest.raises((ValueError, RuntimeError), match=error):
+        gdelt_items(body)
+
+
+def test_gdelt_queries_avoid_phrases_gdelt_rejects():
+    import re
+    for source in yaml.safe_load((ROOT / "config/sources.yaml").read_text())["sources"]:
+        if source.get("access_method") == "gdelt":
+            assert all(len(p) >= 4 for p in re.findall(r'"([^"]+)"', source["query"])), source["source_id"]
+
+
 def test_retries_never_run_faster_than_the_polite_interval(monkeypatch):
     sleeps, replies = [], [httpx.Response(429), httpx.Response(200, content=b"ok")]
     monkeypatch.setattr("ccu_intelligence.collect.public_url", lambda url: None)
