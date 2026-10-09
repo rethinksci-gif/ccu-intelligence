@@ -23,3 +23,11 @@ The draft workflow checks daily at 07:17 UTC. It produces at most one PR for eac
 Each scheduled run considers at most 20 records across the existing eight sources. It has no `LLM_API_KEY`, `max_analyses=0` and `max_requests=0`; there are no scheduled paid calls. A candidate inbox, original links, collection diagnostics and metadata are committed only to an editorial review branch. The workflow creates a draft PR and never merges it, approves it or sets `published`.
 
 An editor must examine primary evidence, complete publication requirements and reviewer metadata, mark the PR ready, and manually approve publication through the normal merge process. Merging unchanged draft content does not publish it. If evidence is insufficient, keep the draft open; do not relax the publication gate to fill an issue.
+
+## Optional DeepSeek research workflow
+
+`.github/workflows/deepseek-research.yml` is manual-only (`workflow_dispatch`, no schedule) and runs only from the default branch, so pull requests, forks, tags and other branches can never reach the secret. `dry-run` (the default) collects and filters sources but makes zero model requests and receives no `LLM_API_KEY`. `paid` requires the repository variable `CCU_ENABLE_DEEPSEEK=true`, the secret `LLM_API_KEY` and a first run attempt; reruns are refused so a ledger is inspected before spending again.
+
+Each paid run is capped at 30 new analyses, 60 attempts (one retry on 429/5xx or malformed JSON), a configurable token budget (default 120,000) and a configurable USD reservation (default 0.50 at a conservative ≥1.20 USD per million tokens). Reservations are persisted before every attempt and never refunded. Validated responses are cached by source text, model, endpoint and prompt version, so repeated articles are not paid for twice. Output is a draft and audit ledger uploaded as a 30-day private Actions artifact; nothing is committed, published or approved automatically.
+
+To activate: add the `LLM_API_KEY` secret, set `CCU_ENABLE_DEEPSEEK=true`, run `dry-run` once, review the artifact, then dispatch `paid`. Adding a schedule requires owner approval and `CCU_ALLOW_SCHEDULED_PAID=true`.

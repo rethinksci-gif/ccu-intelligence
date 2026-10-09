@@ -1,3 +1,4 @@
+from functools import lru_cache
 from pathlib import Path
 
 import yaml
@@ -6,7 +7,14 @@ from .models import Scores
 
 
 def weights(path: Path = Path("config/scoring.yaml")) -> dict[str, float]:
-    result = yaml.safe_load(path.read_text())
+    # Keyed on absolute path and mtime so edits and working-directory changes are honoured.
+    resolved = path.resolve()
+    return dict(_weights(str(resolved), resolved.stat().st_mtime_ns))
+
+
+@lru_cache(maxsize=8)
+def _weights(path: str, mtime_ns: int) -> dict[str, float]:
+    result = yaml.safe_load(Path(path).read_text())
     expected = set(Scores.model_fields) - {"rationales"}
     if set(result) != expected or any(
         not isinstance(v, (int, float)) or not 0 <= v <= 1 for v in result.values()

@@ -24,7 +24,7 @@ TASKS = {
     "newsletter",
     "grounded",
 }
-PROMPT_VERSION = "grounded-v2"
+PROMPT_VERSION = "grounded-v3"
 
 
 def prompt(task: str) -> str:
@@ -46,6 +46,11 @@ def grounded_analysis(content: str, text: str, evidence_ids: list[str], source_k
     proposal = GroundedProposal.model_validate_json(content)
     if not evidence_ids:
         raise ValueError("Grounded analysis needs evidence")
+    for detail in [*proposal.technical_information, *proposal.economic_information, *proposal.milestone_proposals]:
+        if detail.quote not in text or len(detail.quote.split()) > 25:
+            raise ValueError("Unsupported extraction quotation")
+        if hasattr(detail, 'event_date') and detail.event_date and str(detail.event_date) not in text:
+            raise ValueError("Event date must be literal ISO date in source; otherwise leave unknown")
     claims = []
     for index, quote in enumerate(proposal.quotes):
         if not quote or quote not in text or len(quote.split()) > 25:
@@ -63,7 +68,10 @@ def grounded_analysis(content: str, text: str, evidence_ids: list[str], source_k
         relevant=proposal.relevant,
         domains=proposal.domains,
         claims=claims,
-        summary="Source-grounded screening; see evidence and separate AI interpretation.",
+        summary=proposal.draft_summary or "Source-grounded screening; see evidence and separate AI interpretation.",
+        technical_information=proposal.technical_information,
+        economic_information=proposal.economic_information,
+        milestone_proposals=proposal.milestone_proposals,
         technical_significance=proposal.technical_significance,
         industrial_implications=proposal.industrial_implications,
         uncertainty=proposal.uncertainty,

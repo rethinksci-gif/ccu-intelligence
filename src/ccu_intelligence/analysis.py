@@ -1,6 +1,7 @@
 """Conservative deterministic triage. No extracted numbers are promoted to facts."""
 
 import re
+from functools import lru_cache
 from pathlib import Path
 
 import yaml
@@ -9,10 +10,20 @@ from .models import Article, Company, Scores
 from .scoring import score
 
 
+@lru_cache(maxsize=8)
+def _taxonomy(path: str, mtime_ns: int) -> dict[str, list[str]]:
+    return yaml.safe_load(Path(path).read_text())
+
+
+def taxonomy(path: Path = Path("config/taxonomy.yaml")) -> dict[str, list[str]]:
+    # Keyed on absolute path and mtime so edits and working-directory changes are honoured.
+    resolved = path.resolve()
+    return _taxonomy(str(resolved), resolved.stat().st_mtime_ns)
+
+
 def analyze(article: Article, companies: list[Company]) -> Article:
     text = (article.title + " " + article.summary).casefold()
-    taxonomy = yaml.safe_load(Path("config/taxonomy.yaml").read_text())
-    domains = [domain for domain, terms in taxonomy.items() if any(term in text for term in terms)]
+    domains = [domain for domain, terms in taxonomy().items() if any(term in text for term in terms)]
     ids = []
     for company in companies:
         if any(
