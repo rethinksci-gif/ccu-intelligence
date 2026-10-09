@@ -296,6 +296,7 @@ def headline(title):
     (GENERAL, 'CO2 footprint of nuclear power', 'CCU term without utilization context'),
     (GENERAL, 'Mapping data centre energy consumption to carbon-dioxide emissions',
      'CCU term without utilization context'),
+    (GENERAL, 'Highlights from CO2 Value Europe', 'CCU term without utilization context'),
 ])
 def test_unrelated_headlines_dropped(source, title, reason):
     result = triage(headline(title), source, DAY, DAY)
@@ -504,6 +505,37 @@ def test_specialist_ecosystem_news_becomes_unanalysed_brief(source, title):
 def test_pure_capture_removal_and_non_ccu_items_still_dropped(source, title):
     result = triage(headline(title), source, DAY, DAY)
     assert not result['eligible'] and result['reason'] != 'specialist source: headline-only brief'
+
+
+def ecosystem_headline(title):
+    # The CCU term sits in the summary, as in real association feeds.
+    return SimpleNamespace(title=title, summary='News from CO2 Value Europe.', sample=False, publication_date=DAY)
+
+
+@pytest.mark.parametrize('title', [
+    'Welcome to Our New Communication & Events Officer, Giulia!',
+    'WELCOME our new policy officer',
+    'Anna joins our team as project manager',
+    'Meet our new colleague',
+    "We're hiring: CO2 utilisation analyst",
+    'Vacancy: Policy Officer',
+    'Job opening – events coordinator',
+    'Internship in EU affairs',
+])
+def test_staff_announcements_dropped_from_briefs(title):
+    result = triage(ecosystem_headline(title), ASSOCIATION, DAY, DAY)
+    assert not result['eligible'] and result['reason'] == 'specialist source: staff/HR announcement'
+
+
+@pytest.mark.parametrize('title', [
+    'MVV Umwelt Joins CO₂ Value Europe',
+    'Carbon Clean joins CO2 Value Europe',
+    'CO2 Value Europe welcomes new member Carbon Clean',
+    'Welcome to our new members: Topsoe and Dioxycle',
+    'CO2 Value Europe general assembly',
+])
+def test_membership_news_still_kept_as_brief(title):
+    assert triage(ecosystem_headline(title), ASSOCIATION, DAY, DAY)['reason'] == 'specialist source: headline-only brief'
 
 
 def test_briefs_appear_in_draft_without_model_analysis(research, monkeypatch):

@@ -56,13 +56,21 @@ CCU = re.compile(r"\b(?:" + "|".join(CCU_TERMS) + r")\b", re.I)
 CONVERSION = re.compile(
     r"utili[sz]|convert|conversion|reduc(?:tion|e)|methanol|ethanol|ethylene|minerali[sz]|polyol|carbonate|"
     r"electrofuel|electroly[sz]\w*|electroreduc\w*|electrosynthes\w*|(?:co2|carbon.dioxide).derived|"
-    r"from (?:co2|carbon.dioxide)|e-?kerosene|e-fuel|synthetic fuel|solar fuel|power.to.|ptx",
+    r"from (?:co2|carbon.dioxide)(?!\s+value\b)|e-?kerosene|e-fuel|synthetic fuel|solar fuel|power.to.|ptx",
     re.I,
 )
 # CCU-specialist sources: ecosystem news (memberships, association updates) that mentions a CCU term but
 # has no utilization step is kept as a headline-only brief. Briefs are never sent to the model.
 CCU_SPECIALIST_SOURCES = {"co2-value-europe", "liquid-wind", "dioxycle", "carbicrete"}
 BRIEF = "specialist source: headline-only brief"
+# Staff/HR announcements from CCU-specialist sources are dropped; matched on the title only. Membership wording overrides,
+# so "CO2 Value Europe welcomes new member X" and "X Joins CO2 Value Europe" stay briefs.
+STAFF = re.compile(
+    r"\b(?:welcome|joins? our team|new colleagues?|hiring|we.re hiring|vacanc(?:y|ies)|job openings?|"
+    r"internships?)\b",
+    re.I,
+)
+MEMBERSHIP = re.compile(r"\b(?:member(?:s|ship)?|joins?(?! our team))\b", re.I)
 # Unrelated energy topics on specialist feeds (corporate news about adjacent assets) are not CCU leads.
 OFF_TOPIC = re.compile(r"\b(?:solar|photovoltaic|pv park|batter(?:y|ies)|hydropower|nuclear)\b", re.I)
 EVENT = re.compile(
@@ -107,13 +115,17 @@ def triage(article, source, since, until):
     specialist = source.source_id in {"liquid-wind", "dioxycle", "carbicrete"}
     conversion = bool(CONVERSION.search(text))
     event = bool(EVENT.search(text))
-    if matched and conversion:
+    ccu_specialist = source.source_id in CCU_SPECIALIST_SOURCES
+    if ccu_specialist and STAFF.search(article.title) and not MEMBERSHIP.search(article.title):
+        # Applies before any other rule so job ads never reach the model, even if they mention CO2 utilisation.
+        reason = "specialist source: staff/HR announcement"
+    elif matched and conversion:
         reason = "CCU topic"
     elif specialist and event and OFF_TOPIC.search(text) and not matched:
         reason = "specialist feed: unrelated energy topic"
     elif specialist and event:
         reason = "specialist milestone"
-    elif matched and source.source_id in CCU_SPECIALIST_SOURCES:
+    elif matched and ccu_specialist:
         reason = BRIEF
     elif matched:
         reason = "CCU term without utilization context"
