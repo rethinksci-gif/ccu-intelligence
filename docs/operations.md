@@ -6,7 +6,7 @@ Source text is untrusted. It is stripped to plain text for metadata and escaped 
 
 Credentials come only from environment variables/secrets. Browser code never imports Python configuration. HTTP logs are suppressed to avoid printing request query strings. Authorization headers and API keys are not stored in raw manifests. Raw external responses remain ignored local files and are not included in workflow artifacts or Pages output.
 
-Collectors require public HTTPS endpoints and disable redirects. RSS access requires an explicit approved registry entry and robots.txt permission; inaccessible robots fails closed. The registry is trusted maintainer configuration, not user-submitted input. Network egress restrictions should remain enabled in any future multi-user deployment; DNS validation is not a complete defense against hostile DNS rebinding.
+Collectors require public HTTPS endpoints and do not follow redirects for registry endpoints. RSS access and full-text page reading require an explicit approved registry entry and robots.txt permission, following RFC 9309: a 4xx robots.txt means no restrictions, while a 5xx or network failure fails closed. Full-text reading follows at most five redirects, re-checking the public address and robots.txt for every hop. No browser User-Agent is spoofed and no paywall, login or firewall is bypassed. The registry is trusted maintainer configuration, not user-submitted input. Network egress restrictions should remain enabled in any future multi-user deployment; DNS validation is not a complete defense against hostile DNS rebinding.
 
 The LLM provider receives selected source text. Use only material you are authorized to send to that provider. The application does not bypass paywalls or download proprietary databases. Evidence snippets must comply with source rights; public records are reviewed in Git.
 
@@ -24,7 +24,7 @@ If a prior successful collection exists but its artifact expired, the restore st
 
 If curated snapshots have advanced beyond restored working projects, initialization reconciles them only when a complete new event chain reproduces every changed field. Unexplained snapshot overwrites and stale event chains are rejected. Include verification-date changes in the event delta too.
 
-On a public repository, Actions artifacts are not a confidential archive. Default API adapters retain metadata rather than abstracts. Before enabling RSS, ensure summaries and evidence in artifacts are licensed for that exposure; otherwise operate collection in a private repository and export only reviewed material.
+On a public repository, Actions artifacts are not a confidential archive. Default API adapters retain metadata rather than abstracts in the bundle. Full text and abstracts read for analysis are kept in memory and in `data/runtime/fulltext-cache/`, which is never uploaded; run artifacts record only the input basis, size, hash and origin, plus our paraphrase and quotes of at most 25 words. Before enabling RSS, ensure summaries and evidence in artifacts are licensed for that exposure; otherwise operate collection in a private repository and export only reviewed material.
 
 ## GitHub controls
 

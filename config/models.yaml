@@ -1,0 +1,39 @@
+# DeepSeek models, prices and per-stage roles for the research workflow.
+#
+# Prices are USD per million tokens, copied from the official pricing page on the date below.
+# Budget reservations and the "upper bound" cost charge every input token as a peak-hour cache miss
+# and every output token (including reasoning) at the peak output rate. Off-peak rates are half.
+# A model missing from this table cannot be used: unknown prices cannot be budgeted.
+endpoint: https://api.deepseek.com
+source: https://api-docs.deepseek.com/quick_start/pricing/
+checked: '2026-10-09'
+# UTC, Monday–Friday; all other hours (and Chinese public holidays) are off-peak.
+peak_hours_utc: [[1, 4], [6, 10]]
+models:
+  deepseek-flash:
+    # DeepSeek-V4.1-Flash. The legacy alias deepseek-v4-flash is retired and routed here.
+    input_cache_hit_peak: 0.006
+    input_cache_miss_peak: 0.30
+    output_peak: 1.20
+  deepseek-v4-pro:
+    # DeepSeek-V4-Pro-0813.
+    input_cache_hit_peak: 0.044
+    input_cache_miss_peak: 1.32
+    output_peak: 3.96
+# Conservative ceilings used for reservations. They may only be raised above the official peak
+# rates (never lowered); the loader rejects anything below the table above.
+rate_ceilings:
+  deepseek-flash: {input: 0.30, output: 1.20}
+  deepseek-v4-pro: {input: 1.32, output: 3.96}
+# Stage roles. The screening model is overridable with LLM_SCREENING_MODEL and the strong model
+# (enrichment, verification, dedup, synthesis) with LLM_MODEL. Thinking output counts toward
+# max_output_tokens and is billed as output.
+roles:
+  screening: {tier: screening, thinking: false, max_output_tokens: 2000}
+  enrichment: {tier: strong, thinking: true, max_output_tokens: 12000}
+  verification: {tier: strong, thinking: true, max_output_tokens: 12000}
+  dedup: {tier: strong, thinking: true, max_output_tokens: 6000}
+  synthesis: {tier: strong, thinking: true, max_output_tokens: 32000}
+defaults:
+  screening: deepseek-flash
+  strong: deepseek-v4-pro

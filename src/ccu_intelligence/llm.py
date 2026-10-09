@@ -6,7 +6,7 @@ import os
 import re
 import time
 import unicodedata
-from datetime import date
+from datetime import UTC, date, datetime
 from urllib.parse import urlsplit
 
 import httpx
@@ -272,6 +272,146 @@ def run(
                 if not recoverable or attempt == 1:
                     return None
                 time.sleep(2**attempt)
+        return None
+    finally:
+        if owned:
+            client.close()
+
+
+# --- Two-stage research calls -------------------------------------------------------------------------------
+
+def parse_json_object(content: str) -> str:
+    """Strip Markdown fences or prose around a single JSON object; validation stays strict."""
+    text = (content or "").strip()
+    fenced = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, re.S)
+    if fenced:
+        text = fenced.group(1)
+    start, end = text.find("{"), text.rfind("}")
+    return text[start:end + 1] if start != -1 and end > start else text
+
+
+def _endpoint() -> str:
+    base = os.getenv("LLM_BASE_URL", "https://api.deepseek.com").rstrip("/")
+    parts = urlsplit(base)
+    if parts.scheme != "https" or not parts.hostname or parts.username or parts.password or parts.query:
+        raise ValueError("LLM endpoint must use HTTPS")
+    return base
+
+
+def complete_json(
+    role,
+    system: str,
+    payload: dict,
+    schema,
+    *,
+    budget: Budget,
+    calls: list,
+    client: httpx.Client | None = None,
+):
+    """One bounded JSON completion for a research stage; returns a validated schema instance or None.
+
+    Every network attempt is reserved first at the role's ceiling rates (input bounded by UTF-8 bytes,
+    output by max_output_tokens) and settled to provider-reported usage. Calls are appended to `calls`
+    for the audit ledger. Reasoning text is never stored. Grounding is the caller's job.
+    """
+    from .pricing import call_cost
+
+    key = os.getenv("LLM_API_KEY")
+    if not key:
+        return None
+    base = _endpoint()
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=False, separators=(",", ":"))},
+    ]
+    thinking = role.thinking
+    repaired = False
+    owned = client is None
+    client = client or httpx.Client(timeout=httpx.Timeout(600, connect=20), follow_redirects=False)
+    try:
+        for attempt in range(4):
+            input_bound = len(json.dumps(messages, ensure_ascii=False).encode()) + 256
+            reserved_cost = budget.reserve_priced(input_bound, role.max_output_tokens,
+                                                  role.rates.input, role.rates.output)
+            if not reserved_cost:
+                calls.append({"stage": role.stage, "status": "budget_exhausted"})
+                return None
+            audit = {"stage": role.stage, "model": role.model, "thinking": thinking, "attempt": attempt + 1,
+                     "at": datetime.now(UTC).isoformat(), "reserved_microusd": reserved_cost}
+            calls.append(audit)
+            body = {
+                "model": role.model,
+                "max_tokens": role.max_output_tokens,
+                "response_format": {"type": "json_object"},
+                "messages": messages,
+                "thinking": {"type": "enabled" if thinking else "disabled"},
+            }
+            if not thinking:
+                body["temperature"] = 0
+            try:
+                response = client.post(base + "/chat/completions", headers={"Authorization": "Bearer " + key},
+                                       json=body)
+                audit["http_status"] = response.status_code
+                if response.status_code == 400 and thinking:
+                    # Thinking with JSON mode may be unsupported; retry once without it. 400s are not billed.
+                    budget.settle_priced(input_bound + role.max_output_tokens, reserved_cost,
+                                         {"prompt_tokens": 0, "completion_tokens": 1}, role.rates.input,
+                                         role.rates.output)
+                    audit["status"] = "thinking_rejected"
+                    thinking = False
+                    continue
+                response.raise_for_status()
+                data = response.json()
+                counts = data.get("usage") or {}
+                audit["usage"] = {k: counts.get(k) for k in ("prompt_tokens", "completion_tokens", "total_tokens",
+                                                             "prompt_cache_hit_tokens", "prompt_cache_miss_tokens")}
+                audit["usage"]["reasoning_tokens"] = (counts.get("completion_tokens_details") or {}).get(
+                    "reasoning_tokens", 0)
+                audit["usage_reported"] = bool(counts)
+                budget.settle_priced(input_bound + role.max_output_tokens, reserved_cost, counts,
+                                     role.rates.input, role.rates.output)
+                if counts:
+                    audit["cost"] = call_cost(role.model, counts, datetime.now(UTC))
+                choice = data["choices"][0]
+                message = choice.get("message") or {}
+                audit["finish_reason"] = choice.get("finish_reason", "stop")
+                audit["reasoning_chars"] = len(message.get("reasoning_content") or "")
+                content = message.get("content") or ""
+                audit["content"] = content
+                if audit["finish_reason"] != "stop":
+                    audit["status"] = "incomplete_output"
+                    return None  # bounded output; do not pay for blind regeneration
+                if not content.strip():
+                    audit["status"] = "empty_content"
+                    if attempt >= 2:
+                        return None
+                    continue
+                result = schema.model_validate_json(parse_json_object(content))
+                audit["status"] = "validated"
+                return result
+            except ValidationError as exc:
+                audit["status"] = "schema_error"
+                audit["validation_errors"] = [
+                    {"field": list(e["loc"]), "type": e["type"], "message": e["msg"]} for e in exc.errors()[:10]
+                ]
+                if repaired:
+                    return None
+                repaired = True
+                messages += [
+                    {"role": "assistant", "content": audit.get("content", "")},
+                    {"role": "user", "content": "The previous output did not satisfy the JSON contract: "
+                     + json.dumps(audit["validation_errors"], ensure_ascii=False)
+                     + ". Return the complete corrected JSON object only. Do not add facts."},
+                ]
+            except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError) as exc:
+                audit["status"] = audit.get("status") or "error"
+                audit["error_type"] = type(exc).__name__
+                recoverable = isinstance(exc, (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout))
+                if isinstance(exc, httpx.HTTPStatusError):
+                    recoverable = exc.response.status_code in (429, 500, 502, 503, 504)
+                if not recoverable or attempt >= 2:
+                    return None
+                time.sleep(2 ** (attempt + 1))
         return None
     finally:
         if owned:

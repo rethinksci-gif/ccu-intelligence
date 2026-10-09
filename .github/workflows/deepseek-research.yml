@@ -1,29 +1,35 @@
 name: Optional DeepSeek biweekly research
 on:
-  # Deliberately no schedule. Add one only after explicit owner approval.
+  # Deliberately no schedule. Every run is a manual dispatch from the default branch.
   workflow_dispatch:
     inputs:
       mode:
-        description: 'dry-run makes zero paid calls; paid requires repository opt-in and environment approval'
+        description: 'dry-run makes zero paid calls; paid needs the repository opt-in variable'
         type: choice
         options: [dry-run, paid]
         default: dry-run
       max_analyses:
-        description: 'Maximum NEW article analyses (0–30, hard cap 30)'
+        description: 'Maximum NEW screening analyses (0–60, hard cap 60)'
         type: number
-        default: 30
+        default: 60
       token_budget:
-        description: 'Total token budget including retry reservations'
+        description: 'Total token budget including reservations (hard cap 5,000,000)'
         type: number
-        default: 120000
+        default: 2000000
       max_spend_usd:
-        description: 'Conservative USD reservation cap per run (0–0.50, hard cap 0.50)'
+        description: 'USD spending cap per run at ceiling rates (0–5, hard cap 5)'
         type: string
-        default: '0.50'
-      rate_ceiling:
-        description: 'USD per million tokens, at least the current higher peak rate'
-        type: string
-        default: '1.20'
+        default: '5'
+      screening_model:
+        description: 'Stage 1 screening model (must be in config/models.yaml)'
+        type: choice
+        options: [deepseek-flash, deepseek-v4-pro]
+        default: deepseek-flash
+      strong_model:
+        description: 'Enrichment, verification, dedup and synthesis model'
+        type: choice
+        options: [deepseek-v4-pro, deepseek-flash]
+        default: deepseek-v4-pro
 permissions:
   contents: read
 concurrency:
@@ -31,26 +37,26 @@ concurrency:
   cancel-in-progress: false
 env:
   PYTHONPATH: src
-  LLM_MODEL: deepseek-flash
+  LLM_SCREENING_MODEL: ${{ inputs.screening_model }}
+  LLM_MODEL: ${{ inputs.strong_model }}
   LLM_BASE_URL: https://api.deepseek.com
   DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
   MAX_ANALYSES: ${{ inputs.max_analyses }}
   TOKEN_BUDGET: ${{ inputs.token_budget }}
   MAX_SPEND_USD: ${{ inputs.max_spend_usd }}
-  RATE_CEILING: ${{ inputs.rate_ceiling }}
 jobs:
   dry-run:
     # No environment and no LLM secret: this job can never make a paid request.
     if: inputs.mode == 'dry-run' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     env:
       RESEARCH_MODE: dry-run
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
@@ -59,12 +65,12 @@ jobs:
       - name: Validate run configuration
         run: python scripts/deepseek-research.py --check
       - name: Restore trusted response cache (read-only)
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: data/runtime/llm-cache
-          key: deepseek-responses-v3-${{ github.run_id }}-${{ github.run_attempt }}
+          key: deepseek-responses-v5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            deepseek-responses-v3-
+            deepseek-responses-v5-
       - name: Research dry run (no LLM secret)
         env:
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
@@ -72,9 +78,10 @@ jobs:
         run: python scripts/deepseek-research.py
       - name: Retain dry-run report for manual review
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepseek-dry-run-${{ github.run_id }}-${{ github.run_attempt }}
+          # Extracted full text lives in data/runtime/fulltext-cache and is never uploaded.
           path: data/runtime/deepseek-research/
           retention-days: 30
           if-no-files-found: ignore
@@ -83,21 +90,23 @@ jobs:
 
   paid:
     # Never run secret-bearing processing from a PR, tag, rerun or non-default branch.
+    # Safety model: manual dispatch only, the deepseek-paid environment's main-branch deployment policy,
+    # the USD 5 hard cap (reserved at ceiling rates before every request) and a prepaid DeepSeek balance.
+    # The environment deliberately has no required reviewers.
     if: >-
       inputs.mode == 'paid' && vars.CCU_ENABLE_DEEPSEEK == 'true' && github.run_attempt == 1 &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # Required reviewers on this environment approve every paid run; LLM_API_KEY is an environment secret.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
     environment: deepseek-paid
     env:
       RESEARCH_MODE: paid
       ALLOW_PAID: ${{ vars.CCU_ENABLE_DEEPSEEK }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
@@ -106,12 +115,12 @@ jobs:
       - name: Validate opt-in and run configuration before accessing secrets
         run: python scripts/deepseek-research.py --check
       - name: Restore trusted response cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: data/runtime/llm-cache
-          key: deepseek-responses-v3-${{ github.run_id }}-${{ github.run_attempt }}
+          key: deepseek-responses-v5-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            deepseek-responses-v3-
+            deepseek-responses-v5-
       - name: Bounded paid research
         env:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
@@ -120,15 +129,16 @@ jobs:
         run: python scripts/deepseek-research.py
       - name: Persist response cache (including completed analyses before failure)
         if: always() && !cancelled()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: data/runtime/llm-cache
-          key: deepseek-responses-v3-${{ github.run_id }}-${{ github.run_attempt }}
+          key: deepseek-responses-v5-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Retain research draft and audit ledger for manual review
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepseek-review-${{ github.run_id }}-${{ github.run_attempt }}
+          # Extracted full text lives in data/runtime/fulltext-cache and is never uploaded.
           path: data/runtime/deepseek-research/
           retention-days: 30
           if-no-files-found: ignore

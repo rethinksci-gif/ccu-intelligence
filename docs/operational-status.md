@@ -28,35 +28,50 @@ An editor must examine primary evidence, complete publication requirements and r
 
 `.github/workflows/deepseek-research.yml` is manual-only (`workflow_dispatch`, no schedule) and runs only from the default branch, so pull requests, forks, tags and other branches can never reach the secret. It has two jobs:
 
-- **dry-run** (default): collects and filters sources, makes zero model requests, uses no environment and never receives `LLM_API_KEY`.
-- **paid**: runs in the `deepseek-paid` GitHub Environment, so a required reviewer must approve every run before the job starts and the key is read from that environment's secrets. It also requires the repository variable `CCU_ENABLE_DEEPSEEK=true` and a first run attempt; reruns are refused so a ledger is inspected before spending again.
+- **dry-run** (default): collects sources, extracts legally available full text, makes zero model requests (cached responses may be reused), uses no environment and never receives `LLM_API_KEY`.
+- **paid**: runs in the `deepseek-paid` GitHub Environment, whose only protection rule is the main-branch deployment policy. It also requires the repository variable `CCU_ENABLE_DEEPSEEK=true` and a first run attempt; reruns are refused so a ledger is inspected before spending again.
 
-Each run is capped at 30 new analyses and USD 0.50 (hard caps in `scripts/deepseek-research.py`; dispatch inputs can only lower them), 60 attempts (one retry on 429/5xx or malformed JSON) and a configurable token budget (default 120,000). Every token is reserved at ≥ USD 1.20 per million, the highest `deepseek-flash` price (peak output; checked 2026-10-09). Reservations are persisted before every attempt and never refunded. Validated responses are cached by source text, model, endpoint, prompt version and prompt text, so repeated articles are not paid for twice and any prompt or model change re-analyses. Output is a draft and audit ledger uploaded as a 30-day private Actions artifact; nothing is committed, published or approved automatically.
+### Safety model
 
-Deterministic filtering runs before any model call. `report.json` records the triage reason for every article (`CCU topic`, `specialist milestone`, `no CCU term`, `CCU term without utilization context`, `specialist feed: unrelated energy topic`); the CCU term list is `CCU_TERMS` in `src/ccu_intelligence/workflow.py`.
+There are deliberately **no required reviewers** on `deepseek-paid`. Paid spending is bounded by: (1) manual dispatch only, from the default branch, first attempt only; (2) the environment's main-branch policy and the repository opt-in variable; (3) the **USD 5 hard cap** per run (`MAX_SPEND_USD_CAP` in `src/ccu_intelligence/workflow.py`; dispatch inputs can only lower it), reserved before every request at the ceiling rates in `config/models.yaml` (all input charged as a peak-hour cache miss, the full `max_output_tokens` at the peak output rate) and settled to the provider-reported usage at the same rates; requests that would exceed the cap are never sent; and (4) the owner's **prepaid DeepSeek balance** with auto top-up off, the account-level limit independent of this repository. Further hard caps: 60 new screening analyses, 300 requests, 5,000,000 tokens (default 2,000,000). The key exists only as a `deepseek-paid` environment secret. Nothing is committed, published or approved automatically: output is a draft and audit ledger in a 30-day Actions artifact.
 
-Pure capture or removal items with no utilization step are dropped. The exception is ecosystem news from CCU-specialist sources (`CCU_SPECIALIST_SOURCES`: CO2 Value Europe, Liquid Wind, Dioxycle, Carbicrete) that mentions a CCU term: it is listed under **CCU Ecosystem Briefs** in `draft.md` (title, source, date, link) with reason `specialist source: headline-only brief`, and is never sent to the model. Staff/HR announcements from those sources (title contains welcome, joins our team, new colleague, hiring, vacancy, job opening or internship, case-insensitive) are dropped as `specialist source: staff/HR announcement`, before any other rule, unless the title contains membership wording (member, membership, joins), so "X Joins CO2 Value Europe" stays a brief.
+### Pipeline
 
-Collection is low-frequency: each source receives `robots.txt` plus one feed or API request per run, at least `minimum_interval_seconds` (or the robots crawl delay, if longer) apart per host. 403 and other 4xx responses are not retried. 429/5xx are retried at most twice with backoff of at least 1 s then 2 s, honouring a short `Retry-After`; a `Retry-After` above 30 s defers the source to the next run.
+1. **Collect** sources that have a `run_limit` in `config/sources.yaml`, keeping at most that many in-window items each: OpenAlex (boolean title/abstract CCU query, plus an open-access subset), Crossref, the Federal Register API, CCU company and association feeds, and targeted trade-press search feeds (`news-*`, `evidence_role: news`).
+2. **Keyword triage** drops only clearly unrelated items (no CCU term, staff/HR posts, unrelated energy news on specialist feeds). Everything borderline goes to the LLM gate; `report.json` records every reason.
+3. **Full text.** Sources with `content_extractor: trafilatura` have their linked page fetched with our honest User-Agent, robots.txt checked on every redirect hop (RFC 9309: 4xx robots means no restrictions, 5xx or network failure means disallow), per-host spacing and the crawl delay respected. Papers use OpenAlex open-access locations (and Unpaywall when `CCU_CONTACT_EMAIL` is set); HTML via trafilatura, PDF via pypdf. Paywalls, 401/403 responses and firewalls are never bypassed: the item falls back to its abstract or headline. Each record's `input.basis` is `full_text`, `abstract` or `headline`. Extracted text stays in memory and in `data/runtime/fulltext-cache/`, which is **not** uploaded; artifacts hold only its size, hash, origin and fetch log.
+4. **Stage 1 — screening** (`deepseek-flash`, 12,000-character head-middle-tail sample): relevance gate `ccu_relevant` (CO2 converted, utilized or mineralized; capture/storage alone is false), 0–10 decision-value score on the rubric in `config/prompts/profile/analysis.md`, one category from `config/taxonomy.yaml` (see `config/newsletter.yaml`), 3–5 tags. Irrelevant items score 0; headline-only items are capped at 6.
+5. **Dedup** (`deepseek-v4-pro`): the same event reported by several sources is merged; a primary source is kept over a news report, which is listed as "Also reported".
+6. **Selection**: score ≥ 5, at most 4 per category and 16 overall. Quotas are never filled with weaker items.
+7. **Stage 2 — enrichment** (`deepseek-v4-pro`, thinking, 18,000-character sample): headline; what changed, why it matters, practical implication, optional next action (≤ 180 words); CCU fact sheet (CO2 source, route, catalyst, product, TRL, scale, energy, economics, LCA, partners, location, milestones). Unknown values are exactly "not stated in the supplied material". Every stated value needs a verbatim quote of ≤ 25 words; unsupported values, details and quotes are removed and logged, and event dates must be written in the source.
+8. **Verification** (`deepseek-v4-pro`, separate call and prompt): every headline, block, field and detail is checked against the source and marked supported, partially supported (corrected) or unsupported (removed). Corrections that introduce a number not in the source are rejected, and a deterministic check removes any remaining sentence whose numbers do not appear in the source. Items whose core claim fails, or whose verification is unavailable, are excluded and listed in the editor notes.
+9. **Synthesis** (`deepseek-v4-pro`): one call writes the issue from verified briefs only, with up to five takeaways from distinct categories, sections by category, what to watch and editor notes. Unknown citations, uncited text, sentences with unsupported numbers and non-verbatim quotes are removed deterministically; any verified item the synthesis omitted is added from its brief. The technology/economics table and ecosystem briefs are rendered from data, not prose.
+
+Prompts are profile-style markdown in `config/prompts/profile/` (`match`, `analysis`, `enrichment`, `verification`, `dedup`, `synthesis`); the version is `PROMPT_VERSION` in `src/ccu_intelligence/stages.py`. Validated responses are cached by stage, model, thinking mode, prompt text and input, so reruns are free and any prompt, model or input change re-analyses.
+
+### Models and prices
+
+`config/models.yaml` holds the per-model price table (checked against <https://api-docs.deepseek.com/quick_start/pricing/> on 2026-10-09), ceiling rates (never below the official peak) and stage roles. Defaults: `deepseek-flash` (DeepSeek-V4.1-Flash; USD 0.30 input miss / 1.20 output per million at peak) for screening, and `deepseek-v4-pro` (USD 1.32 / 3.96) with thinking for enrichment, verification, dedup and synthesis. The legacy name `deepseek-v4-flash` is retired and routed to Flash. Override with the dispatch inputs `screening_model` and `strong_model` (environment `LLM_SCREENING_MODEL`, `LLM_MODEL`); a model missing from the price table is refused. If the API rejects thinking together with JSON mode, the call is retried once with thinking disabled and the fallback is logged. `report.json` gives per-call usage, an upper-bound cost (peak, all input as cache miss) and a time-of-day estimate including cache hits, plus the prepaid-balance difference before and after the run when the balance endpoint is available.
+
+### Why no Google News
+
+Google News RSS search (`news.google.com/rss/search`) is disallowed for all user agents by its robots.txt and its feed terms restrict use to personal feed readers, so it conflicts with this project's robots policy. The targeted searches use WordPress search feeds on trade-press sites whose robots.txt permits access (Carbon Herald, Hydrogen Central, Biofuels International), with date-ordered paging until the coverage window is reached, plus the Federal Register API. The GDELT DOC API was evaluated but returned HTTP 429 to single requests spaced well beyond its 5-second guidance.
 
 ### Activation
 
-1. Merge the PR after review.
-2. In **Settings → Environments**, create `deepseek-paid`. Add yourself as a **required reviewer**, enable *Prevent self-review* only if another maintainer will approve, and restrict *Deployment branches* to the default branch.
-3. Add `LLM_API_KEY` as a secret **of the `deepseek-paid` environment** (not a repository secret). Remove any repository-level `LLM_API_KEY`.
-4. In **Settings → Variables**, set the repository variable `CCU_ENABLE_DEEPSEEK=true`.
-5. On the DeepSeek platform, use a **prepaid low balance** (for example USD 2–5) and keep auto top-up off; that balance is the account-level hard limit independent of this repository.
-6. Run the workflow with `mode=dry-run` and review the artifact's `report.json` triage reasons and candidate list.
-7. Run `mode=paid` with the recommended first-run parameters **`max_analyses=6`, `max_spend_usd=0.10`**, default token budget and rate ceiling, and approve the environment deployment.
+1. In **Settings → Environments**, create `deepseek-paid` and restrict *Deployment branches* to the default branch. Do not add required reviewers (see the safety model).
+2. Add `LLM_API_KEY` as a secret **of the `deepseek-paid` environment** (not a repository secret).
+3. In **Settings → Variables**, set the repository variable `CCU_ENABLE_DEEPSEEK=true`.
+4. On the DeepSeek platform, keep a **prepaid balance** with auto top-up off.
+5. Optional: add `CCU_CONTACT_EMAIL` (enables Unpaywall and the OpenAlex/Crossref polite pools) and `OPENALEX_API_KEY` as secrets.
+6. Run `mode=dry-run` and review `report.json` (triage reasons, `input.basis` per item), then run `mode=paid` with the defaults.
 
-Adding a schedule requires owner approval, a cron trigger and `CCU_ALLOW_SCHEDULED_PAID=true`; none exist now.
-
-### Evaluating the first paid run
+### Evaluating a paid run
 
 Use the artifact's `report.json`, `budget.json` and `draft.md`:
 
-- [ ] **Validation rejection rate**: `new_analyses_validated / new_analyses_attempted`. Investigate if fewer than ~80% validate; inspect which quote or date check failed before changing the prompt (never loosen matching).
-- [ ] **Missed key information**: for each analysed article, compare the source against the extracted technical, economic and milestone entries. Record omitted capacities, costs, dates and project names.
-- [ ] **False relevance**: articles marked relevant that are not CCU (for example supercritical-CO2 solvent processing), and triage drops that should have been kept.
-- [ ] **Actual tokens per article**: `usage.total_tokens / new_analyses_attempted`, versus the per-request reservation. Use it to size `token_budget` and `max_spend_usd` for a 30-article run.
-- [ ] **Actual cost**: compare `estimated_cost_usd` with the DeepSeek dashboard charge for the run.
+- [ ] **Input quality**: `summary.input_basis`; items on `headline` cannot support detailed claims.
+- [ ] **Gate and scores**: per record `screening` (`ccu_relevant`, `score`, `band`, `reason`); check false positives and missed CCU items.
+- [ ] **Fact sheets**: per record `fields.filled` / `fields.not_stated` against the original source.
+- [ ] **Verification**: per record `grounding_removed` and `verification` (`removed`, `corrected`, `number_removed`, `unchecked`); `synthesis_issues` for the issue text.
+- [ ] **Cost**: `summary.usage_by_model`, `cost_upper_bound_usd`, `cost_estimate_usd` and `balance_delta`, versus the DeepSeek dashboard.

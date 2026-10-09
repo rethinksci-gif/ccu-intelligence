@@ -164,7 +164,7 @@ The public repository is `rethinksci-gif/ccu-intelligence`. Pages uses GitHub Ac
 
 The production build sets `SITE_URL=https://rethinksci-gif.github.io` and `BASE_PATH=/ccu-intelligence/`, uploads only `dist/`, and deploys through the `github-pages` environment. The build has `contents: read`; deployment has `pages: write` and `id-token: write`.
 
-The standalone collection workflow is **manual-only**. The draft workflow performs bounded biweekly collection and opens a draft PR. Automated newsletter publication and scheduled paid LLM calls are disabled. Optional branch protection and human environment reviewers can be configured in repository settings.
+The standalone collection workflow is **manual-only**. The draft workflow performs bounded biweekly collection and opens a draft PR. Automated newsletter publication and scheduled paid LLM calls are disabled. Optional branch protection can be configured in repository settings. The optional paid DeepSeek research workflow (full-text input, two-stage analysis, verification and synthesis) is documented in [docs/operational-status.md](docs/operational-status.md#optional-deepseek-research-workflow).
 
 Collection restores the latest successful default-branch `collection-state` artifact and uploads a new SQLite snapshot. Raw responses are **not uploaded**. Working state retention is 90 days; candidate artifacts last 30 days. Export and commit reviewed history regularly and maintain backups. If a previous run exists but its artifact cannot be retrieved, restoration fails rather than silently discarding history. See the operations runbook for recovery.
 

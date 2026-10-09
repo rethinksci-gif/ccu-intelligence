@@ -1,17 +1,16 @@
 """GitHub Actions entrypoint: opt-in research only, no publishing or repository writes."""
 
 import argparse
+import math
 import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from ccu_intelligence.budget import Budget
 from ccu_intelligence.editorial import window
-from ccu_intelligence.workflow import execute
+from ccu_intelligence.pricing import roles
+from ccu_intelligence.workflow import MAX_ANALYSES_CAP, MAX_SPEND_USD_CAP, MAX_TOKEN_BUDGET, execute
 
-# Hard per-run ceilings; dispatch inputs may only lower them. Raising either needs a reviewed code change.
-MAX_ANALYSES_CAP = 30
-MAX_SPEND_USD_CAP = 0.50
+# Hard per-run ceilings live in workflow.py; dispatch inputs may only lower them.
 
 
 def configuration():
@@ -27,18 +26,18 @@ def configuration():
     options = argparse.Namespace(
         since=start, until=end - timedelta(days=1), scheduled_publication=None,
         output=Path('data/runtime/deepseek-research') / mode / str(end),
-        max_analyses=int(os.getenv('MAX_ANALYSES', '30')), max_requests=60,
-        token_budget=int(os.getenv('TOKEN_BUDGET', '120000')),
-        max_spend_usd=float(os.getenv('MAX_SPEND_USD', '0.50')),
-        rate_ceiling=float(os.getenv('RATE_CEILING', '1.20')),
-        max_output_tokens=1200, source_limit=15, allow_paid=paid, dry_run=not paid,
+        max_analyses=int(os.getenv('MAX_ANALYSES', str(MAX_ANALYSES_CAP))), max_requests=200,
+        token_budget=int(os.getenv('TOKEN_BUDGET', '2000000')),
+        max_spend_usd=float(os.getenv('MAX_SPEND_USD', str(MAX_SPEND_USD_CAP))),
+        source_limit=None, allow_paid=paid, dry_run=not paid,
     )
     if not 0 <= options.max_analyses <= MAX_ANALYSES_CAP:
         raise ValueError(f'Maximum new analyses must be between 0 and {MAX_ANALYSES_CAP}')
-    if not 0 <= options.max_spend_usd <= MAX_SPEND_USD_CAP:
+    if not math.isfinite(options.max_spend_usd) or not 0 <= options.max_spend_usd <= MAX_SPEND_USD_CAP:
         raise ValueError(f'Spending cap must be between 0 and {MAX_SPEND_USD_CAP} USD')
-    Budget(max_requests=60, max_tokens=options.token_budget,
-           max_spend_usd=options.max_spend_usd, usd_per_million_tokens=options.rate_ceiling)
+    if not 1 <= options.token_budget <= MAX_TOKEN_BUDGET:
+        raise ValueError(f'Token budget must be between 1 and {MAX_TOKEN_BUDGET}')
+    roles()  # every configured model must be in the pricing table
     return options
 
 
