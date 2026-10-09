@@ -9,11 +9,11 @@ on:
         options: [dry-run, paid]
         default: dry-run
       max_screenings:
-        description: 'Maximum NEW screening calls, cheap model (0–150, hard cap 150)'
+        description: 'Maximum NEW screening calls, Flash (0–150, hard cap 150)'
         type: number
         default: 150
       max_enrichments:
-        description: 'Maximum items sent to enrichment + verification, strong model (0–60, hard cap 60)'
+        description: 'Maximum items sent to enrichment + verification, Flash (0–60, hard cap 60)'
         type: number
         default: 60
       token_budget:
@@ -24,16 +24,6 @@ on:
         description: 'USD spending cap per run at ceiling rates (0–5, hard cap 5)'
         type: string
         default: '5'
-      screening_model:
-        description: 'Stage 1 screening model (must be in config/models.yaml)'
-        type: choice
-        options: [deepseek-flash, deepseek-v4-pro]
-        default: deepseek-flash
-      strong_model:
-        description: 'Enrichment, verification, dedup and synthesis model'
-        type: choice
-        options: [deepseek-v4-pro, deepseek-flash]
-        default: deepseek-v4-pro
       coverage_end:
         description: 'Last covered day, YYYY-MM-DD inclusive (blank = yesterday UTC)'
         type: string
@@ -49,8 +39,8 @@ concurrency:
   cancel-in-progress: false
 env:
   PYTHONPATH: src
-  LLM_SCREENING_MODEL: ${{ inputs.screening_model }}
-  LLM_MODEL: ${{ inputs.strong_model }}
+  LLM_SCREENING_MODEL: deepseek-flash
+  LLM_MODEL: deepseek-flash
   LLM_BASE_URL: https://api.deepseek.com
   DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
   MAX_SCREENINGS: ${{ inputs.max_screenings }}

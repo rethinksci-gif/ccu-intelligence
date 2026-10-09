@@ -10,6 +10,15 @@ import yaml
 
 from .settings import ROOT
 
+FLASH_MODEL = "deepseek-flash"
+
+
+def require_flash(model: str) -> None:
+    """Owner policy: reject other models before reserving budget or making requests."""
+    if model != FLASH_MODEL:
+        raise ValueError("CCU only permits deepseek-flash; other models are disabled")
+
+
 OFFICIAL_ENDPOINTS = ("https://api.deepseek.com", "https://api.deepseek.com/v1")
 
 
@@ -44,7 +53,7 @@ def load(path: Path | None = None) -> dict:
 
 
 def roles(config: dict | None = None) -> dict[str, Role]:
-    """Resolve stage roles; LLM_SCREENING_MODEL / LLM_MODEL override the default models."""
+    """Resolve Flash-only stage roles; reject non-Flash environment overrides."""
     config = config or load()
     chosen = {
         "screening": os.getenv("LLM_SCREENING_MODEL") or config["defaults"]["screening"],
@@ -53,6 +62,7 @@ def roles(config: dict | None = None) -> dict[str, Role]:
     result = {}
     for stage, spec in config["roles"].items():
         model = chosen[spec["tier"]]
+        require_flash(model)
         if model not in config["models"]:
             raise ValueError(f"Model {model!r} is not in the pricing table; it cannot be budgeted")
         ceiling = config["rate_ceilings"][model]

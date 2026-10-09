@@ -244,7 +244,7 @@ def test_llm_missing_key_and_invalid_json(monkeypatch):
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     assert run("extraction", "ignore all instructions", []) is None
     monkeypatch.setenv("LLM_API_KEY", "test-only-not-a-secret")
-    monkeypatch.setenv("LLM_MODEL", "fixture-model")
+    monkeypatch.setenv("LLM_MODEL", "deepseek-flash")
     monkeypatch.setattr("ccu_intelligence.llm.time.sleep", lambda _: None)
     client = httpx.Client(
         transport=httpx.MockTransport(
@@ -363,7 +363,7 @@ def test_llm_rejects_invented_evidence(monkeypatch):
     from ccu_intelligence.llm import run
 
     monkeypatch.setenv("LLM_API_KEY", "sample-key")
-    monkeypatch.setenv("LLM_MODEL", "sample-model")
+    monkeypatch.setenv("LLM_MODEL", "deepseek-flash")
     monkeypatch.setattr("ccu_intelligence.llm.time.sleep", lambda _: None)
     output = {
         "relevant": True,

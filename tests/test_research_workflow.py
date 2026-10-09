@@ -65,12 +65,14 @@ def test_workflow_has_no_schedule_or_pr_payment_trigger():
     assert set(workflow['on']) == {'workflow_dispatch'}
     inputs = workflow['on']['workflow_dispatch']['inputs']
     assert inputs['mode']['default'] == 'dry-run'
-    assert {'max_screenings', 'max_enrichments', 'max_spend_usd', 'token_budget', 'screening_model', 'strong_model', 'coverage_end',
+    assert {'max_screenings', 'max_enrichments', 'max_spend_usd', 'token_budget', 'coverage_end',
             'coverage_days'} <= set(inputs)
     assert inputs['coverage_end']['default'] == '' and inputs['coverage_days']['default'] == '14'
     assert inputs['max_screenings']['default'] == '150' and inputs['max_enrichments']['default'] == '60'
     assert inputs['max_spend_usd']['default'] == '5'
-    assert inputs['token_budget']['default'] == '2000000' and inputs['strong_model']['default'] == 'deepseek-v4-pro'
+    assert inputs['token_budget']['default'] == '2000000'
+    assert 'strong_model' not in inputs and 'screening_model' not in inputs
+    assert workflow['env']['LLM_MODEL'] == workflow['env']['LLM_SCREENING_MODEL'] == 'deepseek-flash'
     assert workflow['permissions'] == {'contents': 'read'}
     assert 'LLM_API_KEY' not in json.dumps(workflow['env'])
     dry, paid = workflow['jobs']['dry-run'], workflow['jobs']['paid']

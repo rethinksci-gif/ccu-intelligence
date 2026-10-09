@@ -152,10 +152,13 @@ def run(
         status="unavailable",
         responses=[],
     )
+    from .pricing import require_flash
+
     key, model = os.getenv("LLM_API_KEY"), os.getenv("LLM_MODEL")
     if not key or not model:
         return None
-    base = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    require_flash(model)
+    base = os.getenv("LLM_BASE_URL", "https://api.deepseek.com").rstrip("/")
     parts = urlsplit(base)
     if (
         parts.scheme != "https"
@@ -314,7 +317,9 @@ def complete_json(
     output by max_output_tokens) and settled to provider-reported usage. Calls are appended to `calls`
     for the audit ledger. Reasoning text is never stored. Grounding is the caller's job.
     """
-    from .pricing import call_cost
+    from .pricing import call_cost, require_flash
+
+    require_flash(role.model)
 
     key = os.getenv("LLM_API_KEY")
     if not key:

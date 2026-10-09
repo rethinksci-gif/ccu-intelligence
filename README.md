@@ -150,8 +150,8 @@ No environment variables or API secrets are required for local sample mode.
 | `CCU_CONTACT_EMAIL` | Optional Crossref polite-pool contact; use a role account. |
 | `OPENALEX_API_KEY` | Optional OpenAlex credential; basic anonymous access is attempted without it. |
 | `LLM_API_KEY` | Optional provider credential, read only by Python. |
-| `LLM_BASE_URL` | HTTPS OpenAI-compatible API root, default `https://api.openai.com/v1`. |
-| `LLM_MODEL` | Explicit model identifier; no paid model is selected automatically. |
+| `LLM_BASE_URL` | HTTPS OpenAI-compatible API root, default `https://api.deepseek.com`. |
+| `LLM_MODEL` | Only `deepseek-flash` is permitted; other models are rejected before API calls. |
 | `SITE_URL` | Static site's public origin; default `http://localhost:4321`. |
 | `BASE_PATH` | `/` locally or `/repository-name/` for GitHub project Pages. |
 | `ASTRO_TELEMETRY_DISABLED=1` | Disable Astro telemetry. |

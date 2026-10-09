@@ -642,13 +642,13 @@ def test_dispatch_inputs_cannot_exceed_hard_caps_or_use_unpriced_models(monkeypa
         entrypoint().configuration()
 
 
-def test_roles_use_strongest_model_for_quality_stages(monkeypatch):
+def test_roles_use_flash_for_every_stage(monkeypatch):
     monkeypatch.delenv("LLM_MODEL", raising=False)
     monkeypatch.delenv("LLM_SCREENING_MODEL", raising=False)
     stage = pricing.roles()
     assert stage["screening"].model == "deepseek-flash" and not stage["screening"].thinking
-    assert {stage[s].model for s in ("enrichment", "verification", "dedup", "synthesis")} == {"deepseek-v4-pro"}
-    assert stage["enrichment"].rates == pricing.Rates(1.32, 3.96)
+    assert {stage[s].model for s in ("enrichment", "verification", "dedup", "synthesis")} == {"deepseek-flash"}
+    assert stage["enrichment"].rates == pricing.Rates(0.30, 1.20)
 
 
 def test_rate_ceiling_below_official_price_rejected(tmp_path):
@@ -690,7 +690,7 @@ def test_priced_reservation_settles_to_reported_usage_and_survives_restart(tmp_p
 # --- JSON calls: thinking fallback, repair, budget ------------------------------------------------------
 
 def role(stage="verification", thinking=True, max_tokens=4000):
-    return pricing.Role(stage, "deepseek-v4-pro", thinking, max_tokens, pricing.Rates(1.32, 3.96))
+    return pricing.Role(stage, "deepseek-flash", thinking, max_tokens, pricing.Rates(0.30, 1.20))
 
 
 def chat(content, usage=None, finish="stop"):
@@ -715,6 +715,7 @@ def test_thinking_rejected_falls_back_and_schema_errors_get_one_repair(monkeypat
         result = complete_json(role(), "json system", {"items": []}, DedupResult, budget=budget, calls=calls,
                                client=client)
     assert result.groups == [["S1", "S2"]]
+    assert {body["model"] for body in bodies} == {"deepseek-flash"}
     assert bodies[0]["thinking"] == {"type": "enabled"} and "temperature" not in bodies[0]
     assert bodies[1]["thinking"] == {"type": "disabled"} and bodies[1]["temperature"] == 0
     assert [c["status"] for c in calls] == ["thinking_rejected", "schema_error", "validated"]
@@ -936,7 +937,7 @@ def test_end_to_end_full_text_two_stage_verification_and_synthesis(research, cap
     assert lw["enrichment"]["fields"]["location"]["value"] == NOT_STATED
     assert any("90,000" in r["sentence"] for r in lw["verification"]["number_removed"])
     models = {c["stage"]: c["model"] for c in report["calls"] if c.get("model")}
-    assert models["screening"] == "deepseek-flash" and models["synthesis"] == "deepseek-v4-pro"
+    assert models["screening"] == "deepseek-flash" and models["synthesis"] == "deepseek-flash"
     # Draft: takeaways, category sections, table, briefs, links; validated synthesis.
     meta, body = read_issue(Path(summary["draft"]))
     assert meta["editorial_status"] == "draft" and meta["reviewer"] is None
@@ -1419,3 +1420,35 @@ def test_google_news_items_use_the_publisher_url_and_never_follow_google_links(r
     assert google == ["https://news.google.com/rss/search", "https://news.google.com/robots.txt"]
     collection = json.loads((args.output / "collection.json").read_text())["google-news-efuels"]
     assert collection["publisher_resolved"] == 1 and collection["publisher_unresolved"] == 1
+
+
+@pytest.mark.parametrize("variable", ["LLM_MODEL", "LLM_SCREENING_MODEL"])
+@pytest.mark.parametrize("model", ["deepseek-v4-pro", "deepseek-chat", "deepseek-reasoner", "deepseek-v4-flash", "gpt-x"])
+def test_flash_only_policy_rejects_model_overrides(monkeypatch, variable, model):
+    monkeypatch.setenv("LLM_MODEL", "deepseek-flash")
+    monkeypatch.setenv("LLM_SCREENING_MODEL", "deepseek-flash")
+    monkeypatch.setenv(variable, model)
+    with pytest.raises(ValueError, match="only permits deepseek-flash"):
+        pricing.roles()
+
+
+def test_non_flash_direct_calls_rejected_before_network_or_budget(monkeypatch):
+    from dataclasses import replace
+
+    from ccu_intelligence.llm import run
+
+    monkeypatch.setenv("LLM_API_KEY", "fixture-secret-never-real")
+    monkeypatch.setenv("LLM_MODEL", "deepseek-v4-pro")
+    budget = Budget(max_requests=5, max_tokens=100_000, max_spend_usd=1)
+    calls = []
+
+    def unexpected_request(request):
+        pytest.fail("Non-Flash request reached the transport")
+
+    with httpx.Client(transport=httpx.MockTransport(unexpected_request)) as client:
+        with pytest.raises(ValueError, match="only permits deepseek-flash"):
+            run("extraction", "CO2", [], client=client, budget=budget)
+        with pytest.raises(ValueError, match="only permits deepseek-flash"):
+            complete_json(replace(role(), model="deepseek-v4-pro"), "s", {}, DedupResult,
+                          budget=budget, calls=calls, client=client)
+    assert budget.requests == 0 and calls == []

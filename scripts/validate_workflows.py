@@ -33,4 +33,6 @@ for path in Path(".github/workflows").glob("*.yml"):
 research = yaml.load(Path(".github/workflows/deepseek-research.yml").read_text(), Loader=yaml.BaseLoader)
 assert set(research["on"]) == {"workflow_dispatch"}, "paid research must stay manual: no schedule or push"
 assert research["permissions"] == {"contents": "read"}, "research must never write to the repository"
+assert research["env"]["LLM_MODEL"] == research["env"]["LLM_SCREENING_MODEL"] == "deepseek-flash"
+assert not {"screening_model", "strong_model"} & research["on"]["workflow_dispatch"]["inputs"].keys()
 print("Workflow structure, runners, action majors and permission declarations validated")

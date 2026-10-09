@@ -16,6 +16,7 @@ models:
     input_cache_miss_peak: 0.30
     output_peak: 1.20
   deepseek-v4-pro:
+    # Historical cost accounting only; runtime policy forbids new calls.
     # DeepSeek-V4-Pro-0813.
     input_cache_hit_peak: 0.044
     input_cache_miss_peak: 1.32
@@ -25,8 +26,8 @@ models:
 rate_ceilings:
   deepseek-flash: {input: 0.30, output: 1.20}
   deepseek-v4-pro: {input: 1.32, output: 3.96}
-# Stage roles. The screening model is overridable with LLM_SCREENING_MODEL and the strong model
-# (enrichment, verification, dedup, synthesis) with LLM_MODEL. Thinking output counts toward
+# All stages use deepseek-flash only. LLM_SCREENING_MODEL and LLM_MODEL may only name Flash.
+# Other prices above are retained solely for historical audit calculations. Thinking output counts toward
 # max_output_tokens and is billed as output. Paid run 1 (2026-10-09): two enrichments spent all 12,000
 # output tokens on reasoning, so quality stages allow 32,000.
 roles:
@@ -37,7 +38,7 @@ roles:
   synthesis: {tier: strong, thinking: true, max_output_tokens: 32000}
 defaults:
   screening: deepseek-flash
-  strong: deepseek-v4-pro
+  strong: deepseek-flash
 # Average tokens per call (input, output including reasoning), rounded up from paid run 37929580610 (2026-10-09).
 # Used only for the dry-run cost projection; budgets and reservations never use these.
 estimates:
