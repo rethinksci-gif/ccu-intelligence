@@ -1,9 +1,11 @@
 import argparse
+import importlib.util
 import json
 import shutil
 from dataclasses import replace
 from datetime import date
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -12,9 +14,9 @@ import yaml
 from ccu_intelligence.budget import Budget
 from ccu_intelligence.collect import Fetcher
 from ccu_intelligence.editorial import SECTIONS, read_issue, validate_issue
-from ccu_intelligence.llm import run
+from ccu_intelligence.llm import date_supported, grounded_analysis, quote_supported, run
 from ccu_intelligence.models import Bundle
-from ccu_intelligence.workflow import execute
+from ccu_intelligence.workflow import cache_key, execute, triage
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -253,11 +255,224 @@ def test_uncertain_usage_and_retry_cannot_escape_budget():
 def test_workflow_has_no_schedule_or_pr_payment_trigger():
     workflow = yaml.load((ROOT / '.github/workflows/deepseek-research.yml').read_text(), Loader=yaml.BaseLoader)
     assert set(workflow['on']) == {'workflow_dispatch'}
-    assert workflow['on']['workflow_dispatch']['inputs']['mode']['default'] == 'dry-run'
+    inputs = workflow['on']['workflow_dispatch']['inputs']
+    assert inputs['mode']['default'] == 'dry-run'
+    assert {'max_analyses', 'max_spend_usd', 'token_budget'} <= set(inputs)
     assert workflow['permissions'] == {'contents': 'read'}
-    steps = workflow['jobs']['research']['steps']
-    secret_steps = [s for s in steps if 'LLM_API_KEY' in s.get('env', {})]
+    assert 'LLM_API_KEY' not in json.dumps(workflow['env'])
+    dry, paid = workflow['jobs']['dry-run'], workflow['jobs']['paid']
+    # The dry-run job has no environment and never sees the key.
+    assert 'environment' not in dry and 'LLM_API_KEY' not in json.dumps(dry)
+    assert dry['env']['RESEARCH_MODE'] == 'dry-run' and "inputs.mode == 'dry-run'" in dry['if']
+    # The paid job is gated by mode, repository opt-in, first attempt, default branch and an environment.
+    assert paid['environment'] == 'deepseek-paid'
+    for gate in ("inputs.mode == 'paid'", "vars.CCU_ENABLE_DEEPSEEK == 'true'", 'github.run_attempt == 1',
+                 'default_branch'):
+        assert gate in paid['if']
+    secret_steps = [s for s in paid['steps'] if 'LLM_API_KEY' in s.get('env', {})]
     assert len(secret_steps) == 1
-    assert "inputs.mode == 'paid'" in secret_steps[0]['if']
-    assert "vars.CCU_ENABLE_DEEPSEEK == 'true'" in secret_steps[0]['if']
-    assert 'github.run_attempt == 1' in secret_steps[0]['if']
+
+
+# --- Relevance filter ---------------------------------------------------------------------------------
+
+SPECIALIST = SimpleNamespace(source_id='dioxycle', source_type='company_announcements_and_annual_reports')
+GENERAL = SimpleNamespace(source_id='crossref', source_type='scholarly_metadata')
+DAY = date(2026, 9, 20)
+
+
+def headline(title):
+    return SimpleNamespace(title=title, summary='', sample=False, publication_date=DAY)
+
+
+@pytest.mark.parametrize('source,title,reason', [
+    (SPECIALIST, 'Solar park financing', 'specialist feed: unrelated energy topic'),
+    (SPECIALIST, 'Battery storage project commissioned', 'specialist feed: unrelated energy topic'),
+    (SPECIALIST, 'Nuclear plant construction delayed', 'specialist feed: unrelated energy topic'),
+    (SPECIALIST, 'Photovoltaic rooftop permit granted', 'specialist feed: unrelated energy topic'),
+    (SPECIALIST, 'Company welcomes new board member', 'no CCU term or milestone keyword'),
+    (GENERAL, 'Solar park financing', 'no CCU term'),
+    (GENERAL, 'Perovskite solar cell efficiency record', 'no CCU term'),
+    (GENERAL, 'Lithium battery recycling plant', 'no CCU term'),
+    (GENERAL, 'CO2 footprint of nuclear power', 'CCU term without utilization context'),
+    (GENERAL, 'Mapping data centre energy consumption to carbon-dioxide emissions',
+     'CCU term without utilization context'),
+])
+def test_unrelated_headlines_dropped(source, title, reason):
+    result = triage(headline(title), source, DAY, DAY)
+    assert not result['eligible'] and result['reason'] == reason
+
+
+@pytest.mark.parametrize('source,title', [
+    (GENERAL, 'Solar fuels from CO2: photocatalytic reduction to methanol'),
+    (GENERAL, 'Solar-driven CO2 electrolysis to ethylene'),
+    (GENERAL, 'CO₂-derived battery materials scale up'),
+    (GENERAL, 'Power-to-X plant with solar supply'),
+    (GENERAL, 'Power-to-liquid project uses nuclear heat'),
+    (GENERAL, 'E-fuels pilot paired with battery storage'),
+    (GENERAL, 'e-methanol plant powered by solar'),
+    (GENERAL, 'E-kerosene facility to use nuclear electricity'),
+    (GENERAL, 'Synthetic fuels from solar hydrogen'),
+    (GENERAL, 'Direct air capture with CO2 mineralization powered by solar'),
+    (GENERAL, 'Carbon mineralisation of battery waste'),
+    (GENERAL, 'Electrosynthesis of arylglycines from carbon dioxide, nitrite and aldehydes'),
+    (SPECIALIST, 'Solar-powered CO2 electrolyser commissioned'),
+    (SPECIALIST, 'Nuclear-powered e-methanol plant reaches FID'),
+    (SPECIALIST, 'CO2-derived battery materials plant commissioned'),
+    (SPECIALIST, 'Direct air capture unit with solar supply commissioned'),
+    (SPECIALIST, 'FlagshipONE reaches final investment decision'),
+])
+def test_ccu_headlines_with_energy_words_kept(source, title):
+    assert triage(headline(title), source, DAY, DAY)['eligible']
+
+
+# --- Source failure isolation -------------------------------------------------------------------------
+
+def test_failing_sources_never_abort_run(research, monkeypatch):
+    args, calls = research
+    working = Fetcher.get
+
+    def get(self, url, **kwargs):
+        if 'co2value.eu' in url:
+            request = httpx.Request('GET', url)
+            raise httpx.HTTPStatusError('403', request=request, response=httpx.Response(403, request=request))
+        if 'covestro.com' in url:
+            raise RuntimeError('unexpected parser or transport failure')
+        return working(self, url, **kwargs)
+
+    monkeypatch.setattr(Fetcher, 'get', get)
+    report = execute(args)
+    collection = json.loads((args.output / 'collection.json').read_text())
+    assert collection['co2-value-europe']['failed'] == collection['covestro']['failed'] == 1
+    assert len(calls) == report['requests_reserved'] == 3
+
+
+def test_user_agent_identifies_bot_without_blocked_word():
+    agent = Fetcher().client.headers['User-Agent']
+    assert agent.startswith('CCUIntelligence/') and 'https://' in agent and 'research' not in agent.lower()
+
+
+# --- Grounding normalization --------------------------------------------------------------------------
+
+@pytest.mark.parametrize('quote,source', [
+    ('Liquid Wind\'s "FlagshipONE" plant', 'Liquid Wind’s “FlagshipONE” plant'),
+    ('Liquid Wind’s “FlagshipONE” plant', 'Liquid Wind\'s "FlagshipONE" plant'),
+    ('capacity of 70 000 t per year', 'capacity of\n70 000   t per year'),
+    ('CO2 electrolysis', 'Scaling CO₂ electrolysis'),
+    ('2025-2026 programme', 'the 2025–2026 programme'),
+    ('electrochemical reactor', 'an electro­chemical reactor'),
+    ('electrochemical reactor', 'an electro-\nchemical reactor'),
+    ('CO2-derived polyols', 'uses CO2-\nderived polyols'),
+    ('ＦＩＤ reached', 'FID reached'),
+])
+def test_quotes_match_after_normalization(quote, source):
+    assert quote_supported(quote, source)
+
+
+@pytest.mark.parametrize('quote,source', [
+    ('co2 electrolysis', 'CO2 electrolysis'),  # case is not normalized
+    ('capacity of 70 kt per year', 'capacity of 70 000 t per year'),  # paraphrase
+    ('pilot commissioned plant', 'pilot commissioned. The plant'),  # combined fragments
+    ('electrochemical reactor', 'an electro- chemical reactor'),  # hyphen not at a line break
+    ('electro-chemical reactor', 'an electrochemical reactor'),  # hyphen inserted
+    ('', 'anything'),
+    (' '.join(['word'] * 26), ' '.join(['word'] * 26)),  # over 25 words
+])
+def test_quotes_rejected_beyond_normalization(quote, source):
+    assert not quote_supported(quote, source)
+
+
+@pytest.mark.parametrize('text', [
+    'Commissioned on 2026-10-09.', 'Commissioned on 2026‑10‑09.', 'on 9 October 2026', 'on 09 October 2026',
+    'on the 9th of October, 2026', 'on October 9, 2026', 'on Oct. 9, 2026', 'on 9 Oct 2026', 'OCTOBER 9 2026',
+])
+def test_event_dates_in_explicit_formats_accepted(text):
+    assert date_supported(date(2026, 10, 9), text)
+
+
+@pytest.mark.parametrize('text', [
+    'on 09/10/2026', 'on 10/09/2026', 'on 09.10.2026', 'in October 2026', 'on 9 October 2025',
+    'on 19 October 2026', 'on 29 Oct 2026', 'on October 19, 2026', 'on 2026-10-19', 'on 2026-10-091',
+    'on 9 October 20261', 'published 2026-10-08',
+])
+def test_ambiguous_or_different_dates_rejected(text):
+    assert not date_supported(date(2026, 10, 9), text)
+
+
+def test_september_abbreviation_accepted():
+    assert date_supported(date(2026, 9, 20), 'on 20 Sept. 2026') and date_supported(date(2026, 9, 20), 'Sep 20, 2026')
+
+
+def proposal(**extra):
+    base = dict(relevant=True, domains=['conversion'], quotes=[], technical_significance='',
+                industrial_implications='', uncertainty='Needs review.')
+    return json.dumps({**base, **extra})
+
+
+def test_grounded_analysis_normalizes_quotes_and_dates():
+    text = 'Liquid Wind’s FlagshipONE was commissioned on 9 October 2026.'
+    milestone = dict(text='Reported commissioning.', quote="Liquid Wind's FlagshipONE was commissioned",
+                     uncertainty='Needs verification.', event_type='COMMISSIONED', event_date='2026-10-09')
+    result = grounded_analysis(proposal(quotes=['Liquid Wind\'s FlagshipONE'], milestone_proposals=[milestone]),
+                               text, ['e1'], 'company')
+    assert result.milestone_proposals[0].event_date == date(2026, 10, 9) and len(result.claims) == 1
+    with pytest.raises(ValueError, match='Event date'):
+        grounded_analysis(proposal(milestone_proposals=[{**milestone, 'event_date': '2026-10-10'}]),
+                          text, ['e1'], 'company')
+    with pytest.raises(ValueError, match='quotation'):
+        grounded_analysis(proposal(quotes=['liquid wind’s flagshipone']), text, ['e1'], 'company')
+
+
+# --- Cache key ----------------------------------------------------------------------------------------
+
+def article_stub():
+    return SimpleNamespace(article_id='a1', publication_date=DAY, canonical_url='https://example.org/a',
+                           title='CO2 methanol pilot', summary='Commissioned.')
+
+
+def test_cache_key_changes_with_prompt_model_and_endpoint(monkeypatch):
+    base = dict(kind='company', model='deepseek-flash', endpoint='https://api.deepseek.com', max_tokens=1200)
+    key = cache_key(article_stub(), **base)
+    assert key == cache_key(article_stub(), **base)
+    assert key != cache_key(article_stub(), **{**base, 'model': 'deepseek-v4-pro'})
+    assert key != cache_key(article_stub(), **{**base, 'endpoint': 'https://api.deepseek.com/v1'})
+    monkeypatch.setattr('ccu_intelligence.workflow.PROMPT_VERSION', 'grounded-next')
+    assert key != cache_key(article_stub(), **base)
+    monkeypatch.undo()
+    monkeypatch.setattr('ccu_intelligence.workflow.prompt_hash', lambda task: 'edited prompt text')
+    assert key != cache_key(article_stub(), **base)
+
+
+def test_prompt_version_change_invalidates_cached_responses(research, monkeypatch):
+    args, calls = research
+    execute(args)
+    assert len(calls) == 3
+    monkeypatch.setattr('ccu_intelligence.workflow.PROMPT_VERSION', 'grounded-next')
+    args.output = Path('data/runtime/after-prompt-change')
+    report = execute(args)
+    assert report['cache_hits'] == 0 and len(calls) == 6
+
+
+# --- Entry-point hard caps ----------------------------------------------------------------------------
+
+def entrypoint():
+    spec = importlib.util.spec_from_file_location('research_entry', ROOT / 'scripts/deepseek-research.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.parametrize('name,value', [
+    ('MAX_ANALYSES', '31'), ('MAX_ANALYSES', '-1'),
+    ('MAX_SPEND_USD', '0.51'), ('MAX_SPEND_USD', 'nan'), ('MAX_SPEND_USD', 'inf'), ('MAX_SPEND_USD', '-0.01'),
+])
+def test_dispatch_inputs_cannot_exceed_hard_caps(monkeypatch, name, value):
+    monkeypatch.setenv(name, value)
+    with pytest.raises(ValueError):
+        entrypoint().configuration()
+
+
+def test_recommended_first_paid_run_parameters_accepted(monkeypatch):
+    monkeypatch.setenv('MAX_ANALYSES', '6')
+    monkeypatch.setenv('MAX_SPEND_USD', '0.10')
+    options = entrypoint().configuration()
+    assert options.max_analyses == 6 and options.max_spend_usd == 0.10 and options.dry_run

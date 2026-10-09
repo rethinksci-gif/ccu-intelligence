@@ -9,6 +9,10 @@ from ccu_intelligence.budget import Budget
 from ccu_intelligence.editorial import window
 from ccu_intelligence.workflow import execute
 
+# Hard per-run ceilings; dispatch inputs may only lower them. Raising either needs a reviewed code change.
+MAX_ANALYSES_CAP = 30
+MAX_SPEND_USD_CAP = 0.50
+
 
 def configuration():
     mode = os.getenv('RESEARCH_MODE', 'dry-run')
@@ -29,8 +33,10 @@ def configuration():
         rate_ceiling=float(os.getenv('RATE_CEILING', '1.20')),
         max_output_tokens=1200, source_limit=15, allow_paid=paid, dry_run=not paid,
     )
-    if not 0 <= options.max_analyses <= 30:
-        raise ValueError('Maximum new analyses must be between 0 and 30')
+    if not 0 <= options.max_analyses <= MAX_ANALYSES_CAP:
+        raise ValueError(f'Maximum new analyses must be between 0 and {MAX_ANALYSES_CAP}')
+    if not 0 <= options.max_spend_usd <= MAX_SPEND_USD_CAP:
+        raise ValueError(f'Spending cap must be between 0 and {MAX_SPEND_USD_CAP} USD')
     Budget(max_requests=60, max_tokens=options.token_budget,
            max_spend_usd=options.max_spend_usd, usd_per_million_tokens=options.rate_ceiling)
     return options

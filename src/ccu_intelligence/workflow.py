@@ -15,7 +15,7 @@ import yaml
 from .budget import Budget
 from .collect import collect, registry
 from .editorial import SECTIONS, safe_text, validate_issue
-from .llm import PROMPT_VERSION, prompt_hash, run
+from .llm import PROMPT_VERSION, date_supported, prompt_hash, quote_supported, run
 from .models import Analysis, Evidence
 from .normalize import plain
 from .settings import load_environment
@@ -32,9 +32,31 @@ SOURCE_LIMITS = [
     ("crossref", 3),
     ("openalex", 3),
 ]
-CCU = re.compile(
-    r"\b(?:co2(?!\+)|carbon dioxide|ccu|ccus|carbon captur\w*|carbon minerali\w*|"
-    r"e-methanol|electrofuels?|power.to.liquid|direct air capture)\b",
+# CCU terms. Any match also exempts a headline from the unrelated-energy (OFF_TOPIC) rule below,
+# so CCU stories that mention solar, batteries or nuclear power are kept.
+CCU_TERMS = [
+    r"co2(?!\+)",  # also covers CO2 electrolysis, CO2 mineralization and CO2-derived materials
+    r"carbon.dioxide",
+    r"ccus?",
+    r"carbon captur\w*",
+    r"carbon minerali[sz]\w*",
+    r"direct air capture",
+    r"e-?methanol",
+    r"e-?kerosene",
+    r"e-fuels?",
+    r"electrofuels?",
+    r"synthetic fuels?",
+    r"solar fuels?",
+    r"power.to.(?:x|liquids?|gas|fuels?|methanol)",
+    r"ptx",
+]
+CCU = re.compile(r"\b(?:" + "|".join(CCU_TERMS) + r")\b", re.I)
+# Utilization context: generic carbon capture/storage, footprints and optical CO2 transitions are not CCU
+# by themselves. Fuel/material terms that only exist as CO2 utilization count as context on their own.
+CONVERSION = re.compile(
+    r"utili[sz]|convert|conversion|reduc(?:tion|e)|methanol|ethanol|ethylene|minerali[sz]|polyol|carbonate|"
+    r"electrofuel|electroly[sz]\w*|electroreduc\w*|electrosynthes\w*|(?:co2|carbon.dioxide).derived|"
+    r"from (?:co2|carbon.dioxide)|e-?kerosene|e-fuel|synthetic fuel|solar fuel|power.to.|ptx",
     re.I,
 )
 # Unrelated energy topics on specialist feeds (corporate news about adjacent assets) are not CCU leads.
@@ -44,12 +66,12 @@ EVENT = re.compile(
     r"delay\w*|cancel\w*|bankrupt\w*|investment decision|permit\w*)\b",
     re.I,
 )
-# Conservative peak cache-miss prices: upper estimate, not an invoice. Verified 2026-10-08.
+# Conservative peak cache-miss prices: upper estimate, not an invoice. Verified 2026-10-09.
 PRICING = {
     "input_usd_per_million": 0.30,
     "output_usd_per_million": 1.20,
     "source": "https://api-docs.deepseek.com/quick_start/pricing/",
-    "checked": "2026-10-08",
+    "checked": "2026-10-09",
     "basis": "Peak, all input charged as cache miss; conservative estimate",
 }
 
@@ -79,16 +101,24 @@ def triage(article, source, since, until):
     # Specialist company feeds admit project-only headlines, but never broad polymer news.
     matched = bool(CCU.search(text))
     specialist = source.source_id in {"liquid-wind", "dioxycle", "carbicrete"}
-    # Generic carbon capture/storage, footprints and optical CO2 transitions are not CCU by themselves.
-    conversion = bool(re.search(r"utili[sz]|convert|conversion|reduc(?:tion|e)|methanol|ethanol|ethylene|mineral|polyol|carbonate|electrofuel", text, re.I))
-    milestone = specialist and bool(EVENT.search(text)) and not (OFF_TOPIC.search(text) and not matched)
-    eligible = (matched and conversion) or milestone
+    conversion = bool(CONVERSION.search(text))
+    event = bool(EVENT.search(text))
+    if matched and conversion:
+        reason = "CCU topic"
+    elif specialist and event and OFF_TOPIC.search(text) and not matched:
+        reason = "specialist feed: unrelated energy topic"
+    elif specialist and event:
+        reason = "specialist milestone"
+    elif matched:
+        reason = "CCU term without utilization context"
+    else:
+        reason = "no CCU term" + (" or milestone keyword" if specialist else "")
     return {
-        "eligible": eligible,
-        "reason": "CCU topic / specialist milestone" if eligible else "no CCU topic",
+        "eligible": reason in ("CCU topic", "specialist milestone"),
+        "reason": reason,
         "kind": kind,
-        "event_lead": kind != "academic" and bool(EVENT.search(text)),
-        "priority": int(kind != "academic") * 2 + int(bool(EVENT.search(text))),
+        "event_lead": kind != "academic" and event,
+        "priority": int(kind != "academic") * 2 + int(event),
     }
 
 
@@ -112,7 +142,7 @@ def cache_key(article, kind, model, endpoint, max_tokens):
         "max_tokens": max_tokens,
         "temperature": 0,
         "thinking": "disabled",
-        "validation_version": 2,
+        "validation_version": 3,
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
@@ -127,17 +157,16 @@ def validate_cached(record, text, evidence_id):
     if result.proposed_events:
         raise ValueError("Cache cannot contain committed event records")
     for detail in [*result.technical_information, *result.economic_information, *result.milestone_proposals]:
-        if detail.quote not in text or len(detail.quote.split()) > 25:
+        if not quote_supported(detail.quote, text):
             raise ValueError("Cache contains unsupported extraction")
-        if hasattr(detail, 'event_date') and detail.event_date and str(detail.event_date) not in text:
+        if getattr(detail, "event_date", None) and not date_supported(detail.event_date, text):
             raise ValueError("Cache contains unsupported event date")
     for claim in result.claims:
         if (
             claim.kind == "verified_fact"
             or claim.reviewer
             or claim.reviewed_at
-            or claim.text not in text
-            or len(claim.text.split()) > 25
+            or not quote_supported(claim.text, text)
             or claim.evidence_ids != [evidence_id]
         ):
             raise ValueError("Cache contains unsupported claims")

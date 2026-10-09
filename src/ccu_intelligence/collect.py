@@ -47,7 +47,9 @@ class Fetcher:
         self.client = client or httpx.Client(
             timeout=30,
             follow_redirects=False,
-            headers={"User-Agent": "CCUIntelligence/0.1 (+public metadata research)"},
+            # Identify the bot with a contact URL. Avoid the word "research": co2value.eu's firewall returns 403
+            # to any User-Agent containing it (diagnosed 2026-10-09; robots.txt allows all agents).
+            headers={"User-Agent": "CCUIntelligence/0.1 (+https://rethinksci-gif.github.io/ccu-intelligence/)"},
         )
         self.last_request: dict[str, float] = {}
 
