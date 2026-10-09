@@ -57,6 +57,7 @@ Prompts are profile-style markdown in `config/prompts/profile/` (`match`, `analy
 - **Currency check:** "amount (other-currency amount)" pairs in the verified briefs are compared at fixed approximate reference rates (`src/ccu_intelligence/currency.py`); a gap above 20% becomes an editor note. Numbers are never corrected.
 - **Research cap:** at most 4 research papers in the conversion section (`research_caps`), ranked by score with full text counting half a point more than an abstract; the cap is never relaxed to reach the 10-story target. The rest go to "Also noted in research".
 - **Section intros** are plain sentences; citations stay with the items.
+- **Headline-only items** (`input_basis = headline`) are screened but never enriched, written up or used as takeaways. When a text-backed item in the run covers the same event (a duplicate or the same story), the story is written from it and the headline item is listed as "Also reported" under it; otherwise it is listed under "Also reported (headline only)" with headline and link (specialist sources: "CCU ecosystem briefs"; papers: "Also noted in research").
 
 ### Feeds and the daily GDELT cache
 
