@@ -3,7 +3,10 @@
 import hashlib
 import json
 import os
+import re
 import time
+import unicodedata
+from datetime import date
 from urllib.parse import urlsplit
 
 import httpx
@@ -24,7 +27,7 @@ TASKS = {
     "newsletter",
     "grounded",
 }
-PROMPT_VERSION = "grounded-v2"
+PROMPT_VERSION = "grounded-v4"
 
 
 def prompt(task: str) -> str:
@@ -42,13 +45,63 @@ def prompt_hash(task: str) -> str:
     return hashlib.sha256(prompt(task).encode()).hexdigest()
 
 
+# Typographic variants only; matching stays exact and case-sensitive after this normalization.
+_QUOTES = str.maketrans({"\u2018": "'", "\u2019": "'", "\u201a": "'", "\u201b": "'", "\u2032": "'",
+                         "\u201c": '"', "\u201d": '"', "\u201e": '"', "\u201f": '"', "\u2033": '"',
+                         "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2013": "-", "\u2014": "-",
+                         "\u2212": "-", "\u00ad": None})
+_MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september",
+           "october", "november", "december"]
+
+
+def normalize_text(text: str) -> str:
+    """NFKC, straight quotes/hyphens, no soft hyphens, single spaces."""
+    return re.sub(r"\s+", " ", unicodedata.normalize("NFKC", text).translate(_QUOTES)).strip()
+
+
+def _source_variants(text: str) -> set[str]:
+    # A hyphen at an actual line break may be a word-wrap (electro-\nchemical) or a real
+    # compound (CO2-\nderived); accept either reading, but only at line breaks.
+    wrapped = re.compile(r"(?<=\w)-[ \t]*\r?\n\s*(?=\w)")
+    text = unicodedata.normalize("NFKC", text).translate(_QUOTES)
+    return {normalize_text(wrapped.sub("-", text)), normalize_text(wrapped.sub("", text))}
+
+
+def quote_supported(quote: str, text: str, max_words: int = 25) -> bool:
+    quote = normalize_text(quote)
+    return bool(quote) and len(quote.split()) <= max_words and any(quote in v for v in _source_variants(text))
+
+
+def date_supported(value: date, text: str) -> bool:
+    """The exact event date must be written in the source: ISO, or with an English month name.
+
+    All-numeric forms other than ISO (09/10/2026, 10.09.2026) are day/month ambiguous and rejected.
+    """
+    text = normalize_text(text)
+    month = _MONTHS[value.month - 1]
+    names = {month, month[:3]} | ({"sept"} if value.month == 9 else set())
+    name = "(?:" + "|".join(sorted(names, key=len, reverse=True)) + r")\.?"
+    day = rf"0?{value.day}(?:st|nd|rd|th)?"
+    patterns = [
+        rf"(?<![\d-]){value.year}-{value.month:02d}-{value.day:02d}(?![\d-])",
+        rf"(?<!\d){day}\s+(?:of\s+)?{name}\s*,?\s+{value.year}(?!\d)",
+        rf"\b{name}\s+{day}\s*,?\s+{value.year}(?!\d)",
+    ]
+    return any(re.search(p, text, re.I) for p in patterns)
+
+
 def grounded_analysis(content: str, text: str, evidence_ids: list[str], source_kind: str) -> Analysis:
     proposal = GroundedProposal.model_validate_json(content)
     if not evidence_ids:
         raise ValueError("Grounded analysis needs evidence")
+    for detail in [*proposal.technical_information, *proposal.economic_information, *proposal.milestone_proposals]:
+        if not quote_supported(detail.quote, text):
+            raise ValueError("Unsupported extraction quotation")
+        if getattr(detail, "event_date", None) and not date_supported(detail.event_date, text):
+            raise ValueError("Event date must be written explicitly in the source; otherwise leave unknown")
     claims = []
     for index, quote in enumerate(proposal.quotes):
-        if not quote or quote not in text or len(quote.split()) > 25:
+        if not quote_supported(quote, text):
             raise ValueError("Unsupported source quotation")
         claims.append(
             Claim(
@@ -63,7 +116,10 @@ def grounded_analysis(content: str, text: str, evidence_ids: list[str], source_k
         relevant=proposal.relevant,
         domains=proposal.domains,
         claims=claims,
-        summary="Source-grounded screening; see evidence and separate AI interpretation.",
+        summary=proposal.draft_summary or "Source-grounded screening; see evidence and separate AI interpretation.",
+        technical_information=proposal.technical_information,
+        economic_information=proposal.economic_information,
+        milestone_proposals=proposal.milestone_proposals,
         technical_significance=proposal.technical_significance,
         industrial_implications=proposal.industrial_implications,
         uncertainty=proposal.uncertainty,

@@ -223,7 +223,22 @@ class Article(Record):
     sample: bool = False
 
 
+class GroundedDetail(Record):
+    text: str = Field(min_length=1, max_length=400)
+    quote: str = Field(min_length=1, max_length=500)
+    uncertainty: str = Field(min_length=1, max_length=300)
+
+
+class GroundedMilestone(GroundedDetail):
+    event_type: EventType
+    project_name: str | None = None
+    event_date: date | None = None
+
+
 class Analysis(Record):
+    technical_information: list[GroundedDetail] = Field(default_factory=list, max_length=3)
+    economic_information: list[GroundedDetail] = Field(default_factory=list, max_length=3)
+    milestone_proposals: list[GroundedMilestone] = Field(default_factory=list, max_length=3)
     scores: Scores | None = None
     relevant: bool
     domains: list[str]
@@ -320,6 +335,10 @@ class GroundedProposal(Record):
     validation remains authoritative after conversion to Analysis.
     """
 
+    draft_summary: str = Field(default="", max_length=700)
+    technical_information: list[GroundedDetail] = Field(default_factory=list, max_length=3)
+    economic_information: list[GroundedDetail] = Field(default_factory=list, max_length=3)
+    milestone_proposals: list[GroundedMilestone] = Field(default_factory=list, max_length=3)
     relevant: bool
     domains: list[str] = Field(max_length=4)
     quotes: list[str] = Field(max_length=2)

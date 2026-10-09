@@ -60,7 +60,8 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 1
-  limitation: Feed and robots verified 2026-10-08. Policy, CCU deployment and industry
+  limitation: Feed and robots verified 2026-10-08; WAF 403s User-Agents containing "research"
+    (fixed 2026-10-09). Policy, CCU deployment and industry
     coordination. Feed availability is not a completeness guarantee.
 - source_id: global-co2
   organization: Global CO2 Initiative
