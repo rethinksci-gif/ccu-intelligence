@@ -485,11 +485,12 @@ sources:
   update_frequency: biweekly on demand
   reliability_tier: 3
   reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
-  active: true
+  active: false
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. E-methanol projects and offtakes. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: Deactivated 2026-10-09. The server completes TCP/TLS but sends no HTTP response, even for robots.txt and
+    with a generic agent, from GitHub runners and a residential IP; unreadable robots.txt fails closed (RFC 9309). Re-enable
+    when it responds. Coverage moved to Carbon Herald (e-methanol, RFNBO) and GreenAir News (e-SAF, power-to-liquid).
 - source_id: news-esaf-h2central
   organization: "Hydrogen Central (site search: e-SAF)"
   source_type: news_search
@@ -503,11 +504,12 @@ sources:
   update_frequency: biweekly on demand
   reliability_tier: 3
   reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
-  active: true
+  active: false
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. E-SAF and e-kerosene projects. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: Deactivated 2026-10-09. The server completes TCP/TLS but sends no HTTP response, even for robots.txt and
+    with a generic agent, from GitHub runners and a residential IP; unreadable robots.txt fails closed (RFC 9309). Re-enable
+    when it responds. Coverage moved to Carbon Herald (e-methanol, RFNBO) and GreenAir News (e-SAF, power-to-liquid).
 - source_id: news-electrolysis-carbonherald
   organization: "Carbon Herald (site search: CO2 electrolysis)"
   source_type: news_search
@@ -539,11 +541,12 @@ sources:
   update_frequency: biweekly on demand
   reliability_tier: 3
   reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
-  active: true
+  active: false
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. CO2 electrolysis. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: Deactivated 2026-10-09. The server completes TCP/TLS but sends no HTTP response, even for robots.txt and
+    with a generic agent, from GitHub runners and a residential IP; unreadable robots.txt fails closed (RFC 9309). Re-enable
+    when it responds. Coverage moved to Carbon Herald (e-methanol, RFNBO) and GreenAir News (e-SAF, power-to-liquid).
 - source_id: news-mineralization-carbonherald
   organization: "Carbon Herald (site search: mineralization)"
   source_type: news_search
@@ -629,11 +632,84 @@ sources:
   update_frequency: biweekly on demand
   reliability_tier: 3
   reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: false
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: Deactivated 2026-10-09. The server completes TCP/TLS but sends no HTTP response, even for robots.txt and
+    with a generic agent, from GitHub runners and a residential IP; unreadable robots.txt fails closed (RFC 9309). Re-enable
+    when it responds. Coverage moved to Carbon Herald (e-methanol, RFNBO) and GreenAir News (e-SAF, power-to-liquid).
+- source_id: news-emethanol-carbonherald
+  organization: "Carbon Herald (site search: e-methanol)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=e-methanol&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. EU RFNBO and delegated-act policy. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. E-methanol projects and offtakes. Added 2026-10-09 to replace the
+    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
+- source_id: news-rfnbo-carbonherald
+  organization: "Carbon Herald (site search: RFNBO)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://carbonherald.com
+  access_method: rss
+  endpoint: 'https://carbonherald.com/?s=RFNBO&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. EU RFNBO policy and e-fuel offtakes. Added 2026-10-09 to replace the
+    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
+- source_id: news-esaf-greenair
+  organization: "GreenAir News (site search: e-SAF)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.greenairnews.com
+  access_method: rss
+  endpoint: 'https://www.greenairnews.com/?s=e-SAF&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. E-SAF projects, offtakes and mandates (robots.txt absent, so no restrictions). Added 2026-10-09 to replace the
+    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
+- source_id: news-ptl-greenair
+  organization: "GreenAir News (site search: power-to-liquid)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.greenairnews.com
+  access_method: rss
+  endpoint: 'https://www.greenairnews.com/?s=power-to-liquid&feed=rss2&orderby=date&order=DESC'
+  pages: 2
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: Trade-press article (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 3
+  limitation: WordPress search feed; robots verified 2026-10-09. Power-to-liquid aviation fuel projects and policy (robots.txt absent, so no restrictions). Added 2026-10-09 to replace the
+    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
 - source_id: news-45q-carbonherald
   organization: "Carbon Herald (site search: 45Q)"
   source_type: news_search
@@ -685,8 +761,8 @@ sources:
   reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
   active: true
   automated_access_approved: true
-  minimum_interval_seconds: 6
-  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). E-fuels, e-methanol and e-SAF projects. Returns
+  minimum_interval_seconds: 15
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested; we space requests 15 s apart). E-fuels, e-methanol and e-SAF projects. Returns
     publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
 - source_id: gdelt-co2-conversion
   organization: GDELT news search
@@ -703,8 +779,8 @@ sources:
   reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
   active: true
   automated_access_approved: true
-  minimum_interval_seconds: 6
-  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). CO2 electrolysis and CCU projects, FIDs and offtakes. Returns
+  minimum_interval_seconds: 15
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested; we space requests 15 s apart). CO2 electrolysis and CCU projects, FIDs and offtakes. Returns
     publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
 - source_id: gdelt-mineralization
   organization: GDELT news search
@@ -721,8 +797,8 @@ sources:
   reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
   active: true
   automated_access_approved: true
-  minimum_interval_seconds: 6
-  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). CO2 mineralization in concrete and building materials. Returns
+  minimum_interval_seconds: 15
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested; we space requests 15 s apart). CO2 mineralization in concrete and building materials. Returns
     publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
 - source_id: gdelt-policy
   organization: GDELT news search
@@ -739,8 +815,8 @@ sources:
   reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
   active: true
   automated_access_approved: true
-  minimum_interval_seconds: 6
-  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). EU RFNBO rules and US 45Q/45V policy. Returns
+  minimum_interval_seconds: 15
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested; we space requests 15 s apart). EU RFNBO rules and US 45Q/45V policy. Returns
     publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
 - source_id: govuk-search-ccu
   organization: GOV.UK search

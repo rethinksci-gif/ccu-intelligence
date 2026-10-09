@@ -7,7 +7,14 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from ccu_intelligence.pricing import roles
-from ccu_intelligence.workflow import MAX_ANALYSES_CAP, MAX_SPEND_USD_CAP, MAX_TOKEN_BUDGET, execute
+from ccu_intelligence.workflow import (
+    MAX_ENRICHMENTS_CAP,
+    MAX_REQUESTS_CAP,
+    MAX_SCREENINGS_CAP,
+    MAX_SPEND_USD_CAP,
+    MAX_TOKEN_BUDGET,
+    execute,
+)
 
 # Hard per-run ceilings live in workflow.py; dispatch inputs may only lower them.
 
@@ -40,13 +47,16 @@ def configuration():
     options = argparse.Namespace(
         since=since, until=until, scheduled_publication=None,
         output=Path('data/runtime/deepseek-research') / mode / str(until + timedelta(days=1)),
-        max_analyses=int(os.getenv('MAX_ANALYSES', str(MAX_ANALYSES_CAP))), max_requests=200,
+        max_screenings=int(os.getenv('MAX_SCREENINGS', str(MAX_SCREENINGS_CAP))),
+        max_enrichments=int(os.getenv('MAX_ENRICHMENTS', str(MAX_ENRICHMENTS_CAP))), max_requests=MAX_REQUESTS_CAP,
         token_budget=int(os.getenv('TOKEN_BUDGET', '2000000')),
         max_spend_usd=float(os.getenv('MAX_SPEND_USD', str(MAX_SPEND_USD_CAP))),
         source_limit=None, allow_paid=paid, dry_run=not paid,
     )
-    if not 0 <= options.max_analyses <= MAX_ANALYSES_CAP:
-        raise ValueError(f'Maximum new analyses must be between 0 and {MAX_ANALYSES_CAP}')
+    if not 0 <= options.max_screenings <= MAX_SCREENINGS_CAP:
+        raise ValueError(f'Maximum new screenings must be between 0 and {MAX_SCREENINGS_CAP}')
+    if not 0 <= options.max_enrichments <= MAX_ENRICHMENTS_CAP:
+        raise ValueError(f'Maximum enrichments must be between 0 and {MAX_ENRICHMENTS_CAP}')
     if not math.isfinite(options.max_spend_usd) or not 0 <= options.max_spend_usd <= MAX_SPEND_USD_CAP:
         raise ValueError(f'Spending cap must be between 0 and {MAX_SPEND_USD_CAP} USD')
     if not 1 <= options.token_budget <= MAX_TOKEN_BUDGET:
