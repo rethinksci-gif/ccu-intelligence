@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-10-09T06:22:27.193807+00:00",
+  "draft_validation": "pass",
+  "publication_validation": {
+    "ready": false,
+    "error": "Publication requires a reviewer and cannot contain samples"
+  },
+  "publication_probe": "Temporary copy changes only editorial_status to published. No reviewer/checklist bypasses; committed draft unchanged.",
+  "coverage_days": 14,
+  "body_words": 1278,
+  "all_seven_sections": true,
+  "candidate_articles": 1,
+  "eligible_curated_selected_articles": 0,
+  "required_articles": "4–6",
+  "executive_signal_ids": 1,
+  "required_signals": 3,
+  "selected_events": 0,
+  "required_events": "2–3",
+  "watch_milestones": 0,
+  "required_watch_milestones": 3,
+  "reality_check_fields_complete": true,
+  "candidate_evidence_urls": 1,
+  "source_count": 1,
+  "human_approval_present": false,
+  "publication_date": null,
+  "blocking_findings": [
+    "Only one metadata-supported review preprint; no selected article is human-reviewed or present in the curated publication bundle. Requires 4–6 eligible in-window developments.",
+    "Only one executive_signal_id; three distinct eligible developments are required.",
+    "No 2–3 evidence-backed project events with in-window reporting dates.",
+    "Editorial verification deadlines are not the required three supported, falsifiable project milestones; watch_milestones remains empty.",
+    "Human reviewer metadata, the five review approvals and a real publication date remain unset."
+  ]
+}

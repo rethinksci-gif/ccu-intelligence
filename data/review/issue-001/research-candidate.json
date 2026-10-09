@@ -11,13 +11,25 @@
       "retrieved_at": "2026-10-09T06:05:58.560132Z",
       "doi": "10.26434/chemrxiv.15009603/v1",
       "content_fingerprint": "3370459797b5e6ea61abf1f2467c54d75a4d274cfd6887dcd42ccdec200371ab",
-      "summary": "",
+      "summary": "Crossref registers a review preprint about cobalt-phthalocyanine-mediated CO2/CO reduction to methanol, posted 29 September 2026. No new experimental or industrial performance result is established here.",
       "organization_ids": [],
       "domains": [
         "conversion",
         "products"
       ],
-      "claims": [],
+      "claims": [
+        {
+          "claim_id": "issue-001-bibliographic-scope",
+          "text": "Crossref registers a review preprint about cobalt-phthalocyanine-mediated CO2/CO reduction to methanol, posted 29 September 2026. No new experimental or industrial performance result is established here.",
+          "kind": "unverified_information",
+          "evidence_ids": [
+            "issue-001-crossref-preprint-metadata"
+          ],
+          "uncertainty": "Classification and posting date checked against original Crossref metadata and deposited abstract. Full text returned HTTP 403. Peer-reviewed successor and performance claims are not verified; human editorial approval is pending.",
+          "reviewer": null,
+          "reviewed_at": null
+        }
+      ],
       "scores": {
         "industrial_relevance": 2,
         "technical_significance": 3,
@@ -39,7 +51,21 @@
       "editorial_status": "candidate",
       "technical_significance": null,
       "industrial_implications": null,
-      "uncertainty": "Source metadata alone does not establish industrial readiness.",
+      "uncertainty": "Classification and posting date checked against original Crossref metadata and deposited abstract. Full text returned HTTP 403. Peer-reviewed successor and performance claims are not verified; human editorial approval is pending.",
+      "sample": false
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "issue-001-crossref-preprint-metadata",
+      "source_id": "crossref",
+      "url": "https://api.crossref.org/works/10.26434/chemrxiv.15009603/v1",
+      "retrieved_at": "2026-10-09T06:22:03.914905+00:00",
+      "publication_date": "2026-09-29",
+      "locator": "message.title, message.type, message.subtype, message.posted, message.published and message.abstract",
+      "excerpt": "Original metadata identifies posted content, subtype preprint, dated 29 September 2026. The deposited abstract describes a literature review of CoPc-mediated CO2 and CO reduction, not a new experimental demonstration.",
+      "content_sha256": "a3013126d2db474a9e76dab85fabadb8d5ccba5a39f9464dc5d4808ddee73f29",
+      "license_note": "Bibliographic metadata and original paraphrase only; deposited abstract and full article are not redistributed.",
       "sample": false
     }
   ]

@@ -84,5 +84,6 @@
         "proposed_events": []
       }
     }
-  ]
+  ],
+  "interpretation_notice": "Historical model screening of short supplied excerpts only. Validated means the model output passed schema/quotation checks, not factual or human editorial approval. Absence from an excerpt does not establish absence from the original page. No new model call was made for factual review."
 }
