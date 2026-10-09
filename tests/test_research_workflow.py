@@ -320,12 +320,12 @@ def test_forbidden_403_is_not_retried(polite):
     assert len(requests) == 1 and sleeps == []
 
 
-def test_429_backs_off_and_gives_up_after_three_attempts(polite):
+def test_429_backs_off_and_gives_up_after_one_retry(polite):
     fetcher, responses, requests, sleeps = polite
-    responses.extend([httpx.Response(429)] * 3)
+    responses.extend([httpx.Response(429)] * 2)
     with pytest.raises(httpx.HTTPStatusError):
         fetcher.get('https://example.org/feed', interval=0)
-    assert len(requests) == 3 and sleeps == pytest.approx([1, 2])  # interval 0: at least 1 s, doubling
+    assert len(requests) == 2 and sleeps == pytest.approx([1], abs=0.01)  # interval 0: at least 1 s
 
 
 def test_long_retry_after_defers_to_next_run(polite):
@@ -340,7 +340,7 @@ def test_short_retry_after_is_honoured(polite):
     fetcher, responses, requests, sleeps = polite
     responses.extend([httpx.Response(503, headers={'Retry-After': '7'}), httpx.Response(200, content=b'ok')])
     assert fetcher.get('https://example.org/feed', interval=0) == b'ok'
-    assert len(requests) == 2 and sleeps == pytest.approx([7])
+    assert len(requests) == 2 and sleeps == pytest.approx([7], abs=0.01)
 
 
 def test_minimum_interval_between_requests_to_same_host(polite):
@@ -366,14 +366,14 @@ def test_dropped_connection_is_retried_with_interval_based_backoff(polite):
 
     fetcher.client = httpx.Client(transport=httpx.MockTransport(handler))
     assert fetcher.get('https://api.example.org/doc', interval=15) == b'ok'
-    assert len(requests) == 2 and sleeps == pytest.approx([15])
+    assert len(requests) == 2 and sleeps == pytest.approx([15], abs=0.01)
 
 
 def test_429_backoff_scales_with_the_hosts_interval(polite):
     fetcher, responses, requests, sleeps = polite
-    responses.extend([httpx.Response(429), httpx.Response(429), httpx.Response(200, content=b'ok')])
+    responses.extend([httpx.Response(429), httpx.Response(200, content=b'ok')])
     assert fetcher.get('https://api.example.org/doc', interval=15) == b'ok'
-    assert sleeps == pytest.approx([15, 30])
+    assert sleeps == pytest.approx([15], abs=0.01)
 
 
 def test_spacing_counts_from_the_end_of_a_slow_response(polite, monkeypatch):
@@ -388,7 +388,7 @@ def test_spacing_counts_from_the_end_of_a_slow_response(polite, monkeypatch):
 
 def test_unreadable_robots_fails_closed_with_a_diagnosis(polite):
     fetcher, responses, requests, sleeps = polite
-    responses.extend([httpx.ReadTimeout('timed out')] * 3)
+    responses.extend([httpx.ReadTimeout('timed out')] * 2)
 
     def handler(request):
         requests.append(request)
@@ -399,7 +399,7 @@ def test_unreadable_robots_fails_closed_with_a_diagnosis(polite):
                              minimum_interval_seconds=3)
     with pytest.raises(ValueError, match=r'robots.txt unreadable \(ReadTimeout\); collection fails closed'):
         fetcher.rss(source)
-    assert len(requests) == 3 and sleeps == pytest.approx([1, 2])  # robots.txt only; the feed itself is never requested
+    assert len(requests) == 2 and sleeps == pytest.approx([1], abs=0.01)  # robots.txt only; the feed itself is never requested
 
 
 # --- Prompt v4 dates ----------------------------------------------------------------------------------

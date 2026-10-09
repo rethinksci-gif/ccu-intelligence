@@ -807,7 +807,9 @@ sources:
   base_url: https://www.gdeltproject.org
   access_method: gdelt
   endpoint: https://api.gdeltproject.org/api/v2/doc/doc
-  query: '("RFNBO" OR "45Q" OR "45V" OR "renewable fuels of non-biological origin")'
+  # GDELT rejects quoted phrases shorter than four characters ("The specified phrase is too short."), so 45Q and 45V
+  # are searched with their context words (diagnosed 2026-10-09; the old query failed in every run).
+  query: '("RFNBO" OR "RFNBOs" OR "renewable fuels of non-biological origin" OR "45Q tax credit" OR "45V tax credit" OR "ReFuelEU")'
   run_limit: 10
   content_extractor: trafilatura
   update_frequency: biweekly on demand
