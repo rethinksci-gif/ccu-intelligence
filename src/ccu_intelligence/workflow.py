@@ -272,11 +272,15 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
               for s in sources.values() if s.run_limit and s.active and s.automated_access_approved]
     collection_file = args.output / "collection.json"
     collection = json.loads(collection_file.read_text()) if collection_file.exists() else {}
-    for source_id, limit in limits:
-        if source_id not in collection:
-            collection[source_id] = collect(store, args.since, args.until, source_id, limit,
-                                            '"carbon dioxide" utilization')
-            atomic_json(collection_file, collection)
+    shared = Fetcher()
+    try:
+        for source_id, limit in limits:
+            if source_id not in collection:
+                collection[source_id] = collect(store, args.since, args.until, source_id, limit,
+                                                '"carbon dioxide" utilization', fetcher=shared)
+                atomic_json(collection_file, collection)
+    finally:
+        shared.client.close()
     bundle = store.bundle()
     atomic_json(args.output / "bundle.json", bundle.model_dump(mode="json"))
     if len(bundle.articles) > sum(limit for _, limit in limits):

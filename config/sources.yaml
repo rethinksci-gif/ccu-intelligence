@@ -670,3 +670,93 @@ sources:
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09. E-fuels and power-to-liquid. Replaces Google News RSS, whose robots.txt
     disallows /rss/search for all agents.
+- source_id: gdelt-efuels
+  organization: GDELT news search
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.gdeltproject.org
+  access_method: gdelt
+  endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+  query: '("e-methanol" OR "e-fuels" OR "e-SAF" OR "e-kerosene" OR "power-to-liquid" OR "synthetic methanol")'
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 6
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). E-fuels, e-methanol and e-SAF projects. Returns
+    publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
+- source_id: gdelt-co2-conversion
+  organization: GDELT news search
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.gdeltproject.org
+  access_method: gdelt
+  endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+  query: '("CO2 electrolysis" OR "carbon utilization" OR "carbon utilisation" OR "CO2 utilization" OR "CO2 conversion" OR "carbon capture and utilization")'
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 6
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). CO2 electrolysis and CCU projects, FIDs and offtakes. Returns
+    publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
+- source_id: gdelt-mineralization
+  organization: GDELT news search
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.gdeltproject.org
+  access_method: gdelt
+  endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+  query: '("CO2 mineralization" OR "carbon mineralization" OR "CO2 mineralisation" OR "carbonated aggregate" OR "CO2-cured concrete")'
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 6
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). CO2 mineralization in concrete and building materials. Returns
+    publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
+- source_id: gdelt-policy
+  organization: GDELT news search
+  source_type: news_search
+  evidence_role: news
+  base_url: https://www.gdeltproject.org
+  access_method: gdelt
+  endpoint: https://api.gdeltproject.org/api/v2/doc/doc
+  query: '("RFNBO" OR "45Q" OR "45V" OR "renewable fuels of non-biological origin")'
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 3
+  reuse_restrictions: News article found through GDELT (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 6
+  limitation: GDELT DOC 2.0 API (open data; robots.txt absent; one request per 5 s requested). EU RFNBO rules and US 45Q/45V policy. Returns
+    publisher URLs; dates are when GDELT first saw the article. Best effort, may return HTTP 429.
+- source_id: govuk-search-ccu
+  organization: GOV.UK search
+  source_type: government
+  base_url: https://www.gov.uk
+  access_method: govuk_search
+  endpoint: https://www.gov.uk/api/search.json
+  query: carbon capture utilisation
+  run_limit: 10
+  content_extractor: trafilatura
+  update_frequency: biweekly on demand
+  reliability_tier: 1
+  reuse_restrictions: GOV.UK Open Government Licence except identified third-party material; retain attribution and
+    original links.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 1
+  limitation: GOV.UK search API with a publication-date filter; robots verified 2026-10-09. Relevance-ranked, so
+    the analysis gate decides.

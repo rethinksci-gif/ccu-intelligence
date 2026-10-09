@@ -773,3 +773,62 @@ def test_wordpress_feed_pages_stop_once_before_the_window(monkeypatch, tmp_path)
         assert [a.title for a in store.articles()] == ["In window"]
     finally:
         store.close()
+
+
+def test_gdelt_and_govuk_parsers():
+    from ccu_intelligence.collect import gdelt_items, govuk_items
+
+    gdelt = json.dumps({"articles": [{"title": "Port e-methanol plant", "url": "https://news.example/x",
+                                      "seendate": "20260927T101500Z"}, {"title": "No date", "url": "https://n.example/y"}]})
+    assert gdelt_items(gdelt.encode()) == [
+        {"title": "Port e-methanol plant", "url": "https://news.example/x", "publication_date": "2026-09-27",
+         "summary": ""},
+        {"title": "No date", "url": "https://n.example/y", "publication_date": None, "summary": ""}]
+    govuk = json.dumps({"results": [{"title": "UK carbon management challenge", "link": "/government/x",
+                                     "public_timestamp": "2026-09-14T10:00:00Z", "description": "Funding."}]})
+    assert govuk_items(govuk.encode())[0]["url"] == "https://www.gov.uk/government/x"
+
+
+def test_bot_challenge_page_is_logged_not_bypassed(monkeypatch, tmp_path):
+    from ccu_intelligence.collect import collect
+    from ccu_intelligence.store import Store
+
+    monkeypatch.chdir(tmp_path)
+    shutil.copytree(ROOT / "config", "config")
+    sources = yaml.safe_load((ROOT / "config/sources.yaml").read_text())["sources"]
+    Path("config/sources.yaml").write_text(yaml.safe_dump({"sources": [
+        s for s in sources if s["source_id"] in ("news-utilization-carbonherald", "news-45q-carbonherald")]}))
+    requests = []
+
+    def fetch(self, url, **kw):
+        requests.append(url)
+        if url.endswith("/robots.txt"):
+            return Fetched(200, httpx.Headers({}), b"User-agent: *\nAllow: /\n", url)
+        return Fetched(202, httpx.Headers({"content-type": "text/html"}),
+                       b"<html><meta http-equiv='refresh' content='0;/.well-known/sgcaptcha/'></html>", url)
+
+    monkeypatch.setattr(Fetcher, "fetch", fetch)
+    store = Store(tmp_path / "s.sqlite")
+    try:
+        shared = Fetcher()
+        for sid in ("news-utilization-carbonherald", "news-45q-carbonherald"):
+            counts = collect(store, date(2026, 9, 14), date(2026, 9, 27), sid, 10, fetcher=shared)
+            assert counts["failed"] == 1
+            assert counts["errors"] == ["non-feed response (possible bot challenge; not bypassed)"]
+        # One feed request per source, no retries or challenge-solving, and robots.txt fetched once per run.
+        assert sum(u.endswith("/robots.txt") for u in requests) == 1 and len(requests) == 3
+        assert not any("sgcaptcha" in u for u in requests)
+    finally:
+        store.close()
+
+
+def test_retries_never_run_faster_than_the_polite_interval(monkeypatch):
+    sleeps, replies = [], [httpx.Response(429), httpx.Response(200, content=b"ok")]
+    monkeypatch.setattr("ccu_intelligence.collect.public_url", lambda url: None)
+    monkeypatch.setattr("ccu_intelligence.collect.time.sleep", sleeps.append)
+    fetcher = Fetcher(client=httpx.Client(transport=httpx.MockTransport(lambda r: replies.pop(0))))
+    try:
+        assert fetcher.get("https://api.example/doc", interval=6) == b"ok"
+        assert sleeps[0] >= 6  # back-off after the 429 (later sleeps are ordinary host spacing)
+    finally:
+        fetcher.client.close()

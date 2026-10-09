@@ -55,7 +55,9 @@ Prompts are profile-style markdown in `config/prompts/profile/` (`match`, `analy
 
 ### Why no Google News
 
-Google News RSS search (`news.google.com/rss/search`) is disallowed for all user agents by its robots.txt and its feed terms restrict use to personal feed readers, so it conflicts with this project's robots policy. The targeted searches use WordPress search feeds on trade-press sites whose robots.txt permits access (Carbon Herald, Hydrogen Central, Biofuels International), with date-ordered paging until the coverage window is reached, plus the Federal Register API. The GDELT DOC API was evaluated but returned HTTP 429 to single requests spaced well beyond its 5-second guidance.
+Google News RSS search (`news.google.com/rss/search`) is disallowed for all user agents by its robots.txt and its feed terms restrict use to personal feed readers, so it conflicts with this project's robots policy. The targeted searches instead use the GDELT DOC 2.0 API (open data, publisher URLs, date-bounded to the window; one request per 6 s, best effort because it may answer HTTP 429), WordPress search feeds on trade-press sites whose robots.txt permits access (Carbon Herald, Hydrogen Central, Biofuels International; date-ordered paging until the window is reached), the Federal Register API and the GOV.UK search API.
+
+Some trade-press sites serve an anti-bot challenge page instead of the feed to datacenter IPs such as GitHub-hosted runners (seen 2026-10-09 for Carbon Herald and CO2 Value Europe; Hydrogen Central timed out). These are logged as `non-feed response (possible bot challenge; not bypassed)` and never circumvented; the run continues with the other sources.
 
 ### Activation
 
