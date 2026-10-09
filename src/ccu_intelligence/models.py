@@ -3,6 +3,7 @@
 from datetime import date, datetime
 from enum import StrEnum
 from typing import Any, Literal
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
@@ -87,7 +88,10 @@ class Source(Record):
     source_type: str
     base_url: HttpUrl
     access_method: Literal["crossref", "openalex", "rss", "federal_register", "gdelt", "govuk_search", "manual",
-                           "editor_list"]
+                           "editor_list", "google_news"]
+    # Documented owner decision to read a feed whose robots.txt disallows us (Google News RSS search only; see
+    # docs/operational-status.md). Article pages are still fetched only where their own robots.txt allows.
+    robots_exception: str | None = None
     endpoint: HttpUrl | None = None
     update_frequency: str
     reliability_tier: Literal[1, 2, 3]
@@ -108,6 +112,15 @@ class Source(Record):
     pages: int = Field(default=1, ge=1, le=25)  # WordPress feed pages (?paged=N); paging stops at the window start
     # Broad feeds: only items whose title or summary matches this case-insensitive regex count toward run_limit.
     include_pattern: str | None = None
+
+    @model_validator(mode="after")
+    def robots_exception_is_scoped(self):
+        if self.robots_exception and (self.access_method != "google_news"
+                                      or urlsplit(str(self.endpoint)).hostname != "news.google.com"):
+            raise ValueError("robots_exception is only allowed for the Google News RSS search source")
+        if self.access_method == "google_news" and not self.robots_exception:
+            raise ValueError("Google News RSS search requires a documented robots_exception")
+        return self
 
 
 class Project(Record):

@@ -472,8 +472,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. E-fuels, e-methanol and e-SAF projects. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. E-fuels, e-methanol and e-SAF projects.
 - source_id: news-emethanol-h2central
   organization: "Hydrogen Central (site search: e-methanol)"
   source_type: news_search
@@ -528,8 +527,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. CO2 electrolysis. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. CO2 electrolysis.
 - source_id: news-electrolysis-h2central
   organization: "Hydrogen Central (site search: CO2 electrolysis)"
   source_type: news_search
@@ -565,8 +563,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. CO2 mineralization. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. CO2 mineralization.
 - source_id: news-concrete-carbonherald
   organization: "Carbon Herald (site search: concrete)"
   source_type: news_search
@@ -583,8 +580,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. CO2 in concrete and building materials. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. CO2 in concrete and building materials.
 - source_id: news-utilization-carbonherald
   organization: "Carbon Herald (site search: utilization)"
   source_type: news_search
@@ -601,8 +597,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. CCU projects, FIDs, financing and offtakes. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. CCU projects, FIDs, financing and offtakes.
 - source_id: news-offtake-carbonherald
   organization: "Carbon Herald (site search: offtake)"
   source_type: news_search
@@ -619,8 +614,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. Offtakes and financing (gate keeps only CCU). Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. Offtakes and financing (gate keeps only CCU).
 - source_id: news-rfnbo-h2central
   organization: "Hydrogen Central (site search: RFNBO)"
   source_type: news_search
@@ -657,7 +651,7 @@ sources:
   automated_access_approved: true
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09. E-methanol projects and offtakes. Added 2026-10-09 to replace the
-    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
+    unresponsive Hydrogen Central search feeds.
 - source_id: news-rfnbo-carbonherald
   organization: "Carbon Herald (site search: RFNBO)"
   source_type: news_search
@@ -675,7 +669,7 @@ sources:
   automated_access_approved: true
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09. EU RFNBO policy and e-fuel offtakes. Added 2026-10-09 to replace the
-    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
+    unresponsive Hydrogen Central search feeds.
 - source_id: news-esaf-greenair
   organization: "GreenAir News (site search: e-SAF)"
   source_type: news_search
@@ -693,7 +687,7 @@ sources:
   automated_access_approved: true
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09. E-SAF projects, offtakes and mandates (robots.txt absent, so no restrictions). Added 2026-10-09 to replace the
-    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
+    unresponsive Hydrogen Central search feeds.
 - source_id: news-ptl-greenair
   organization: "GreenAir News (site search: power-to-liquid)"
   source_type: news_search
@@ -711,7 +705,7 @@ sources:
   automated_access_approved: true
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09. Power-to-liquid aviation fuel projects and policy (robots.txt absent, so no restrictions). Added 2026-10-09 to replace the
-    unresponsive Hydrogen Central search feeds (Google News RSS stays excluded because its robots.txt disallows /rss/search).
+    unresponsive Hydrogen Central search feeds.
 - source_id: news-45q-carbonherald
   organization: "Carbon Herald (site search: 45Q)"
   source_type: news_search
@@ -728,8 +722,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. US 45Q/45V and CO2 transport policy. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. US 45Q/45V and CO2 transport policy.
 - source_id: news-efuel-biofuels
   organization: "Biofuels International (site search: e-fuel)"
   source_type: news_search
@@ -746,8 +739,7 @@ sources:
   active: true
   automated_access_approved: true
   minimum_interval_seconds: 3
-  limitation: WordPress search feed; robots verified 2026-10-09. E-fuels and power-to-liquid. Replaces Google News RSS, whose robots.txt
-    disallows /rss/search for all agents.
+  limitation: WordPress search feed; robots verified 2026-10-09. E-fuels and power-to-liquid.
 - source_id: ineratec
   organization: INERATEC
   source_type: company_announcements_and_annual_reports
@@ -926,6 +918,78 @@ sources:
   automated_access_approved: true
   minimum_interval_seconds: 3
   limitation: WordPress search feed; robots verified 2026-10-09.
+- source_id: google-news-efuels
+  organization: "Google News search (e-fuels)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://news.google.com
+  access_method: google_news
+  endpoint: https://news.google.com/rss/search
+  query: '("e-methanol" OR "e-fuels" OR "e-SAF" OR "e-kerosene" OR "power-to-liquid" OR "synthetic methanol")'
+  run_limit: 15
+  content_extractor: trafilatura
+  update_frequency: research runs only
+  reliability_tier: 3
+  reuse_restrictions: Headline and link from Google News; the article belongs to its publisher (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 10
+  robots_exception: Owner decision 2026-10-09 for this personal, non-commercial learning project. news.google.com/robots.txt disallows /rss/search for all agents; we read one feed per query per research run with our honest User-Agent, titles and links only. Article text is fetched only from the publisher, under its robots.txt. See docs/operational-status.md.
+  limitation: Supplements the GDELT query of the same topic. Google News links are encoded redirects that are not followed; the article is looked up on the publisher's own site (WordPress search feed, robots permitting). Unresolved items stay headline-only leads labelled "via Google News".
+- source_id: google-news-co2-conversion
+  organization: "Google News search (CO2 conversion)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://news.google.com
+  access_method: google_news
+  endpoint: https://news.google.com/rss/search
+  query: '("CO2 electrolysis" OR "carbon utilization" OR "carbon utilisation" OR "CO2 utilization" OR "CO2 conversion" OR "carbon capture and utilization")'
+  run_limit: 15
+  content_extractor: trafilatura
+  update_frequency: research runs only
+  reliability_tier: 3
+  reuse_restrictions: Headline and link from Google News; the article belongs to its publisher (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 10
+  robots_exception: Owner decision 2026-10-09 for this personal, non-commercial learning project. news.google.com/robots.txt disallows /rss/search for all agents; we read one feed per query per research run with our honest User-Agent, titles and links only. Article text is fetched only from the publisher, under its robots.txt. See docs/operational-status.md.
+  limitation: Supplements the GDELT query of the same topic. Google News links are encoded redirects that are not followed; the article is looked up on the publisher's own site (WordPress search feed, robots permitting). Unresolved items stay headline-only leads labelled "via Google News".
+- source_id: google-news-mineralization
+  organization: "Google News search (mineralization)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://news.google.com
+  access_method: google_news
+  endpoint: https://news.google.com/rss/search
+  query: '("CO2 mineralization" OR "carbon mineralization" OR "CO2 mineralisation" OR "carbonated aggregate" OR "CO2-cured concrete")'
+  run_limit: 15
+  content_extractor: trafilatura
+  update_frequency: research runs only
+  reliability_tier: 3
+  reuse_restrictions: Headline and link from Google News; the article belongs to its publisher (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 10
+  robots_exception: Owner decision 2026-10-09 for this personal, non-commercial learning project. news.google.com/robots.txt disallows /rss/search for all agents; we read one feed per query per research run with our honest User-Agent, titles and links only. Article text is fetched only from the publisher, under its robots.txt. See docs/operational-status.md.
+  limitation: Supplements the GDELT query of the same topic. Google News links are encoded redirects that are not followed; the article is looked up on the publisher's own site (WordPress search feed, robots permitting). Unresolved items stay headline-only leads labelled "via Google News".
+- source_id: google-news-policy
+  organization: "Google News search (e-fuel policy)"
+  source_type: news_search
+  evidence_role: news
+  base_url: https://news.google.com
+  access_method: google_news
+  endpoint: https://news.google.com/rss/search
+  query: '("RFNBO" OR "RFNBOs" OR "renewable fuels of non-biological origin" OR "45Q tax credit" OR "45V tax credit" OR "ReFuelEU")'
+  run_limit: 15
+  content_extractor: trafilatura
+  update_frequency: research runs only
+  reliability_tier: 3
+  reuse_restrictions: Headline and link from Google News; the article belongs to its publisher (news report, never primary evidence). Private evidence only; publish original links and short attributed paraphrases. No full-text redistribution.
+  active: true
+  automated_access_approved: true
+  minimum_interval_seconds: 10
+  robots_exception: Owner decision 2026-10-09 for this personal, non-commercial learning project. news.google.com/robots.txt disallows /rss/search for all agents; we read one feed per query per research run with our honest User-Agent, titles and links only. Article text is fetched only from the publisher, under its robots.txt. See docs/operational-status.md.
+  limitation: Supplements the GDELT query of the same topic. Google News links are encoded redirects that are not followed; the article is looked up on the publisher's own site (WordPress search feed, robots permitting). Unresolved items stay headline-only leads labelled "via Google News".
 - source_id: editor-submitted-company
   organization: "Editor-submitted (company announcements)"
   source_type: company_announcements_and_annual_reports

@@ -1339,3 +1339,71 @@ def test_broad_feed_items_must_match_the_include_pattern(gdelt_workspace, monkey
     counts = collect(Store(Path("data/runtime/t.sqlite")), date(2026, 9, 25), date(2026, 10, 8),
                      "news-chemengonline", 10)
     assert counts["added"] == 1 and counts["filtered_out"] == 1
+
+
+# --- Google News: documented robots exception, research runs only --------------------------------------
+
+def google_feed(*items):
+    body = "".join(f"<item><title>{t} - {pub}</title><link>https://news.google.com/rss/articles/CBMiAU_yqL{n}?oc=5</link>"
+                   f"<pubDate>{d}</pubDate><source url=\"{home}\">{pub}</source></item>"
+                   for n, (t, d, pub, home) in enumerate(items))
+    return f"<rss><channel>{body}</channel></rss>".encode()
+
+
+def test_robots_exception_is_only_valid_for_google_news():
+    from ccu_intelligence.models import Source
+    base = yaml.safe_load((ROOT / "config/sources.yaml").read_text())["sources"]
+    google = next(s for s in base if s["source_id"] == "google-news-efuels")
+    Source.model_validate(google)
+    with pytest.raises(ValueError, match="documented robots_exception"):
+        Source.model_validate(google | {"robots_exception": None})
+    other = next(s for s in base if s["source_id"] == "news-chemengonline")
+    with pytest.raises(ValueError, match="only allowed for the Google News"):
+        Source.model_validate(other | {"robots_exception": "no"})
+    with pytest.raises(ValueError, match="only allowed for the Google News"):
+        Source.model_validate(google | {"endpoint": "https://example.org/rss/search"})
+
+
+def test_google_news_runs_only_when_a_research_run_enables_it(gdelt_workspace, monkeypatch):
+    from ccu_intelligence.collect import collect
+    from ccu_intelligence.store import Store
+    requests = []
+    monkeypatch.setattr(Fetcher, "fetch", lambda self, url, **kw: requests.append(url))
+    Path("data/runtime").mkdir(parents=True, exist_ok=True)
+    collect(Store(Path("data/runtime/t.sqlite")), date(2026, 9, 25), date(2026, 10, 8), "google-news-efuels", 15)
+    assert requests == []
+    for name in ("LLM_MODEL", "LLM_SCREENING_MODEL", "MAX_SCREENINGS", "MAX_ENRICHMENTS", "COVERAGE_END"):
+        monkeypatch.delenv(name, raising=False)
+    assert entrypoint().configuration().google_news is True
+
+
+def test_google_news_items_use_the_publisher_url_and_never_follow_google_links(research):
+    args, stages, web = research
+    args.google_news = True
+    sources = yaml.safe_load(Path("config/sources.yaml").read_text())["sources"]
+    base = {s["source_id"]: s for s in yaml.safe_load((ROOT / "config/sources.yaml").read_text())["sources"]}
+    Path("config/sources.yaml").write_text(yaml.safe_dump({"sources": sources + [base["google-news-efuels"]]}))
+    SCREEN["E-methanol plant"] = dict(ccu_relevant=True, score=6, category="commercialization")
+    day = "Mon, 21 Sep 2026 09:00:00 GMT"
+    web.disallow = ("blocked.example", "news.google.com")
+    web.routes["https://news.google.com/rss/search"] = (200, "application/rss+xml", google_feed(
+        ("E-methanol plant reaches FID", day, "Pub Example", "https://pub.example"),
+        ("E-methanol plant starts construction", day, "Other Example", "https://other.example"),
+        ("E-methanol plant from August", "Mon, 31 Aug 2026 09:00:00 GMT", "Pub Example", "https://pub.example")))
+    web.routes["https://pub.example/?s="] = (200, "application/rss+xml", rss(
+        ("E-methanol plant reaches FID", "https://pub.example/fid", day, "")))
+    web.routes["https://pub.example/fid"] = (200, "text/html", page(long_text(
+        "The e-methanol plant reached a final investment decision on 21 September 2026.")))
+    report = execute(args)
+    by_title = records(report)
+    resolved, unresolved = by_title["E-methanol plant reaches FID"], by_title["E-methanol plant starts construction"]
+    assert resolved["url"] == "https://pub.example/fid" and resolved["input"]["basis"] == "full_text"
+    assert resolved["source_name"] == "pub.example"
+    assert unresolved["url"].startswith("https://news.google.com/") and unresolved["input"]["basis"] == "headline"
+    assert unresolved["source_name"] == "Other Example (via Google News)"
+    assert "E-methanol plant from August" not in by_title
+    # Only the feed itself is read from Google: no robots exception for articles, no redirects followed.
+    google = [u for u in web.requests if "news.google.com" in u]
+    assert google == ["https://news.google.com/rss/search", "https://news.google.com/robots.txt"]
+    collection = json.loads((args.output / "collection.json").read_text())["google-news-efuels"]
+    assert collection["publisher_resolved"] == 1 and collection["publisher_unresolved"] == 1
