@@ -22,7 +22,7 @@ from .fulltext import PageReader, SourceText, obtain, openalex_records, select_c
 from .models import NOT_STATED, DedupResult, Enrichment, Synthesis, VerificationResult
 from .newsletter import render
 from .normalize import plain
-from .pricing import OFFICIAL_ENDPOINTS, call_cost, roles
+from .pricing import OFFICIAL_ENDPOINTS, call_cost, projection, roles
 from .pricing import load as load_pricing
 from .settings import load_environment
 from .stages import (
@@ -36,10 +36,13 @@ from .stages import (
     dedup_groups,
     field_coverage,
     ground_enrichment,
+    merge_stories,
+    move_requests,
     newsletter_config,
     numbers,
     screening_schema,
     select,
+    story_groups,
     takeaways,
     validate_synthesis,
     word_count,
@@ -55,56 +58,75 @@ FULLTEXT_FETCH_CAP = 120
 WORKERS = 4
 
 # CCU terms. Any match also exempts a headline from the unrelated-energy (OFF_TOPIC) rule below,
-# so CCU stories that mention solar, batteries or nuclear power are kept.
+# so CCU stories that mention solar, batteries or nuclear power are kept. For academic items a term is required;
+# news, company, industry and government items reach the gate without one (the terms only raise priority).
 CCU_TERMS = [
-    r"co2(?!\+)",  # also covers CO2 electrolysis, CO2 mineralization and CO2-derived materials
+    r"co2(?!\+)",  # also covers CO2 electrolysis, CO2 mineralization, CO2-derived materials and CO2 offtake
     r"carbon.dioxide",
     r"ccus?",
     r"carbon captur\w*",
     r"carbon minerali[sz]\w*",
     r"direct air capture",
     r"e-?methanol",
+    r"e-?methane",
     r"e-?kerosene",
+    r"synthetic kerosene",
     r"e-?saf",
-    r"e-fuels?",
+    r"e-?fuels?",  # eFuels, e-fuel, efuels (Arcadia eFuels)
     r"electrofuels?",
     r"synthetic fuels?",
     r"solar fuels?",
     r"power.to.(?:x|liquids?|gas|fuels?|methanol)",
     r"ptx",
+    r"ptl",
     r"rfnbos?",
+    r"fischer.tropsch",
     r"45q",
 ]
 CCU = re.compile(r"\b(?:" + "|".join(CCU_TERMS) + r")\b", re.I)
+# Adjacent terms: routed to the gate as borderline (also for academic items), never counted as CCU by themselves.
+ADJACENT = re.compile(r"\be-?ammonia\b", re.I)
 # Utilization context: generic carbon capture/storage, footprints and optical CO2 transitions are not CCU
 # by themselves. Fuel/material terms that only exist as CO2 utilization count as context on their own.
 CONVERSION = re.compile(
     r"utili[sz]|convert|conversion|reduc(?:tion|e)|methanol|ethanol|ethylene|minerali[sz]|polyol|carbonate|"
     r"electrofuel|electroly[sz]\w*|electroreduc\w*|electrosynthes\w*|(?:co2|carbon.dioxide).derived|"
-    r"from (?:co2|carbon.dioxide)(?!\s+value\b)|e-?kerosene|e-fuel|e-?saf|synthetic fuel|solar fuel|power.to.|ptx",
+    r"from (?:co2|carbon.dioxide)(?!\s+value\b)|e-?kerosene|synthetic kerosene|e-?fuel|e-?saf|e-?methane|"
+    r"synthetic fuel|solar fuel|power.to.|ptx|\bptl\b|rfnbo|fischer.tropsch|offtake|off.take",
     re.I,
 )
 # CCU-specialist sources: ecosystem news (memberships, association updates) is sent to the gate and, if relevant
-# but below the threshold, appears as a headline-only brief.
+# but not selected, appears as a headline-only "CCU ecosystem brief".
 CCU_SPECIALIST_SOURCES = {"co2-value-europe", "liquid-wind", "dioxycle", "carbicrete"}
 BRIEF = "specialist source: borderline, gate decides"
 BORDERLINE = "CCU term without utilization context"
+NON_ACADEMIC = "news/company/industry/government: gate decides"
 # Staff/HR announcements from CCU-specialist sources are dropped; matched on the title only. Membership wording overrides,
 # so "CO2 Value Europe welcomes new member X" and "X Joins CO2 Value Europe" still reach the gate.
 STAFF = re.compile(
-    r"\b(?:welcome|joins? our team|new colleagues?|hiring|we.re hiring|vacanc(?:y|ies)|job openings?|"
+    r"\b(?:welcome|joins? our team|new colleagues?|hiring|we.re hiring|hires|vacanc(?:y|ies)|job openings?|"
     r"internships?)\b",
     re.I,
 )
 MEMBERSHIP = re.compile(r"\b(?:member(?:s|ship)?|joins?(?! our team))\b", re.I)
-# Unrelated energy topics on specialist feeds (corporate news about adjacent assets) are not CCU leads.
+# Unrelated energy topics (solar, batteries, nuclear) without any CCU or fuel term are not CCU leads.
 OFF_TOPIC = re.compile(r"\b(?:solar|photovoltaic|pv park|batter(?:y|ies)|hydropower|nuclear)\b", re.I)
+FUEL = re.compile(r"\b(?:fuels?|hydrogen|h2|methanol|ammonia|saf|aviation|shipping|maritime|refiner\w*|chemicals?)\b",
+                  re.I)
+# Clearly off-topic titles (sport, banking and personal finance, entertainment) are dropped for every source kind.
+OFF_TOPIC_TITLE = re.compile(
+    r"\b(?:formula (?:1|one)|f1|grand prix|motorsport|racing|football|soccer|cricket|tennis|golf|rugby|olympics?|"
+    r"world cup|premier league|solar (?:car|challenge|race)|banks? (?:open|closed|shut|strike|holidays?)|"
+    r"bank strike|interest rates?|mortgages?|stock market|sensex|nifty|horoscopes?|recipes?|box office|"
+    r"celebrit(?:y|ies))\b",
+    re.I,
+)
 EVENT = re.compile(
     r"\b(?:fid|financ\w*|offtake|off.take|construct\w*|operat\w*|commission\w*|"
     r"delay\w*|cancel\w*|bankrupt\w*|investment decision|permit\w*)\b",
     re.I,
 )
-GATED = {"CCU topic", "specialist milestone", BRIEF, BORDERLINE}
+GATED = {"CCU topic", "specialist milestone", BRIEF, BORDERLINE, NON_ACADEMIC}
 
 
 def atomic_json(path, value):
@@ -125,35 +147,44 @@ def source_kind(source):
 
 
 def triage(article, source, since, until):
-    """Keyword pre-filter: drop only clearly unrelated items; everything borderline goes to the LLM gate."""
+    """Keyword pre-filter. Academic items need a CCU term; news, company, industry and government items all go
+    to the LLM gate unless the title is clearly off-topic (sport, banking, unrelated energy, staff news)."""
     text = plain(article.title + " " + article.summary).replace("₂", "2")
+    title = plain(article.title)
     kind = source_kind(source)
     if article.sample:
         return {"eligible": False, "reason": "sample", "kind": kind}
     if not article.publication_date or not since <= article.publication_date <= until:
         return {"eligible": False, "reason": "unknown or outside publication window", "kind": kind}
-    # Specialist company feeds admit project-only headlines, but never broad polymer news.
     matched = bool(CCU.search(text))
+    adjacent = bool(ADJACENT.search(text))
     specialist = source.source_id in {"liquid-wind", "dioxycle", "carbicrete"}
     conversion = bool(CONVERSION.search(text))
     event = bool(EVENT.search(text))
     ccu_specialist = source.source_id in CCU_SPECIALIST_SOURCES
+    unrelated_energy = OFF_TOPIC.search(text) and not matched and not adjacent and not FUEL.search(text)
     if ccu_specialist and STAFF.search(article.title) and not MEMBERSHIP.search(article.title):
         # Applies before any other rule so job ads never reach the model, even if they mention CO2 utilisation.
         reason = "specialist source: staff/HR announcement"
     elif matched and conversion:
         reason = "CCU topic"
-    elif specialist and event and OFF_TOPIC.search(text) and not matched:
+    elif OFF_TOPIC_TITLE.search(title) and not matched:
+        reason = "clearly off-topic title"
+    elif specialist and event and unrelated_energy:
         reason = "specialist feed: unrelated energy topic"
     elif specialist and event:
         reason = "specialist milestone"
     elif matched and ccu_specialist:
         reason = BRIEF
-    elif matched or (conversion and kind == "news"):
+    elif matched or adjacent or (conversion and kind == "news"):
         reason = BORDERLINE
+    elif kind != "academic" and unrelated_energy:
+        reason = "unrelated energy topic"
+    elif kind != "academic":
+        reason = NON_ACADEMIC
     else:
-        reason = "no CCU term" + (" or milestone keyword" if specialist else "")
-    strength = {"CCU topic": 2, "specialist milestone": 2}.get(reason, 1)
+        reason = "no CCU term"
+    strength = {"CCU topic": 2, "specialist milestone": 2, NON_ACADEMIC: 0}.get(reason, 1)
     return {
         "eligible": reason in GATED,
         "reason": reason,
@@ -200,8 +231,8 @@ def check_args(args):
     args.fetch_full_text = getattr(args, "fetch_full_text", True)
     if args.source_limit is not None and not 1 <= args.source_limit <= 30:
         raise ValueError("Per-source candidate cap must be 1–30")
-    if args.until > date.today() or args.since > args.until or (args.until - args.since).days != 13:
-        raise ValueError("Use a completed 14-day inclusive collection window ending no later than today")
+    if args.until > date.today() or args.since > args.until or not 1 <= (args.until - args.since).days + 1 <= 31:
+        raise ValueError("Use a 1–31 day inclusive collection window ending no later than today")
     if args.scheduled_publication and args.scheduled_publication <= args.until:
         raise ValueError("Scheduled publication must follow the coverage window")
     if not 0 <= args.max_analyses <= MAX_ANALYSES_CAP or not 0 <= args.max_requests <= MAX_REQUESTS_CAP:
@@ -371,21 +402,27 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     eligible = sorted([e for e in entries if e["score"] >= config["threshold"]], key=lambda e: (-e["score"]))
     for number, entry in enumerate(eligible, 1):
         entry["sid"] = f"D{number}"
-    merged = {}
+    merged, story_of = {}, {}
     if len(eligible) > 1:
         payload = {"items": [{"id": e["sid"], "title": e["record"]["title"], "source": e["record"]["source_name"],
-                              "evidence_role": e["evidence_role"], "date": e["record"]["publication_date"],
+                              "evidence_role": e["evidence_role"],
+                              "outlet": urlsplit(e["record"]["url"]).hostname.removeprefix("www."),
+                              "date": e["record"]["publication_date"],
                               "score": e["score"], "category": e["category"],
                               "tags": e["record"]["screening"]["tags"],
                               "summary": e["record"]["screening"]["summary"]} for e in eligible]}
-        merged = dedup_groups(caller("dedup", DedupResult, payload, "dedup"), eligible)
+        groups = caller("dedup", DedupResult, payload, "dedup")
+        merged = dedup_groups(groups, eligible, config)
+        story_of = story_groups(groups, eligible, merged)
     also: dict[str, list] = {}
     for duplicate, kept in merged.items():
         records[duplicate]["selection"] = f"duplicate of {kept}"
         also.setdefault(kept, []).append(records[duplicate])
-    chosen, selection = select([e for e in entries if e["article_id"] not in merged], config)
+    chosen, selection = select([e for e in entries if e["article_id"] not in merged], config, story_of)
     for article_id, status in selection.items():
         records[article_id]["selection"] = status
+        if article_id in story_of:
+            records[article_id]["story"] = story_of[article_id]
 
     # Stage 2: enrichment, deterministic grounding, independent verification (strong model).
     def enrich(entry):
@@ -423,16 +460,31 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     for entry in chosen:
         if entry["article_id"] not in kept_ids:
             records[entry["article_id"]]["selection"] = "selected, then excluded at enrichment/verification"
-    verified.sort(key=lambda e: (categories.index(e["category"]), -e["score"]))
+    # Story members stay together, under the category and rank of the story's best item.
+    story_lead = {}
+    for entry in sorted(verified, key=lambda e: -e["score"]):
+        story_lead.setdefault(story_of.get(entry["article_id"], entry["article_id"]), entry)
+
+    def order(entry):
+        lead = story_lead[story_of.get(entry["article_id"], entry["article_id"])]
+        return categories.index(lead["category"]), -lead["score"], lead["article_id"], -entry["score"]
+
+    verified.sort(key=order)
     final = []
     for number, entry in enumerate(verified, 1):
         record = entry["record"]
+        story = story_of.get(entry["article_id"], entry["article_id"])
         final.append({"sid": f"S{number}", "article_id": entry["article_id"], "title": record["title"],
+                      "story": story, "story_category": story_lead[story]["category"],
                       "url": record["url"], "source_name": record["source_name"],
                       "evidence_role": entry["evidence_role"], "publication_date": record["publication_date"],
                       "input_basis": entry["input_basis"], "category": entry["category"], "score": entry["score"],
                       "enrichment": entry["enrichment"], "content": entry["content"]})
     leads = takeaways(final, config)
+    story_sids: dict[str, list[str]] = {}
+    for e in final:
+        story_sids.setdefault(e["story"], []).append(e["sid"])
+    sid_story = {sid: story for story, sids in story_sids.items() if len(sids) > 1 for sid in sids}
 
     # Final synthesis (strong model) over verified briefs only, then deterministic citation/number/quote checks.
     synthesis, synthesis_issues = None, []
@@ -441,7 +493,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         for e in final:
             brief = e["enrichment"]
             items[e["sid"]] = {
-                "source_id": e["sid"], "category": e["category"], "title": e["title"],
+                "source_id": e["sid"], "category": e["story_category"], "title": e["title"],
                 "source_name": e["source_name"], "evidence_role": e["evidence_role"],
                 "input_basis": e["input_basis"], "publication_date": e["publication_date"],
                 "brief": {k: brief[k] for k in ("headline", "what_changed", "why_it_matters",
@@ -453,12 +505,15 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
                                for d in brief["milestone_proposals"]],
                 "quotes": brief["quotes"], "uncertainty": brief["uncertainty"],
                 "also_reported_by": [d["source_name"] for d in also.get(e["article_id"], [])],
+                "story_id": e["story"] if e["sid"] in sid_story else None,
             }
         payload = {
             "coverage": {"start": str(args.since), "end_inclusive": str(args.until)},
             "section_order": [{"category": k, "name": config["categories"][k]["name"]} for k in categories
-                              if any(e["category"] == k for e in final)],
-            "takeaway_plan": [{"category": e["category"], "source_id": e["sid"]} for e in leads],
+                              if any(e["story_category"] == k for e in final)],
+            "stories": [sids for sids in story_sids.values() if len(sids) > 1],
+            "takeaway_plan": [{"category": e["story_category"], "source_ids": story_sids[e["story"]]}
+                              for e in leads],
             "items": list(items.values()),
         }
         result = caller("synthesis", Synthesis, payload, "synthesis")
@@ -466,6 +521,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
             result, synthesis_issues = validate_synthesis(result, items, {e["sid"]: e["content"] for e in final},
                                                           categories)
             synthesis = result.model_dump()
+            merge_stories(synthesis, sid_story)
+            synthesis["editor_notes"] += move_requests(synthesis)
 
     headlines = {e["sid"]: e["enrichment"]["headline"] for e in final}
     notes = [re.sub(r"\bS\d+\b", lambda m: f"'{headlines[m.group(0)]}'" if m.group(0) in headlines else m.group(0), n)
@@ -474,10 +531,15 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         notes.append("Some items rest on a headline only; open the original before using them.")
     if final and synthesis is None:
         notes.append("Synthesis was unavailable; sections show the verified per-item briefs.")
-    briefs = [r for r in records.values() if r.get("screening") and r["screening"]["ccu_relevant"]
-              and r.get("selection") in ("below threshold", "category cap", "overall cap")
-              and r["screening"]["score"] >= 3]
-    briefs.sort(key=lambda r: (-r["screening"]["score"], r["title"]))
+    # Relevant items that were not selected, headline and link only: specialist-source news ("CCU ecosystem
+    # briefs"), papers ("Also noted in research") and other news, company and policy items.
+    leftovers = sorted([r for r in records.values() if r.get("screening") and r["screening"]["ccu_relevant"]
+                        and r.get("selection") in ("below threshold", "category cap", "overall cap")
+                        and r["screening"]["score"] >= config.get("also_noted_min_score", 3)],
+                       key=lambda r: (-r["screening"]["score"], r["title"]))
+    briefs = [r for r in leftovers if r["source_id"] in CCU_SPECIALIST_SOURCES]
+    research = [r for r in leftovers if r not in briefs and r["triage"]["kind"] == "academic"]
+    other = [r for r in leftovers if r not in briefs and r not in research]
     pending = [records[e["article_id"]] for e in chosen if e["article_id"] not in {f["article_id"] for f in final}]
     inbox = [r | {"status": r.get("screening_status", "")} for r in records.values()
              if r["triage"]["eligible"] and not r.get("screening")]
@@ -485,8 +547,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     draft.write_text(render(
         args=args, meta_counts={"collected": len(bundle.articles),
                                 "screened": sum(bool(r.get("screening")) for r in records.values())},
-        config=config, selected=final, synthesis=synthesis, takeaway_entries=leads, briefs=briefs, also=also,
-        notes=notes, pending=pending, inbox=inbox))
+        config=config, selected=final, synthesis=synthesis, takeaway_entries=leads, briefs=briefs,
+        also_research=research, also_other=other, also=also, notes=notes, pending=pending, inbox=inbox))
     validate_issue(draft, bundle)
 
     calls = caller.calls
@@ -503,7 +565,23 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
     balance_after = None if args.dry_run else account_balance(endpoint)
     balance_delta = ({c: round(balance_before[c] - balance_after.get(c, balance_before[c]), 6)
                       for c in balance_before} if balance_before and balance_after else None)
+    # Cost projection for the calls a paid run would still have to make (cache hits are free).
+    to_screen = min(sum(r.get("screening_status") == "not analysed: dry run" for r in records.values()),
+                    max(args.max_analyses - len(attempted), 0))
+    stories_low, stories_high = config["target_min_items"], config["overall_cap"]
+    projected = None
+    if args.dry_run:
+        projected = {
+            "uncached_screenings": to_screen,
+            "assumption": f"{stories_low}–{stories_high} enriched items (the selection target), one dedup and one "
+                          "synthesis call; average tokens per call from config/models.yaml",
+            "low": projection(stage_roles, {"screening": to_screen, "dedup": 1, "enrichment": stories_low,
+                                            "verification": stories_low, "synthesis": 1}, pricing),
+            "high": projection(stage_roles, {"screening": to_screen, "dedup": 1, "enrichment": stories_high,
+                                             "verification": stories_high, "synthesis": 1}, pricing),
+        }
     summary = {
+        "coverage": {"start": str(args.since), "end_inclusive": str(args.until)},
         "collected_articles": len(bundle.articles),
         "candidate_records_considered": sum(c["considered"] for c in collection.values()),
         "coverage_by_source_kind": dict(Counter(source_kind(sources[a.source_id]) for a in bundle.articles)),
@@ -536,9 +614,11 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         "balance_delta": balance_delta,
         "pricing": {"source": pricing["source"], "checked": pricing["checked"]},
         "draft": str(draft),
+        "paid_run_projection": projected,
     }
     report = {"summary": summary, "triage": decisions, "promising_candidates": len(gated),
-              "ecosystem_briefs": len(briefs), "records": list(records.values()),
+              "ecosystem_briefs": len(briefs), "also_noted_research": len(research), "also_noted_other": len(other),
+              "records": list(records.values()),
               "synthesis_issues": synthesis_issues, "calls": calls}
     atomic_json(args.output / "report.json", report)
     print(json.dumps(summary, indent=2))
@@ -547,8 +627,9 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--since", type=date.fromisoformat, default=date.today() - timedelta(days=13))
-    parser.add_argument("--until", type=date.fromisoformat, default=date.today())
+    # Default: the most recent 14 complete days, ending yesterday.
+    parser.add_argument("--since", type=date.fromisoformat, default=date.today() - timedelta(days=14))
+    parser.add_argument("--until", type=date.fromisoformat, default=date.today() - timedelta(days=1))
     parser.add_argument("--scheduled-publication", type=date.fromisoformat)
     parser.add_argument("--output", type=Path, default=Path("data/runtime") / f"biweekly-{date.today()}")
     parser.add_argument("--max-analyses", type=int, default=MAX_ANALYSES_CAP)

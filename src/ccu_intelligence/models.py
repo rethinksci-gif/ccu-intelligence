@@ -461,7 +461,8 @@ class VerificationResult(Wire):
 
 
 class DedupResult(Wire):
-    groups: list[list[str]] = Field(default_factory=list, max_length=60)
+    groups: list[list[str]] = Field(default_factory=list, max_length=60)  # the identical event
+    stories: list[list[str]] = Field(default_factory=list, max_length=30)  # same project/company, related events
 
 
 class Cited(Wire):
@@ -473,6 +474,7 @@ class SynthesisItem(Wire):
     source_ids: list[str] = Field(min_length=1, max_length=8)
     headline: str = Field(min_length=1, max_length=180)
     paragraphs: list[Cited] = Field(min_length=1, max_length=4)
+    limitation: str | None = Field(default=None, max_length=300)  # one short line on what the source leaves open
 
 
 class SynthesisSection(Wire):
@@ -487,4 +489,4 @@ class Synthesis(Wire):
     takeaways: list[Cited] = Field(default_factory=list, max_length=5)
     sections: list[SynthesisSection] = Field(default_factory=list, max_length=8)
     watch_next: list[Cited] = Field(default_factory=list, max_length=6)
-    editor_notes: list[str] = Field(default_factory=list, max_length=10)
+    editor_notes: list[str] = Field(default_factory=list, max_length=20)

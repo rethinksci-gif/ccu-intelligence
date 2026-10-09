@@ -1,10 +1,26 @@
 # Selection and layout for the biweekly research draft. Category keys must exist in taxonomy.yaml;
 # the analysis prompt lists them with these descriptions and the model picks one from the content.
 threshold: 5            # minimum 0–10 decision-value score for enrichment and the draft
-per_category_cap: 5     # as in the reference digest; never fill a category with weak items
-overall_cap: 16
-max_takeaways: 5        # opening takeaways, each from a distinct category
+per_category_cap: 5     # default per-category cap, counted per story; never fill a category with weak items
+category_caps:          # per-category overrides
+  conversion: 8
+target_min_items: 10    # aim for 10–15 stories: caps (never the threshold) are relaxed to reach 10 when enough qualify
+overall_cap: 15
+min_takeaways: 3        # aim for 3–5 takeaways when enough stories pass the threshold
+max_takeaways: 5        # one per category first, then further stories scoring >= takeaway_extra_score
+takeaway_extra_score: 7
 headline_score_cap: 6   # a headline-only input cannot score above useful context
+also_noted_min_score: 3 # relevant but unselected items at or above this score are listed (headline and link)
+# Dedup keeps the most credible outlet: primary (company, government, paper) > major business press > trade press
+# > regional and other press. Hostnames match exactly or as a parent domain.
+outlet_tiers:
+  major_business_press: [reuters.com, bloomberg.com, ft.com, wsj.com, economist.com, nikkei.com, asia.nikkei.com,
+    cnbc.com, apnews.com, afp.com, handelsblatt.com, lesechos.fr, argusmedia.com, spglobal.com, icis.com,
+    business-standard.com, economictimes.indiatimes.com, livemint.com, thehindubusinessline.com, caixinglobal.com,
+    scmp.com, japantimes.co.jp, axios.com, politico.eu, politico.com, euractiv.com]
+  trade_press: [carbonherald.com, hydrogen-central.com, biofuels-news.com, hellenicshippingnews.com, offshore-energy.biz,
+    rechargenews.com, upstreamonline.com, tradewindsnews.com, chemanager-online.com, cen.acs.org, chemistryworld.com,
+    greenairnews.com, sustainableaviationfuel.news, h2-view.com, hydrogeninsight.com, renewablesnow.com]
 categories:
   commercialization:
     name: Projects, finance & deployment

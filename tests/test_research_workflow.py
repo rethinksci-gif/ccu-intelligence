@@ -11,7 +11,7 @@ import yaml
 from ccu_intelligence.budget import Budget
 from ccu_intelligence.collect import Fetcher
 from ccu_intelligence.llm import date_supported, grounded_analysis, quote_supported, run
-from ccu_intelligence.workflow import BORDERLINE, BRIEF, triage
+from ccu_intelligence.workflow import BORDERLINE, BRIEF, NON_ACADEMIC, triage
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -65,7 +65,9 @@ def test_workflow_has_no_schedule_or_pr_payment_trigger():
     assert set(workflow['on']) == {'workflow_dispatch'}
     inputs = workflow['on']['workflow_dispatch']['inputs']
     assert inputs['mode']['default'] == 'dry-run'
-    assert {'max_analyses', 'max_spend_usd', 'token_budget', 'screening_model', 'strong_model'} <= set(inputs)
+    assert {'max_analyses', 'max_spend_usd', 'token_budget', 'screening_model', 'strong_model', 'coverage_end',
+            'coverage_days'} <= set(inputs)
+    assert inputs['coverage_end']['default'] == '' and inputs['coverage_days']['default'] == '14'
     assert inputs['max_analyses']['default'] == '60' and inputs['max_spend_usd']['default'] == '5'
     assert inputs['token_budget']['default'] == '2000000' and inputs['strong_model']['default'] == 'deepseek-v4-pro'
     assert workflow['permissions'] == {'contents': 'read'}
@@ -101,7 +103,6 @@ def headline(title):
     (SPECIALIST, 'Battery storage project commissioned', 'specialist feed: unrelated energy topic'),
     (SPECIALIST, 'Nuclear plant construction delayed', 'specialist feed: unrelated energy topic'),
     (SPECIALIST, 'Photovoltaic rooftop permit granted', 'specialist feed: unrelated energy topic'),
-    (SPECIALIST, 'Company welcomes new board member', 'no CCU term or milestone keyword'),
     (GENERAL, 'Solar park financing', 'no CCU term'),
     (GENERAL, 'Perovskite solar cell efficiency record', 'no CCU term'),
     (GENERAL, 'Lithium battery recycling plant', 'no CCU term'),
@@ -109,6 +110,11 @@ def headline(title):
 def test_unrelated_headlines_dropped(source, title, reason):
     result = triage(headline(title), source, DAY, DAY)
     assert not result['eligible'] and result['reason'] == reason
+
+
+def test_company_news_without_ccu_term_goes_to_the_gate():
+    result = triage(headline('Company welcomes new board member'), SPECIALIST, DAY, DAY)
+    assert result['eligible'] and result['reason'] == NON_ACADEMIC
 
 
 @pytest.mark.parametrize('source,title', [

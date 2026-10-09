@@ -30,23 +30,54 @@ def cell(fields: dict, names: tuple[str, ...]) -> str:
     return safe_text(text if len(text) <= 140 else text[:137] + "…")
 
 
+def story_item(entries: list[dict]) -> dict:
+    """One item per story: the lead's full brief, then what changed for each related item."""
+    lead, rest = entries[0], entries[1:]
+    paragraphs = [{"text": lead["enrichment"][b], "source_ids": [lead["sid"]]}
+                  for b in ("what_changed", "why_it_matters", "practical_implication") if lead["enrichment"][b]]
+    paragraphs += [{"text": e["enrichment"]["what_changed"], "source_ids": [e["sid"]]} for e in rest]
+    return {"source_ids": [e["sid"] for e in entries], "headline": lead["enrichment"]["headline"],
+            "paragraphs": paragraphs, "limitation": None}
+
+
 def deterministic_sections(selected: list[dict], order: list[str]) -> list[dict]:
-    """Fallback when synthesis is unavailable: the verified four-block briefs, grouped by category."""
+    """Fallback when synthesis is unavailable: the verified briefs, grouped by category and story."""
     sections = []
     for category in order:
-        entries = [e for e in selected if e["category"] == category]
-        if entries:
-            sections.append({"category": category, "intro": None, "items": [
-                {"source_ids": [e["sid"]], "headline": e["enrichment"]["headline"], "paragraphs": [
-                    {"text": e["enrichment"][b], "source_ids": [e["sid"]]}
-                    for b in ("what_changed", "why_it_matters", "practical_implication", "next_action")
-                    if e["enrichment"][b]]} for e in entries]})
+        stories: dict[str, list[dict]] = {}
+        for e in selected:
+            if e.get("story_category", e["category"]) == category:
+                stories.setdefault(e.get("story", e["sid"]), []).append(e)
+        if stories:
+            sections.append({"category": category, "intro": None,
+                             "items": [story_item(entries) for entries in stories.values()]})
     return sections
+
+
+def limitation(item: dict, items: dict) -> str | None:
+    """The model's one-line limitation, or a default from the input basis of the item's sources."""
+    if item.get("limitation"):
+        return item["limitation"]
+    bases = {items[i]["input_basis"] for i in item["source_ids"]}
+    roles = {items[i]["evidence_role"] for i in item["source_ids"]}
+    if bases == {"headline"}:
+        return "Headline only; content not reviewed."
+    if bases == {"abstract"}:
+        return "Abstract only; results beyond the abstract are unknown."
+    if roles == {"news"}:
+        return "Secondary news reports; not yet confirmed by a primary source."
+    return None
+
+
+def headline_list(entries: list[dict]) -> list[str]:
+    return [f"- [{safe_text(b['title'])}]({b['url']}) — {safe_text(b['source_name'])}, {b['publication_date']}"
+            + (" (news report)" if b["evidence_role"] == "news" else "") + "." for b in entries]
 
 
 def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synthesis: dict | None,
            takeaway_entries: list[dict], briefs: list[dict], also: dict, notes: list[str],
-           pending: list[dict], inbox: list[dict]) -> str:
+           pending: list[dict], inbox: list[dict], also_research: list[dict] = (),
+           also_other: list[dict] = ()) -> str:
     items = {e["sid"]: e for e in selected}
     names = {k: c["name"] for k, c in config["categories"].items()}
     order = list(config["categories"])
@@ -71,8 +102,8 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
         "caps and verification.",
         "",
     ]
-    if synthesis:
-        lines += [f"*{cited(synthesis['dek']['text'], synthesis['dek']['source_ids'], items)}*", ""]
+    if synthesis:  # plain prose; every claim is cited in the item sections below
+        lines += [f"*{safe_text(synthesis['dek']['text'])}*", ""]
     lines += ["## Key takeaways", ""]
     if synthesis and synthesis["takeaways"]:
         lines += [f"- {cited(t['text'], t['source_ids'], items)}" for t in synthesis["takeaways"]]
@@ -87,7 +118,12 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
     covered = {i for s in sections for item in s["items"] for i in item["source_ids"]}
     missing = [e for e in selected if e["sid"] not in covered]
     if missing:  # synthesis omitted verified items: keep them, using their verified brief
-        extra = deterministic_sections(missing, order)
+        story_items = {items[i].get("story"): item for s in sections for item in s["items"] for i in item["source_ids"]}
+        for entry in [e for e in missing if e.get("story") in story_items]:  # join their story's item
+            item = story_items[entry["story"]]
+            item["source_ids"].append(entry["sid"])
+            item["paragraphs"].append({"text": entry["enrichment"]["what_changed"], "source_ids": [entry["sid"]]})
+        extra = deterministic_sections([e for e in missing if e.get("story") not in story_items], order)
         by_category = {s["category"]: s for s in sections}
         for section in extra:
             if section["category"] in by_category:
@@ -103,6 +139,8 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
             lines += [f"### {safe_text(item['headline'])}", ""]
             for paragraph in item["paragraphs"]:
                 lines += [cited(paragraph["text"], paragraph["source_ids"], items), ""]
+            if note := limitation(item, items):
+                lines += [f"*{safe_text(note)}*", ""]
             for sid in item["source_ids"]:
                 for dup in also.get(items[sid]["article_id"], []):
                     lines += [f"Also reported: [{safe_text(dup['title'])}]({dup['url']}) — "
@@ -120,12 +158,17 @@ def render(*, args, meta_counts: dict, config: dict, selected: list[dict], synth
         lines += ["", "## What to watch", ""]
         lines += [f"- {cited(w['text'], w['source_ids'], items)}" for w in synthesis["watch_next"]]
     lines += ["", "## CCU ecosystem briefs", "",
-              "Relevant items below the selection threshold or from specialist feeds. Headline and link only; "
-              "not summarised.", ""]
-    lines += [f"- [{safe_text(b['title'])}]({b['url']}) — {safe_text(b['source_name'])}, {b['publication_date']}"
-              + (" (news report)" if b["evidence_role"] == "news" else "") + "." for b in briefs]
-    if not briefs:
-        lines += ["No ecosystem briefs in this window."]
+              "Relevant news from CCU-specialist companies and associations that was not selected. Headline and "
+              "link only; not summarised.", ""]
+    lines += headline_list(briefs) or ["No ecosystem briefs in this window."]
+    if also_research:
+        lines += ["", "## Also noted in research", "",
+                  "Relevant papers not selected (category cap or below the threshold). Headline and link only.", ""]
+        lines += headline_list(also_research)
+    if also_other:
+        lines += ["", "## Also noted in industry and policy", "",
+                  "Relevant news, company and policy items not selected. Headline and link only.", ""]
+        lines += headline_list(also_other)
     lines += ["", "## Editor notes", ""]
     lines += [f"- {safe_text(n)}" for n in notes] or ["- None recorded."]
     if pending:
