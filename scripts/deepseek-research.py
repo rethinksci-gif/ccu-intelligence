@@ -52,6 +52,7 @@ def configuration():
         token_budget=int(os.getenv('TOKEN_BUDGET', '2000000')),
         max_spend_usd=float(os.getenv('MAX_SPEND_USD', str(MAX_SPEND_USD_CAP))),
         source_limit=None, allow_paid=paid, dry_run=not paid,
+        google_news=True,  # documented robots exception: research runs only (docs/operational-status.md)
     )
     if not 0 <= options.max_screenings <= MAX_SCREENINGS_CAP:
         raise ValueError(f'Maximum new screenings must be between 0 and {MAX_SCREENINGS_CAP}')

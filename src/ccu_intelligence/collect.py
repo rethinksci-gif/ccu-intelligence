@@ -9,7 +9,7 @@ import re
 import socket
 import time
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
@@ -285,6 +285,52 @@ def federal_register_items(raw: bytes) -> list[dict]:
     ]
 
 
+def google_news_items(raw: bytes) -> list[dict]:
+    """Google News RSS: headline, Google article link, date and the publisher's name and homepage."""
+    items = []
+    for item in ET.fromstring(raw).findall(".//item"):
+        source = item.find("source")
+        publisher = (source.text or "").strip() if source is not None else ""
+        title = (item.findtext("title") or "").strip()
+        if publisher and title.endswith(" - " + publisher):
+            title = title[: -len(" - " + publisher)].strip()
+        items.append({"title": title, "url": item.findtext("link") or "", "publication_date": item.findtext("pubDate"),
+                      "summary": "", "publisher": publisher,
+                      "publisher_home": source.get("url", "") if source is not None else ""})
+    return items
+
+
+def _title_key(title: str) -> str:
+    return " ".join(re.sub(r"[^\w]+", " ", title.lower()).split())
+
+
+def resolve_publisher(fetcher: "Fetcher", item: dict) -> str | None:
+    """Find the article on the publisher's own site (WordPress search feed, its robots.txt permitting).
+
+    Google News links are encoded redirects; decoding them would mean further requests to Google, which the
+    documented exception does not cover. Returns the publisher URL when a feed item has the same headline.
+    """
+    home = item.get("publisher_home") or ""
+    parts = urlsplit(home)
+    if parts.scheme != "https" or not parts.hostname:
+        return None
+    words = item["title"].split()[:10]
+    url = f"https://{parts.hostname}/?s={'+'.join(re.sub(r'[^\w-]', '', w) for w in words)}&feed=rss2"
+    try:
+        permitted, interval = fetcher.allowed(url, 3)
+        if not permitted:
+            return None
+        found = rss_items(fetcher.get(url, interval=interval))
+    except Exception:  # not WordPress, blocked or unreachable: the item stays a headline-only lead
+        return None
+    wanted = _title_key(item["title"])
+    for candidate in found:
+        link = candidate.get("url") or ""
+        if _title_key(candidate.get("title") or "") == wanted and urlsplit(link).hostname == parts.hostname:
+            return link
+    return None
+
+
 def gdelt_items(raw: bytes) -> list[dict]:
     # GDELT DOC 2.0 article list: real publisher URLs; seendate is when GDELT saw the article (YYYYMMDDTHHMMSSZ).
     # Errors come back as short plain text, sometimes with HTTP 200: a throttling notice or a query error.
@@ -325,7 +371,10 @@ def collect(
     limit: int = 50,
     query: str = "carbon dioxide utilization",
     fetcher: "Fetcher | None" = None,
+    google_news: bool = False,
 ) -> dict:
+    """Collect sources. Google News sources (a documented robots exception) run only when google_news is True,
+    which only the research entrypoint sets."""
     if since > until or not 1 <= limit <= 100:
         raise ValueError("Invalid date window or limit (1–100)")
     sources = registry()
@@ -348,6 +397,8 @@ def collect(
         for source in sources:
             if not source.active or (only and source.source_id != only):
                 continue
+            if source.access_method == "google_news" and not google_news:
+                continue  # research runs only (documented exception); never scheduled or general collection
             if source.access_method == "manual" or not source.automated_access_approved:
                 store.log(
                     source.source_id, "manual_required", source.limitation or "Automated access not approved"
@@ -410,6 +461,13 @@ def collect(
                         pages = [fetcher.get(endpoint, params=gdelt_params(source_query, since, until, min(75, limit * 3)),
                                              interval=source.minimum_interval_seconds)]
                     parser = gdelt_items
+                elif source.access_method == "google_news":
+                    # Documented robots exception (owner decision): one feed request per query per research run,
+                    # honest User-Agent, titles and links only. Article text comes from the publisher (see below).
+                    params = {"q": f"{source_query} after:{since} before:{until + timedelta(days=1)}",
+                              "hl": "en-US", "gl": "US", "ceid": "US:en"}
+                    pages = [fetcher.get(endpoint, params=params, interval=source.minimum_interval_seconds)]
+                    parser = google_news_items
                 elif source.access_method == "editor_list":
                     # Reviewed pointers in config/editor-submitted.yaml; the text is fetched later from each URL.
                     listed = yaml.safe_load(Path("config/editor-submitted.yaml").read_text()).get("items", [])
@@ -471,6 +529,16 @@ def collect(
                         continue
                     counts["considered"] += 1
                     try:
+                        if source.access_method == "google_news":
+                            date_seen = normalize_date(item.get("publication_date"))
+                            if not date_seen or not since <= date_seen <= until:
+                                counts["outside_window"] += 1
+                                continue
+                            resolved = resolve_publisher(fetcher, item)
+                            counts["publisher_resolved" if resolved else "publisher_unresolved"] = counts.get(
+                                "publisher_resolved" if resolved else "publisher_unresolved", 0) + 1
+                            item = item | {"url": resolved or item["url"],
+                                           "summary": f"Publisher: {item['publisher']}" if item["publisher"] else ""}
                         article = analyze(normalize(item, source.source_id), companies)
                         effective_date = article.publication_date or article.source_updated_date
                         if effective_date and not since <= effective_date <= until:

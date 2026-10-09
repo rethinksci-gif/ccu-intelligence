@@ -234,6 +234,7 @@ def check_args(args):
     args.max_spend_usd = getattr(args, "max_spend_usd", MAX_SPEND_USD_CAP)
     args.source_limit = getattr(args, "source_limit", None)
     args.fetch_full_text = getattr(args, "fetch_full_text", True)
+    args.google_news = getattr(args, "google_news", False)  # documented robots exception: research runs only
     if args.source_limit is not None and not 1 <= args.source_limit <= 30:
         raise ValueError("Per-source candidate cap must be 1–30")
     if args.until > date.today() or args.since > args.until or not 1 <= (args.until - args.since).days + 1 <= 31:
@@ -309,7 +310,8 @@ def execute(args):
 def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint, balance_before):
     sources = {s.source_id: s for s in registry()}
     limits = [(s.source_id, min(s.run_limit, args.source_limit or s.run_limit))
-              for s in sources.values() if s.run_limit and s.active and s.automated_access_approved]
+              for s in sources.values() if s.run_limit and s.active and s.automated_access_approved
+              and (args.google_news or s.access_method != "google_news")]
     collection_file = args.output / "collection.json"
     collection = json.loads(collection_file.read_text()) if collection_file.exists() else {}
     shared = Fetcher()
@@ -317,7 +319,8 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
         for source_id, limit in limits:
             if source_id not in collection:
                 collection[source_id] = collect(store, args.since, args.until, source_id, limit,
-                                                '"carbon dioxide" utilization', fetcher=shared)
+                                                '"carbon dioxide" utilization', fetcher=shared,
+                                                google_news=args.google_news)
                 atomic_json(collection_file, collection)
     finally:
         shared.client.close()
@@ -354,6 +357,10 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
 
     def label(article, source) -> str:
         """Citation label: the outlet for GDELT results, the organization otherwise (without search notes)."""
+        if source.access_method == "google_news":  # the publisher, never Google, is the outlet
+            host = urlsplit(str(article.canonical_url)).hostname
+            publisher = re.sub(r"^Publisher: ", "", plain(article.summary)) or "publisher unknown"
+            return host.removeprefix("www.") if host != "news.google.com" else f"{publisher} (via Google News)"
         if source.access_method in ("gdelt", "editor_list"):
             return urlsplit(str(article.canonical_url)).hostname.removeprefix("www.")
         return re.sub(r"\s*\((?:site search|open-access subset)[^)]*\)", "", source.organization)
