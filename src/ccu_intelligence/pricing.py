@@ -61,6 +61,20 @@ def roles(config: dict | None = None) -> dict[str, Role]:
     return result
 
 
+def projection(stage_roles: dict[str, Role], counts: dict[str, int], config: dict | None = None) -> dict:
+    """Dry-run cost projection at ceiling (peak, cache-miss) rates from average tokens per call (`estimates`).
+
+    `worst_case_usd` charges every call its full output allowance; the per-run USD cap still applies on top.
+    """
+    config = config or load()
+    expected = worst = 0.0
+    for stage, calls in counts.items():
+        role, tokens = stage_roles[stage], config["estimates"][stage]
+        expected += calls * (tokens["input"] * role.rates.input + tokens["output"] * role.rates.output) / 1e6
+        worst += calls * (tokens["input"] * role.rates.input + role.max_output_tokens * role.rates.output) / 1e6
+    return {"calls": counts, "expected_usd": round(expected, 2), "worst_case_usd": round(worst, 2)}
+
+
 def is_peak(moment: datetime, config: dict | None = None) -> bool:
     config = config or load()
     moment = moment.astimezone(UTC)

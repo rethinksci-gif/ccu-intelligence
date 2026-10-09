@@ -7,9 +7,11 @@ verbatim, dates explicit, numbers present in the source, and citations limited t
 import hashlib
 import json
 import re
+from collections import Counter
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 import yaml
 from pydantic import create_model
@@ -27,7 +29,7 @@ from .models import (
 )
 from .settings import ROOT
 
-PROMPT_VERSION = "ccu-profile-v5"  # grounded-v4 was the single-pass metadata prompt
+PROMPT_VERSION = "ccu-profile-v6"  # v6: e-fuel policy/market relevance, score calibration, stories, limitation line
 SCREENING_CHARS = 12_000
 ENRICHMENT_CHARS = 18_000
 CACHE = Path("data/runtime/llm-cache")
@@ -269,8 +271,25 @@ def rank_key(entry: dict):
     return (-entry["score"], entry["evidence_role"] == "news", basis_rank, entry["article_id"])
 
 
-def dedup_groups(result: DedupResult | None, entries: list[dict]) -> dict[str, str]:
-    """Map duplicate article_id -> kept article_id. Primary sources are kept over news reports."""
+def outlet_tier(entry: dict, config: dict | None = None) -> int:
+    """0 primary (paper, company, government), 1 major business press, 2 trade press, 3 regional/other press."""
+    if entry["evidence_role"] == "primary":
+        return 0
+    host = (urlsplit(entry.get("url") or entry.get("record", {}).get("url") or "").hostname or "").removeprefix("www.")
+    tiers = (config or {}).get("outlet_tiers", {})
+    for rank, key in ((1, "major_business_press"), (2, "trade_press")):
+        if any(host == domain or host.endswith("." + domain) for domain in tiers.get(key, [])):
+            return rank
+    return 3
+
+
+def keep_order(entry: dict, config: dict | None = None):
+    """Prefer the most credible outlet whose text could be fetched; a headline-only copy yields to one with text."""
+    return (entry["input_basis"] == "headline", outlet_tier(entry, config), rank_key(entry))
+
+
+def dedup_groups(result: DedupResult | None, entries: list[dict], config: dict | None = None) -> dict[str, str]:
+    """Map duplicate article_id -> kept article_id. The most credible outlet is kept; others are 'Also reported'."""
     if not result:
         return {}
     by_id = {e["sid"]: e for e in entries}
@@ -280,40 +299,98 @@ def dedup_groups(result: DedupResult | None, entries: list[dict]) -> dict[str, s
         if len(members) < 2:
             continue
         seen.update(m["sid"] for m in members)
-        keep = members[0]
-        primaries = [m for m in members if m["evidence_role"] == "primary"]
-        if keep["evidence_role"] == "news" and primaries:
-            keep = min(primaries, key=rank_key)
+        keep = min(members, key=lambda m: keep_order(m, config))
         for member in members:
             if member is not keep:
                 merged[member["article_id"]] = keep["article_id"]
     return merged
 
 
-def select(entries: list[dict], config: dict) -> tuple[list[dict], dict[str, str]]:
-    """Threshold, per-category cap and overall cap. Never fills a quota with weak items."""
-    decisions, chosen, per_category = {}, [], {}
+def story_groups(result: DedupResult | None, entries: list[dict], merged: dict[str, str]) -> dict[str, str]:
+    """Map article_id -> story id (the best-ranked member) for related items about one project or company."""
+    if not result:
+        return {}
+    by_id = {e["sid"]: e for e in entries}
+    by_article = {e["article_id"]: e for e in entries}
+    story_of = {}
+    for group in result.stories:
+        ids = dict.fromkeys(merged.get(by_id[i]["article_id"], by_id[i]["article_id"]) for i in group if i in by_id)
+        members = [by_article[a] for a in ids if a in by_article and a not in story_of]
+        if len(members) < 2:
+            continue
+        lead = min(members, key=rank_key)["article_id"]
+        story_of.update({m["article_id"]: lead for m in members})
+    return story_of
+
+
+def category_cap(category: str, config: dict) -> int:
+    return config.get("category_caps", {}).get(category, config["per_category_cap"])
+
+
+def select(entries: list[dict], config: dict, story_of: dict[str, str] | None = None
+           ) -> tuple[list[dict], dict[str, str]]:
+    """Threshold, per-category caps and overall cap, counted per story. Never fills a quota with weak items.
+
+    Caps balance the sections; when fewer than `target_min_items` stories would be selected, capped stories that
+    pass the threshold fill up to that minimum. The threshold itself is never relaxed.
+    """
+    story_of = story_of or {}
+    decisions, chosen, per_category, units, unit_category, capped = {}, [], Counter(), set(), {}, []
+
+    def take(entry, status="selected"):
+        unit = story_of.get(entry["article_id"], entry["article_id"])
+        if unit not in units:
+            units.add(unit)
+            per_category[unit_category[unit]] += 1
+        chosen.append(entry)
+        decisions[entry["article_id"]] = status
+
     for entry in sorted(entries, key=rank_key):
+        unit = story_of.get(entry["article_id"], entry["article_id"])
+        unit_category.setdefault(unit, entry["category"])  # a story counts against its lead item's category
         if entry["score"] < config["threshold"]:
             decisions[entry["article_id"]] = "below threshold"
-        elif per_category.get(entry["category"], 0) >= config["per_category_cap"]:
+        elif unit in units:
+            take(entry, "selected (same story)")
+        elif per_category[unit_category[unit]] >= category_cap(unit_category[unit], config):
             decisions[entry["article_id"]] = "category cap"
-        elif len(chosen) >= config["overall_cap"]:
+            capped.append(entry)
+        elif len(units) >= config["overall_cap"]:
             decisions[entry["article_id"]] = "overall cap"
         else:
-            per_category[entry["category"]] = per_category.get(entry["category"], 0) + 1
-            chosen.append(entry)
-            decisions[entry["article_id"]] = "selected"
+            take(entry)
+    target = min(config.get("target_min_items", 0), config["overall_cap"])
+    for entry in capped:
+        unit = story_of.get(entry["article_id"], entry["article_id"])
+        if unit in units:
+            take(entry, "selected (same story)")
+        elif len(units) < target:
+            take(entry, "selected (cap relaxed to reach target)")
     return chosen, decisions
 
 
 def takeaways(entries: list[dict], config: dict) -> list[dict]:
-    """Best item per category, highest scores first, at most max_takeaways, all above threshold."""
-    best = {}
+    """3–5 leads when enough qualify: the best story per category first, then further strong stories.
+
+    One takeaway per story. After one per category, stories scoring at least `takeaway_extra_score` are added up to
+    `max_takeaways`, and any qualifying story is added until `min_takeaways` is reached.
+    """
+    ranked, seen = [], set()
     for entry in sorted(entries, key=rank_key):
-        if entry["score"] >= config["threshold"]:
-            best.setdefault(entry["category"], entry)
-    return sorted(best.values(), key=rank_key)[: config["max_takeaways"]]
+        story = entry.get("story", entry["article_id"])
+        if entry["score"] >= config["threshold"] and story not in seen:
+            seen.add(story)
+            ranked.append(entry)
+    leads, categories = [], set()
+    for entry in ranked:
+        if entry["category"] not in categories:
+            categories.add(entry["category"])
+            leads.append(entry)
+    extra = config.get("takeaway_extra_score", 11)
+    for entry in ranked:
+        if entry not in leads and (entry["score"] >= extra or len(leads) < config.get("min_takeaways", 0)):
+            leads.append(entry)
+    return sorted(leads, key=rank_key)[: config["max_takeaways"]]
 
 
 # --- synthesis validation --------------------------------------------------------------------------------
@@ -364,8 +441,12 @@ def validate_synthesis(result: Synthesis, items: dict[str, dict], sources: dict[
             item["source_ids"] = [i for i in item["source_ids"] if i in items]
             item["paragraphs"] = [c for j, p in enumerate(item["paragraphs"])
                                   if (c := clean(p, f"{section['category']}: {item['headline']} ¶{j}"))]
-            if item["source_ids"] and item["paragraphs"] and not numbers(item["headline"]) - set().union(
-                    *(numbers(json.dumps(items[i], ensure_ascii=False)) for i in item["source_ids"])):
+            allowed = set().union(*(numbers(json.dumps(items[i], ensure_ascii=False)) for i in item["source_ids"]))
+            item["limitation"] = short_line(item.get("limitation"))
+            if item["limitation"] and numbers(item["limitation"]) - allowed:
+                issues.append({"where": item["headline"], "issue": "limitation with unsupported number removed"})
+                item["limitation"] = None
+            if item["source_ids"] and item["paragraphs"] and not numbers(item["headline"]) - allowed:
                 good.append(item)
             else:
                 issues.append({"where": section["category"], "issue": "item removed", "headline": item["headline"]})
@@ -374,6 +455,52 @@ def validate_synthesis(result: Synthesis, items: dict[str, dict], sources: dict[
             sections.append(section)
     data["sections"] = sections
     return Synthesis.model_validate(data), issues
+
+
+def short_line(text: str | None, words: int = 20) -> str | None:
+    """One short line: the first sentence only, clipped at a clause boundary when it runs long."""
+    first = next(iter(sentences(text or "")), "").strip()
+    while len(first.split()) > words and ";" in first:
+        first = first.rsplit(";", 1)[0].rstrip() + "."
+    return first or None
+
+
+_REQUEST = re.compile(r"^(?:request|obtain|ask|seek|contact|confirm with)\b", re.I)
+
+
+def move_requests(synthesis: dict) -> list[str]:
+    """Move "request X / obtain Y" advice out of item paragraphs; it belongs in the editor notes."""
+    notes = []
+    for section in synthesis["sections"]:
+        for item in section["items"]:
+            kept = []
+            for paragraph in item["paragraphs"]:
+                parts = sentences(paragraph["text"])
+                requests = [s for s in parts if _REQUEST.match(s)]
+                notes += [f"{item['headline']}: {s}" for s in requests]
+                rest = " ".join(s for s in parts if s not in requests)
+                if rest:
+                    kept.append(paragraph | {"text": rest})
+            item["paragraphs"] = kept or item["paragraphs"][:1]
+    return notes
+
+
+def merge_stories(synthesis: dict, story_of: dict[str, str]) -> None:
+    """Items about one story (same project or company) become one item that cites every source."""
+    for section in synthesis["sections"]:
+        merged, by_story = [], {}
+        for item in section["items"]:
+            story = next((story_of[i] for i in item["source_ids"] if i in story_of), None)
+            if story is None or story not in by_story:
+                merged.append(item)
+                if story is not None:
+                    by_story[story] = item
+                continue
+            lead = by_story[story]
+            lead["source_ids"] += [i for i in item["source_ids"] if i not in lead["source_ids"]]
+            lead["paragraphs"] += item["paragraphs"]
+            lead["limitation"] = lead.get("limitation") or item.get("limitation")
+        section["items"] = merged
 
 
 def bounded(text: str, chars: int) -> str:

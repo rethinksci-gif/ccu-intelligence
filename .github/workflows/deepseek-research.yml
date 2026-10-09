@@ -30,6 +30,14 @@ on:
         type: choice
         options: [deepseek-v4-pro, deepseek-flash]
         default: deepseek-v4-pro
+      coverage_end:
+        description: 'Last covered day, YYYY-MM-DD inclusive (blank = yesterday UTC)'
+        type: string
+        default: ''
+      coverage_days:
+        description: 'Coverage length in days ending on coverage_end (1–31)'
+        type: number
+        default: 14
 permissions:
   contents: read
 concurrency:
@@ -44,6 +52,8 @@ env:
   MAX_ANALYSES: ${{ inputs.max_analyses }}
   TOKEN_BUDGET: ${{ inputs.token_budget }}
   MAX_SPEND_USD: ${{ inputs.max_spend_usd }}
+  COVERAGE_END: ${{ inputs.coverage_end }}
+  COVERAGE_DAYS: ${{ inputs.coverage_days }}
 jobs:
   dry-run:
     # No environment and no LLM secret: this job can never make a paid request.

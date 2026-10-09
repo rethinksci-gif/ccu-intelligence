@@ -38,3 +38,11 @@ roles:
 defaults:
   screening: deepseek-flash
   strong: deepseek-v4-pro
+# Average tokens per call (input, output including reasoning), rounded up from paid run 37929580610 (2026-10-09).
+# Used only for the dry-run cost projection; budgets and reservations never use these.
+estimates:
+  screening: {input: 4000, output: 300}
+  dedup: {input: 6000, output: 3000}
+  enrichment: {input: 4000, output: 9500}
+  verification: {input: 2700, output: 8000}
+  synthesis: {input: 14000, output: 15000}

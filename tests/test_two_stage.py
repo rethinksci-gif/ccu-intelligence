@@ -4,7 +4,7 @@ import argparse
 import importlib.util
 import json
 import shutil
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -24,9 +24,13 @@ from ccu_intelligence.stages import (
     dedup_groups,
     ground_enrichment,
     keep_supported_numbers,
+    merge_stories,
+    move_requests,
     newsletter_config,
     numbers,
     select,
+    short_line,
+    story_groups,
     takeaways,
 )
 from ccu_intelligence.workflow import execute, triage
@@ -216,12 +220,73 @@ def test_borderline_items_go_to_the_gate(source, title):
     assert result["eligible"] and result["kind"] in ("news", "academic")
 
 
+COMPANY = SimpleNamespace(source_id="covestro", source_type="company_announcements_and_annual_reports",
+                          evidence_role="primary")
+GOV = SimpleNamespace(source_id="govuk-search-ccu", source_type="government", evidence_role="primary")
+
+# Dropped as "no CCU term" in paid run 37929580610 and never seen by the gate.
+MISSED = [
+    (NEWS, "Uniper and Arcadia eFuels sign long-term agreement to accelerate aviation decarbonization"),
+    (NEWS, "Uniper advances NorthStarH2 into basic engineering"),
+    (NEWS, "Argus – EU may drop binding green hydrogen targets in next RED"),
+    (NEWS, "Velocys expands Fischer-Tropsch reactor roadmap with AlphaCore 800 for larger-scale SAF and e-fuels"),
+    (NEWS, "US SAF market faces policy uncertainty as new production technologies emerge"),
+    (NEWS, "Has biofuel’s moment in shipping finally arrived?"),
+]
+
+
+@pytest.mark.parametrize("source,title", MISSED)
+def test_previously_missed_items_reach_the_gate(source, title):
+    result = triage(headline(title), source, DAY, DAY)
+    assert result["eligible"], result
+
+
+@pytest.mark.parametrize("title", [
+    "Uniper and Arcadia eFuels sign long-term agreement to accelerate aviation decarbonization",
+    "Velocys expands Fischer-Tropsch reactor roadmap with AlphaCore 800 for larger-scale SAF and e-fuels",
+])
+def test_e_fuel_terms_rank_as_ccu_topics(title):
+    assert triage(headline(title), NEWS, DAY, DAY)["reason"] == "CCU topic"
+
+
+@pytest.mark.parametrize("term", [
+    "eFuels", "e-fuel", "e-fuels", "e-SAF", "eSAF", "RFNBO", "power-to-liquid", "PtL", "PtX", "Fischer-Tropsch",
+    "synthetic kerosene", "e-kerosene", "e-methane", "CO2 offtake",
+])
+def test_e_fuel_terms_admit_academic_items(term):
+    result = triage(headline(f"Process study of {term} production"), PAPERS, DAY, DAY)
+    assert result["eligible"] and result["reason"] == "CCU topic"
+
+
+def test_e_ammonia_is_adjacent_and_left_to_the_gate():
+    result = triage(headline("Techno-economics of e-ammonia for shipping"), PAPERS, DAY, DAY)
+    assert result["eligible"] and result["reason"] == "CCU term without utilization context"
+
+
+@pytest.mark.parametrize("source,title", [
+    (NEWS, "Shipping fuel future hinges on what regulators do next"),
+    (COMPANY, "Toward circular elastomers: company opens pilot plant"),
+    (GOV, "Draft strategic policy guidance for electricity networks growth"),
+])
+def test_news_company_and_government_items_go_to_the_gate_without_a_term(source, title):
+    result = triage(headline(title), source, DAY, DAY)
+    assert result["eligible"] and result["kind"] != "academic"
+
+
 @pytest.mark.parametrize("source,title", [
     (PAPERS, "Perovskite solar cell efficiency record"),
-    (NEWS, "Gold Standard expands renewable energy eligibility"),
+    (NEWS, "Perovskite solar cell record"),
+    (NEWS, "Red Mist: Forget Azerbaijan. Let talk Formula 1 V10s"),
+    (NEWS, "Banks Open Today Ahead of 3-Day Strike, Certain Services Restricted"),
+    (COMPANY, "Team Sonnenwagen successfully completes the challenging 2026 iLumen European Solar Challenge"),
+    (GOV, "Premier League stadium safety guidance"),
 ])
 def test_clearly_unrelated_items_dropped_by_keyword(source, title):
     assert not triage(headline(title), source, DAY, DAY)["eligible"]
+
+
+def test_off_topic_words_never_drop_a_ccu_title():
+    assert triage(headline("Interest rates weigh on e-methanol project financing"), NEWS, DAY, DAY)["eligible"]
 
 
 # --- stage logic -----------------------------------------------------------------------------------------
@@ -329,6 +394,112 @@ def test_news_ties_rank_below_primary_and_full_text_above_headline():
     assert chosen[0]["article_id"] == "p"
 
 
+def test_category_caps_override_default_and_target_relaxes_caps_not_threshold():
+    config = {"threshold": 5, "per_category_cap": 2, "category_caps": {"conversion": 3}, "overall_cap": 15}
+    items = [entry(f"c{i}", 6, "conversion") for i in range(6)] + [entry("p1", 7, "products"),
+                                                                   entry("p2", 6, "products"),
+                                                                   entry("p3", 6, "products"),
+                                                                   entry("w", 4.9, "products")]
+    chosen, decisions = select(items, config)
+    assert sum(c["category"] == "conversion" for c in chosen) == 3 and len(chosen) == 5
+    chosen, decisions = select(items, config | {"target_min_items": 8})
+    assert len(chosen) == 8 and decisions["w"] == "below threshold"
+    assert list(decisions.values()).count("selected (cap relaxed to reach target)") == 3
+    # Never more than the qualifying items, never above the overall cap.
+    assert len(select(items, config | {"target_min_items": 20})[0]) == 9
+    assert len(select(items, config | {"target_min_items": 20, "overall_cap": 4})[0]) == 4
+
+
+def test_newsletter_targets_ten_to_fifteen_items_with_eight_conversion_papers():
+    config = newsletter_config()
+    assert config["target_min_items"] == 10 and config["overall_cap"] == 15
+    assert config["category_caps"]["conversion"] == 8 and 3 <= config["min_takeaways"] <= config["max_takeaways"] == 5
+    papers = [entry(f"c{i}", 6 if i < 4 else 5, "conversion") for i in range(11)]
+    projects = [entry("p1", 7, "commercialization", "news"), entry("p2", 6, "commercialization", "news")]
+    chosen, decisions = select(papers + projects, config)
+    assert len(chosen) == 10 and decisions["c8"] == "category cap"  # 8 papers + 2 projects
+
+
+def test_story_counts_once_against_caps_and_members_follow_the_lead():
+    config = {"threshold": 5, "per_category_cap": 1, "overall_cap": 2}
+    items = [entry("feed", 7, "commercialization", "news"), entry("basic", 6, "commercialization", "news"),
+             entry("offtake", 7, "products", "news"), entry("other", 6, "commercialization")]
+    story = {"feed": "feed", "basic": "feed", "offtake": "feed"}
+    chosen, decisions = select(items, config, story)
+    assert {c["article_id"] for c in chosen} == {"feed", "basic", "offtake"}
+    assert decisions["basic"] == decisions["offtake"] == "selected (same story)"
+    assert decisions["other"] == "category cap"  # the story used the commercialization slot
+
+
+def test_takeaways_aim_for_three_to_five_one_per_story():
+    config = {"threshold": 5, "min_takeaways": 3, "max_takeaways": 5, "takeaway_extra_score": 7}
+    two_categories = [entry("a", 8, "commercialization"), entry("b", 6, "conversion"), entry("c", 6, "conversion"),
+                      entry("d", 5, "conversion")]
+    assert [e["article_id"] for e in takeaways(two_categories, config)] == ["a", "b", "c"]
+    strong = [entry(x, 8, "conversion") for x in "abcdefg"]
+    assert len(takeaways(strong, config)) == 5
+    story = [entry("a", 8, "commercialization") | {"story": "a"}, entry("b", 7, "commercialization") | {"story": "a"},
+             entry("c", 6, "conversion")]
+    assert [e["article_id"] for e in takeaways(story, config)] == ["a", "c"]  # only two stories qualify
+    assert takeaways([entry("x", 4, "products")], config) == []
+
+
+def press(article_id, host, basis="full_text", role="news", score=6):
+    return entry(article_id, score, "commercialization", role, basis) | {"url": f"https://www.{host}/story"}
+
+
+def test_dedup_prefers_the_more_credible_outlet():
+    config = newsletter_config()
+    items = [press("regional", "sentinelassam.com", score=6), press("business", "business-standard.com", score=5),
+             press("trade", "hydrogen-central.com", score=6)]
+    merged = dedup_groups(DedupResult(groups=[["REGIONAL", "TRADE", "BUSINESS"]]), items, config)
+    assert merged == {"regional": "business", "trade": "business"}
+    company = press("company", "uniper.energy", role="primary", score=5)
+    merged = dedup_groups(DedupResult(groups=[["BUSINESS", "COMPANY"]]), [items[1], company], config)
+    assert merged == {"business": "company"}
+
+
+def test_dedup_falls_back_when_the_credible_outlets_full_text_is_unavailable():
+    config = newsletter_config()
+    items = [press("business", "business-standard.com", basis="headline"), press("regional", "sentinelassam.com")]
+    assert dedup_groups(DedupResult(groups=[["BUSINESS", "REGIONAL"]]), items, config) == {"business": "regional"}
+
+
+def test_story_groups_resolve_duplicates_and_ignore_singletons():
+    items = [entry("feed", 6, "commercialization"), entry("basic", 7, "commercialization"),
+             entry("dup", 6, "commercialization"), entry("offtake", 6, "products")]
+    result = DedupResult(groups=[["BASIC", "DUP"]], stories=[["FEED", "DUP", "OFFTAKE"], ["X", "FEED"]])
+    merged = dedup_groups(result, items)
+    story = story_groups(result, items, merged)
+    assert story == {"feed": "basic", "basic": "basic", "offtake": "basic"}
+    assert story_groups(None, items, {}) == {}
+
+
+def test_story_items_merge_and_request_advice_moves_to_editor_notes():
+    synthesis = {"sections": [{"category": "commercialization", "intro": None, "items": [
+        {"source_ids": ["S1"], "headline": "FEED award", "limitation": None,
+         "paragraphs": [{"text": "AFRY won FEED. Request the FEED basis from Uniper.", "source_ids": ["S1"]}]},
+        {"source_ids": ["S3"], "headline": "Unrelated", "limitation": None,
+         "paragraphs": [{"text": "Something else.", "source_ids": ["S3"]}]},
+        {"source_ids": ["S2"], "headline": "Basic engineering", "limitation": "Trade-press report.",
+         "paragraphs": [{"text": "Uniper moved to basic engineering.", "source_ids": ["S2"]}]}]}]}
+    merge_stories(synthesis, {"S1": "a", "S2": "a"})
+    items = synthesis["sections"][0]["items"]
+    assert [i["source_ids"] for i in items] == [["S1", "S2"], ["S3"]]
+    assert items[0]["limitation"] == "Trade-press report." and len(items[0]["paragraphs"]) == 2
+    notes = move_requests(synthesis)
+    assert notes == ["FEED award: Request the FEED basis from Uniper."]
+    assert items[0]["paragraphs"][0]["text"] == "AFRY won FEED."
+
+
+def test_limitation_is_one_short_line():
+    assert short_line("Abstract only; potential and durability not reported. Request the full text.") == \
+        "Abstract only; potential and durability not reported."
+    long = ("Abstract only; potential, current density, electrolyte, cell area, flow rate, temperature, pressure "
+            "and durability are not reported in the supplied material; independent replication is not available.")
+    assert len(short_line(long).split()) <= 20 and short_line(None) is None
+
+
 # --- limits, pricing and budget -------------------------------------------------------------------------
 
 def entrypoint():
@@ -344,6 +515,29 @@ def test_default_run_limits(monkeypatch):
     options = entrypoint().configuration()
     assert options.max_analyses == 60 and options.max_spend_usd == 5.0 and options.token_budget == 2_000_000
     assert options.dry_run
+
+
+def test_default_coverage_is_the_most_recent_fourteen_complete_days(monkeypatch):
+    for name in ("COVERAGE_END", "COVERAGE_DAYS", "MAX_ANALYSES", "MAX_SPEND_USD", "TOKEN_BUDGET", "LLM_MODEL",
+                 "LLM_SCREENING_MODEL"):
+        monkeypatch.delenv(name, raising=False)
+    module = entrypoint()
+    assert module.coverage(date(2026, 10, 9)) == (date(2026, 9, 25), date(2026, 10, 8))
+    monkeypatch.setenv("COVERAGE_END", "2026-09-27")
+    assert module.coverage(date(2026, 10, 9)) == (date(2026, 9, 14), date(2026, 9, 27))
+    monkeypatch.setenv("COVERAGE_END", "")
+    monkeypatch.setenv("COVERAGE_DAYS", "11")
+    assert module.coverage(date(2026, 10, 9)) == (date(2026, 9, 28), date(2026, 10, 8))
+    options = module.configuration()
+    assert (options.until - options.since).days == 10 and options.output.name == str(options.until + timedelta(1))
+
+
+@pytest.mark.parametrize("name,value", [("COVERAGE_END", "2999-01-01"), ("COVERAGE_END", "yesterday"),
+                                        ("COVERAGE_DAYS", "0"), ("COVERAGE_DAYS", "32")])
+def test_invalid_coverage_rejected(monkeypatch, name, value):
+    monkeypatch.setenv(name, value)
+    with pytest.raises(ValueError):
+        entrypoint().configuration()
 
 
 @pytest.mark.parametrize("name,value", [
@@ -515,6 +709,10 @@ SCREEN = {
 }
 
 
+def STORIES(ids):  # noqa: N802 - patched per test
+    return []
+
+
 def llm_handler(log):
     def handler(request):
         body = json.loads(request.content)
@@ -525,10 +723,11 @@ def llm_handler(log):
             content = Screening(relevance_reason="Mock gate.", reason="Mock rubric.", tags=["e-methanol", "Sweden",
                                 "financing"], summary="Mock summary.", evidence_type="company_announcement",
                                 **spec).model_dump()
-        elif "You deduplicate items" in system:
+        elif "You deduplicate and group items" in system:
             stage = "dedup"
             ids = {i["title"][:18]: i["id"] for i in payload["items"]}
-            content = {"groups": [[ids["Liquid Wind closes"], ids["Liquid Wind secure"]]]}
+            content = {"groups": [[ids["Liquid Wind closes"], ids["Liquid Wind secure"]]],
+                       "stories": STORIES(ids)}
         elif "# Fact sheet" in system:
             stage = "enrichment"
             if payload["title"].startswith("Liquid Wind"):
@@ -559,7 +758,7 @@ def llm_handler(log):
             content = {
                 "title": "Financing and durability lead the fortnight",
                 "dek": {"text": "A financing round and a durability result stand out.", "source_ids": ids},
-                "takeaways": [{"text": f"Takeaway for {t['category']}.", "source_ids": [t["source_id"]]}
+                "takeaways": [{"text": f"Takeaway for {t['category']}.", "source_ids": t["source_ids"]}
                               for t in payload["takeaway_plan"]],
                 "sections": [{"category": s["category"], "intro": None, "items": [{
                     "source_ids": [i["source_id"]], "headline": i["brief"]["headline"],
@@ -649,6 +848,9 @@ def test_end_to_end_full_text_two_stage_verification_and_synthesis(research, cap
     assert "headline only" in body  # the headline-only item is labelled wherever cited
     assert "[Carbon Herald, 2026-09-21](https://blocked.example/minerals)" in body  # clean outlet label
     assert "site search" not in body and "open-access subset" not in body
+    dek = next(line for line in body.splitlines() if line.startswith("*A financing round"))
+    assert "](" not in dek  # the executive summary is plain prose; citations stay in the item sections
+    assert "*Headline only; content not reviewed.*" in body  # default one-line limitation
     assert {i["issue"] for i in report["synthesis_issues"]} >= {"unsupported number", "uncited text removed"}
     # Publisher text never leaves the private cache: not in the draft, report, bundle or stage cache.
     for path in [*args.output.rglob("*"), *Path("data/runtime/llm-cache").rglob("*")]:
@@ -657,6 +859,19 @@ def test_end_to_end_full_text_two_stage_verification_and_synthesis(research, cap
     assert any(SENTINEL in p.read_text() for p in Path("data/runtime/fulltext-cache").glob("*.json"))
     assert "fixture-secret" not in capsys.readouterr().out
     assert summary["cost_upper_bound_usd"] > 0 and summary["reserved_cost_usd"] <= 5
+
+
+def test_story_members_render_as_one_item_citing_every_source(research, monkeypatch):
+    args, stages, _ = research
+    monkeypatch.setitem(globals(), "STORIES", lambda ids: [[ids["Liquid Wind secure"], ids["CO2 mineralization"]]])
+    report = execute(args)
+    by_title = records(report)
+    lead = by_title["Liquid Wind secures financing for e-methanol plant"]["article_id"]
+    assert by_title["CO2 mineralization startup raises funds"]["story"] == lead
+    body = Path(report["summary"]["draft"]).read_text()
+    section = body.split("## Projects, finance & deployment")[1].split("\n## ")[0]
+    assert "https://blocked.example/minerals" in section and "## Products & markets" not in body
+    assert section.count("### ") == 1  # one story item citing both sources
 
 
 def test_cache_makes_reruns_free_and_prompt_change_invalidates(research, monkeypatch):
@@ -693,6 +908,11 @@ def test_zero_paid_requests(research, mode):
     report = execute(args)
     assert report["summary"]["requests_reserved"] == 0
     assert stages == []
+    if mode == "explicit":
+        projected = report["summary"]["paid_run_projection"]
+        assert projected["uncached_screenings"] == 5
+        assert 0 < projected["low"]["expected_usd"] <= projected["high"]["expected_usd"]
+        assert projected["high"]["expected_usd"] <= projected["high"]["worst_case_usd"]
     body = Path(report["summary"]["draft"]).read_text()
     assert "No model analysis in this run" in body and "at a glance" not in body
 
