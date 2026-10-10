@@ -682,6 +682,147 @@ caption {
 .muted {
   color: var(--muted);
 }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.atlas-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 24px 0 8px;
+}
+.atlas-jump a {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 8px 14px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.atlas-jump a:hover {
+  border-color: var(--teal);
+}
+.atlas-jump span {
+  font-family: ui-monospace, monospace;
+  color: var(--muted);
+  margin-left: 4px;
+}
+.atlas-stage {
+  scroll-margin-top: 20px;
+}
+.atlas-lead {
+  color: var(--muted);
+  max-width: 780px;
+  margin-top: -6px;
+}
+.atlas-card {
+  display: flex;
+  flex-direction: column;
+}
+.atlas-card h3 {
+  font-size: 1.3rem;
+  margin: 0 0 10px;
+}
+.card .atlas-equation,
+.carbon-fate .atlas-equation {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: var(--navy);
+  background: var(--pale);
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+}
+.atlas-facts {
+  margin: 4px 0 18px;
+  font-size: 0.86rem;
+}
+.atlas-facts div + div {
+  margin-top: 10px;
+}
+.atlas-facts dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.atlas-facts dd {
+  margin: 2px 0 0;
+}
+.atlas-card-foot {
+  margin-top: auto;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-size: 0.88rem;
+}
+.atlas-metric {
+  display: block;
+  white-space: nowrap;
+}
+td a.atlas-metric {
+  white-space: normal;
+}
+.atlas-table th[scope='row'] {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.87rem;
+  background: #fff;
+  min-width: 170px;
+}
+.atlas-table th[scope='row'] .meta {
+  display: block;
+  font-weight: 400;
+  margin-top: 4px;
+}
+.carbon-fate {
+  border-left: 4px solid var(--green);
+  background: #f0f6f1;
+  padding: 18px 22px;
+  margin: 24px 0;
+}
+.carbon-fate h2 {
+  font-size: 1rem;
+  margin: 0 0 6px;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.carbon-fate p {
+  margin: 0;
+}
+.pathway-lead {
+  font-size: 1.12rem;
+  color: var(--ink) !important;
+}
+.pathway-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  font-size: 0.9rem;
+}
+.pathway-nav a {
+  font-weight: 600;
+}
+.pathway-nav span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pathway-nav .next {
+  text-align: right;
+  margin-left: auto;
+}
 @media (max-width: 1000px) {
   .navigation {
     gap: 18px;

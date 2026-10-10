@@ -15,8 +15,8 @@ const rows = [
   ],
   [
     'Energy and hydrogen demand',
-    t.technology_id === 'co2-to-methanol'
-      ? 'Theoretical hydrogen requirement is shown above. Actual process energy and feed losses remain scenario assumptions.'
+    t.technical_performance.length > 0
+      ? 'Theoretical stoichiometric or thermodynamic values are shown above. Actual process energy and feed losses remain scenario assumptions.'
       : 'No integrated plant mass and energy balance is attached; electricity or feedstock demand cannot be inferred from selectivity.',
   ],
   [

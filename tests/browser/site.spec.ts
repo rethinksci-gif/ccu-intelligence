@@ -43,6 +43,20 @@ test('capacity filter respects comparable groups', async ({ page }) => {
   await expect(page.locator('#project-empty')).toBeVisible();
 });
 
+test('technology atlas groups pathways and links tracked projects', async ({ page }) => {
+  await page.goto('technologies/');
+  await expect(page.locator('.atlas-card')).toHaveCount(10);
+  for (const stage of ['Capture & supply', 'Conversion', 'Mineralization']) {
+    await expect(page.getByRole('heading', { level: 2, name: stage, exact: true })).toBeVisible();
+  }
+  const fits = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  expect(fits).toBe(true);
+  await page.getByRole('link', { name: 'CO₂ to methanol', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: 'Where the carbon goes' })).toBeVisible();
+  await page.getByRole('link', { name: 'Kassø e-methanol facility' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Kassø');
+});
+
 test('calculator changes reproducibly and rejects invalid inputs', async ({ page }) => {
   await page.goto('technologies/co2-to-methanol/');
   await expect(page.locator('#cost')).toHaveText('$768/t');
@@ -222,7 +236,10 @@ test('project availability and verification filters persist and handle unknown v
   await page.goto('projects/?availability=no-capacity&verifiedSince=2026-10-09&confidence_level=medium');
   await expect(page.locator('tr[data-project]:visible')).toHaveCount(4);
   await expect(page.locator('tr[data-project]:visible')).toContainText([
-    'POSEIDON', 'Haru Oni', 'AirPlant One', 'HEIM Berlin',
+    'POSEIDON',
+    'Haru Oni',
+    'AirPlant One',
+    'HEIM Berlin',
   ]);
   await page.reload();
   await expect(page.getByLabel('Data availability')).toHaveValue('no-capacity');

@@ -257,7 +257,7 @@ def test_llm_missing_key_and_invalid_json(monkeypatch):
 
 def test_registry_and_curated_validate():
     assert len(registry()) >= 20
-    assert len(curated().technologies) == 3
+    assert len(curated().technologies) == 10
 
 
 def test_partial_source_failure_continues(store, monkeypatch, tmp_path):

@@ -189,6 +189,9 @@ class Technology(Record):
     technology_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]+$")
     technology_name: str
     pathway_category: str
+    value_chain_stage: Literal["capture", "conversion", "mineralization"]
+    summary: str = Field(min_length=1, max_length=280)
+    carbon_fate: str = Field(min_length=1)
     chemical_reactions: list[str]
     feedstocks: list[str]
     products: list[str]
@@ -203,6 +206,7 @@ class Technology(Record):
     economics: str
     lifecycle_evidence: str
     references: list[HttpUrl] = Field(min_length=1)
+    related_learning: list[str] = Field(default_factory=list)
     last_updated: date
 
 

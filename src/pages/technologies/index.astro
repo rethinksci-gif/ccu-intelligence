@@ -1,6 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { technologies, href } from '../../lib/data';
+import { technologies, projects, href, metricValue, valueChainStages } from '../../lib/data';
+const number = (i: number) => String(i + 1).padStart(2, '0');
+const position = new Map(technologies.map((t, i) => [t.technology_id, i]));
+const linkedProjects = new Set(technologies.flatMap((t) => t.reference_projects));
+const projectName = (id: string) => projects.find((p) => p.project_id === id)?.project_name ?? id;
 ---
 
 <Base title="Technology atlas"
@@ -9,33 +13,126 @@ import { technologies, href } from '../../lib/data';
       Connect the reaction to the reactor, the reactor to the plant, and the plant to its economics. Readiness
       belongs to a demonstrated system—not a reaction equation.
     </p>
-  </div><div class="cards">
+  </div><div class="statline">
+    <div><strong>{technologies.length}</strong><span>pathway profiles</span></div><div>
+      <strong>{valueChainStages.length}</strong><span>value-chain stages</span>
+    </div><div><strong>{linkedProjects.size}</strong><span>tracked projects linked</span></div><div>
+      <strong>0</strong><span>universal TRL ratings assigned</span>
+    </div>
+  </div><nav class="atlas-jump" aria-label="Atlas sections">
     {
-      technologies.map((t, i) => (
-        <article class="card">
-          <>
-            <span class="card-index">
-              0{i + 1} / {t.pathway_category.toUpperCase()}
-            </span>
-            <h2 style="font-size:1.5rem">{t.technology_name}</h2>
-            <p>{t.chemical_reactions[0]}</p>
-            <h3>Scale-up questions</h3>
-            <ul>
-              {t.known_limitations.slice(0, 3).map((l) => (
-                <li>{l}</li>
-              ))}
-            </ul>
-            <a href={href(`technologies/${t.technology_id}/`)}>Explore this pathway</a>
-            <p class="meta rule">Reference guide · Updated {t.last_updated}</p>
-          </>
-        </article>
+      valueChainStages.map((s) => (
+        <a href={`#${s.id}`}>
+          {s.title} <span>{technologies.filter((t) => t.value_chain_stage === s.id).length}</span>
+        </a>
       ))
-    }
-  </div><section class="card" style="margin-top:28px">
+    }<a href="#compare">Compare pathways</a>
+  </nav>
+  {
+    valueChainStages.map((stage) => (
+      <section id={stage.id} class="atlas-stage" aria-labelledby={`${stage.id}-title`}>
+        <div class="section-head">
+          <h2 id={`${stage.id}-title`}>{stage.title}</h2>
+        </div>
+        <p class="atlas-lead">{stage.lead}</p>
+        <div class="cards">
+          {technologies
+            .filter((t) => t.value_chain_stage === stage.id)
+            .map((t) => (
+              <article class="card atlas-card">
+                <span class="card-index">
+                  {number(position.get(t.technology_id)!)} / {t.pathway_category.toUpperCase()}
+                </span>
+                <h3>
+                  <a class="title-link" href={href(`technologies/${t.technology_id}/`)}>
+                    {t.technology_name}
+                  </a>
+                </h3>
+                <p>{t.summary}</p>
+                <p class="atlas-equation">{t.chemical_reactions[0]}</p>
+                <dl class="atlas-facts">
+                  <div>
+                    <dt>Inputs</dt>
+                    <dd>{t.feedstocks.slice(0, 3).join(' · ')}</dd>
+                  </div>
+                  <div>
+                    <dt>Products</dt>
+                    <dd>{t.products.join(' · ')}</dd>
+                  </div>
+                  <div>
+                    <dt>Main scale-up question</dt>
+                    <dd>{t.known_limitations[0]}</dd>
+                  </div>
+                </dl>
+                <div class="row atlas-card-foot">
+                  {t.reference_projects.length > 0 ? (
+                    <span class="badge">{t.reference_projects.length} tracked projects</span>
+                  ) : (
+                    <span class="badge status">No tracked project yet</span>
+                  )}
+                  <a href={href(`technologies/${t.technology_id}/`)}>
+                    Explore pathway<span class="visually-hidden">: {t.technology_name}</span>
+                  </a>
+                </div>
+              </article>
+            ))}
+        </div>
+      </section>
+    ))
+  }
+  <section id="compare" class="atlas-stage" aria-labelledby="compare-title">
+    <div class="section-head"><h2 id="compare-title">Compare pathways side by side</h2></div><p
+      class="atlas-lead"
+    >
+      Theoretical anchors come from stoichiometry or thermodynamics only. They are lower bounds, not plant
+      performance, and different units mean the rows are not directly comparable.
+    </p><div class="table-wrap">
+      <table class="atlas-table">
+        <caption class="visually-hidden">Technology pathway comparison</caption><thead
+          ><tr
+            ><th scope="col">Pathway</th><th scope="col">Theoretical anchor</th><th scope="col"
+              >Where the carbon goes</th
+            ><th scope="col">Tracked projects</th></tr
+          ></thead
+        ><tbody
+          >{
+            technologies.map((t) => (
+              <tr>
+                <th scope="row">
+                  <a href={href(`technologies/${t.technology_id}/`)}>{t.technology_name}</a>
+                  <span class="meta">{t.pathway_category}</span>
+                </th>
+                <td class="capacity">
+                  {t.technical_performance.length > 0
+                    ? t.technical_performance.map((m) => (
+                        <span class="atlas-metric">
+                          {metricValue(m.value)} {m.unit}
+                        </span>
+                      ))
+                    : 'Not stated'}
+                </td>
+                <td>{t.carbon_fate}</td>
+                <td>
+                  {t.reference_projects.length > 0
+                    ? t.reference_projects.map((id) => (
+                        <a class="atlas-metric" href={href(`projects/${id}/`)}>
+                          {projectName(id)}
+                        </a>
+                      ))
+                    : '—'}
+                </td>
+              </tr>
+            ))
+          }</tbody
+        >
+      </table>
+    </div>
+  </section><section class="card" style="margin-top:28px">
     <h2>The atlas is a foundation, not a ranking</h2><p>
-      Capture, biological, thermochemical, photocatalytic and polymer pathways are included in the monitoring
-      taxonomy. Detailed pathway profiles will be added as evidence is curated. No universal TRL or commercial
-      viability score is assigned.
+      Each profile explains process fundamentals and the evidence still needed for a commercial conclusion. No
+      universal TRL or commercial viability score is assigned: readiness belongs to a specific plant, and
+      project-level evidence lives in the <a href={href('projects/')}>project tracker</a>. Accounting terms
+      are explained in <a href={href('learning/ccu-ccs-cdr/')}>CCU vs CCS vs CDR</a>.
     </p>
   </section></Base
 >
