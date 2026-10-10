@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import ReadingContents from '../../components/ReadingContents.astro';
 import { render } from 'astro:content';
 import { href } from '../../lib/data';
 import { publicIssues, readingMinutes, coverageLabel } from '../../lib/issues';
@@ -34,27 +35,7 @@ const sections = headings.filter((h) => h.depth === 2);
     </p>
   </div>
   <div class="issue-layout">
-    {
-      sections.length > 0 && (
-        <aside class="issue-sidebar">
-          <nav aria-label="Issue contents">
-            <details class="issue-contents" open>
-              <summary>In this issue</summary>
-              <ol>
-                {sections.map((section) => (
-                  <li>
-                    <a href={`#${section.slug}`}>{section.text}</a>
-                  </li>
-                ))}
-              </ol>
-            </details>
-            <a class="meta" href="#issue-top">
-              Back to top ↑
-            </a>
-          </nav>
-        </aside>
-      )
-    }
+    <ReadingContents sections={sections} label="Issue contents" title="In this issue" topId="issue-top" />
     <article class="prose issue-body"><Content /></article>
   </div><nav class="row rule" aria-label="Issue navigation">
     {previous && <a href={href(`issues/${previous}/`)}>Previous issue</a>}<a href={href('issues/')}
