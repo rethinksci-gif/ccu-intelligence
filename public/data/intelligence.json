@@ -672,9 +672,145 @@
   "events": [],
   "technologies": [
     {
+      "technology_id": "amine-point-source-capture",
+      "technology_name": "Point-source capture by amine absorption",
+      "pathway_category": "Capture & conditioning",
+      "value_chain_stage": "capture",
+      "summary": "Chemical absorption removes CO₂ from flue or process gas, then heat regenerates the solvent and releases a concentrated CO₂ stream.",
+      "carbon_fate": "Capture alone stores nothing. The fate of the carbon is set by the downstream use or storage route.",
+      "chemical_reactions": [
+        "CO₂ + 2 RNH₂ ⇌ RNHCOO⁻ + RNH₃⁺ (carbamate formation, primary amine)"
+      ],
+      "feedstocks": [
+        "Flue gas or process off-gas",
+        "Aqueous amine solvent",
+        "Regeneration heat",
+        "Electricity"
+      ],
+      "products": [
+        "Concentrated CO₂",
+        "CO₂-depleted gas"
+      ],
+      "catalysts": [
+        "No catalyst; amine solvent formulation sets absorption rate, cyclic capacity and degradation"
+      ],
+      "process_conditions": "Absorber near ambient temperature; stripper at elevated temperature with steam. Report solvent, capture rate, CO₂ purity and specific heat duty on one stated boundary.",
+      "process_flow": [
+        "Gas pretreatment",
+        "Absorber",
+        "Rich / lean heat exchange",
+        "Stripper",
+        "CO₂ drying + compression"
+      ],
+      "technical_performance": [
+        {
+          "value": 0.5,
+          "unit": "mol CO₂/mol amine",
+          "basis": "Carbamate stoichiometry, primary amine",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Upper bound for carbamate formation only; operating cyclic loading is lower and solvent-specific"
+        },
+        {
+          "value": 0.119,
+          "unit": "GJ/t CO₂",
+          "basis": "Minimum separation work from 12 mol% CO₂",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Ideal gas at 298 K and 1 atm, pure CO₂ product, vanishing capture fraction; excludes compression and all real losses"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Amine absorption is established in gas processing; readiness for a specific flue gas, capture rate and site must be shown by that installation.",
+      "known_limitations": [
+        "Regeneration heat demand and its source",
+        "Solvent degradation, emissions and reclaiming",
+        "Flue-gas impurities (SOₓ, NOₓ, O₂, particulates)",
+        "Capture rate versus marginal energy penalty"
+      ],
+      "reference_projects": [],
+      "economics": "Cost depends strongly on CO₂ concentration, plant size, heat availability and operating hours. A capture cost excludes conditioning, transport and the downstream use or storage.",
+      "lifecycle_evidence": "Count emissions from regeneration heat, electricity and solvent supply. Fossil or biogenic origin of the captured carbon decides what downstream claims are possible.",
+      "references": [
+        "https://doi.org/10.1126/science.1176731",
+        "https://www.ipcc.ch/report/carbon-dioxide-capture-and-storage/"
+      ],
+      "related_learning": [
+        "capture",
+        "ccu-ccs-cdr"
+      ],
+      "last_updated": "2026-10-10"
+    },
+    {
+      "technology_id": "direct-air-capture",
+      "technology_name": "Direct air capture",
+      "pathway_category": "Capture & conditioning",
+      "value_chain_stage": "capture",
+      "summary": "Liquid or solid sorbents take CO₂ directly from ambient air; regeneration then delivers concentrated CO₂ for storage or use.",
+      "carbon_fate": "Atmospheric origin is necessary but not sufficient for removal: the CO₂ must then be stored durably. Used in fuels, it is re-released.",
+      "chemical_reactions": [
+        "2 KOH + CO₂ → K₂CO₃ + H₂O (liquid-solvent route, simplified)",
+        "CaCO₃ → CaO + CO₂ (calciner regeneration)"
+      ],
+      "feedstocks": [
+        "Ambient air (~420 ppm CO₂)",
+        "Sorbent or solvent",
+        "Heat",
+        "Electricity"
+      ],
+      "products": [
+        "Concentrated CO₂"
+      ],
+      "catalysts": [
+        "No catalyst; sorbent chemistry (hydroxide solutions or amine-functionalised solids) controls uptake and regeneration"
+      ],
+      "process_conditions": "Very large air-contacting area. Regeneration ranges from moderate-temperature vacuum/steam swing for solid sorbents to high-temperature calcination for liquid-solvent loops.",
+      "process_flow": [
+        "Air contactor",
+        "Sorbent loading",
+        "Regeneration",
+        "CO₂ purification",
+        "Compression"
+      ],
+      "technical_performance": [
+        {
+          "value": 0.438,
+          "unit": "GJ/t CO₂",
+          "basis": "Minimum separation work from 420 ppm",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Ideal gas at 298 K and 1 atm, pure CO₂ product, vanishing capture fraction; real systems need several times more energy"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Pilot and early commercial plants exist; each must be judged on measured net capture over sustained operation.",
+      "known_limitations": [
+        "Energy demand from a very dilute source",
+        "Sorbent lifetime and degradation",
+        "Air-contactor capital cost and land use",
+        "Low-carbon energy supply"
+      ],
+      "reference_projects": [],
+      "economics": "Capital-intensive and energy-intensive per tonne. Published cost figures differ in boundary, scale and year; compare only like-for-like delivered-CO₂ costs.",
+      "lifecycle_evidence": "Net removal requires subtracting emissions from energy, materials and construction, and durable storage of the delivered CO₂.",
+      "references": [
+        "https://doi.org/10.1016/j.joule.2018.05.006",
+        "https://www.iea.org/energy-system/carbon-capture-utilisation-and-storage/direct-air-capture"
+      ],
+      "related_learning": [
+        "capture",
+        "ccu-ccs-cdr",
+        "lca"
+      ],
+      "last_updated": "2026-10-10"
+    },
+    {
       "technology_id": "co2-to-methanol",
       "technology_name": "CO₂ to methanol",
       "pathway_category": "Catalytic hydrogenation",
+      "value_chain_stage": "conversion",
+      "summary": "CO₂ and hydrogen react over a copper/zinc-oxide catalyst to make methanol, a fuel and chemical building block.",
+      "carbon_fate": "Methanol used as fuel releases its carbon at combustion; methanol converted into durable chemicals or materials holds it longer.",
       "chemical_reactions": [
         "CO₂ + 3 H₂ → CH₃OH + H₂O"
       ],
@@ -724,18 +860,179 @@
         "Water separation, purge losses and heat integration",
         "Product offtake and capital utilization"
       ],
-      "reference_projects": [],
+      "reference_projects": [
+        "kasso-methanol",
+        "jiangsu-sailboat",
+        "poseidon-mannheim",
+        "george-olah",
+        "shunli-methanol",
+        "haru-oni"
+      ],
       "economics": "Purchased hydrogen can dominate feedstock cost. Use the transparent scenario model; its partial cost excludes capital recovery and fixed operating expenses.",
       "lifecycle_evidence": "Carbon in fuel is released at use. Climate benefit depends on feedstock origin, displaced production and energy supply; utilization does not establish removal.",
       "references": [
         "https://www.irena.org/publications/2021/Jan/Innovation-Outlook-Renewable-Methanol"
       ],
-      "last_updated": "2026-10-08"
+      "related_learning": [
+        "methanol",
+        "tea",
+        "lca"
+      ],
+      "last_updated": "2026-10-10"
+    },
+    {
+      "technology_id": "co2-methanation",
+      "technology_name": "CO₂ methanation",
+      "pathway_category": "Catalytic hydrogenation",
+      "value_chain_stage": "conversion",
+      "summary": "The Sabatier reaction combines CO₂ with hydrogen over a nickel or ruthenium catalyst to make synthetic methane.",
+      "carbon_fate": "Carbon returns to the atmosphere when the fuel is combusted, typically within months to a few years of production.",
+      "chemical_reactions": [
+        "CO₂ + 4 H₂ → CH₄ + 2 H₂O (Sabatier, strongly exothermic)"
+      ],
+      "feedstocks": [
+        "CO₂ or biogas CO₂",
+        "Hydrogen"
+      ],
+      "products": [
+        "Synthetic methane",
+        "Water",
+        "Process heat"
+      ],
+      "catalysts": [
+        "Nickel-based catalysts; ruthenium for some applications"
+      ],
+      "process_conditions": "Catalytic route typically operates at a few hundred °C with active heat removal; biological methanation operates near ambient temperature with methanogenic archaea.",
+      "process_flow": [
+        "CO₂ + H₂ feed",
+        "Methanation reactor",
+        "Heat recovery",
+        "Water removal",
+        "Gas upgrading",
+        "Grid injection"
+      ],
+      "technical_performance": [
+        {
+          "value": 2.743,
+          "unit": "t CO₂/t CH₄",
+          "basis": "Ideal net reaction",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Complete conversion; excludes slip, purge and losses"
+        },
+        {
+          "value": 0.503,
+          "unit": "t H₂/t CH₄",
+          "basis": "Ideal net reaction",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Not actual plant consumption"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Power-to-gas plants have been built at various scales; operating hours and measured output must be verified per site.",
+      "known_limitations": [
+        "Hydrogen cost and electrolyser utilisation",
+        "Heat management of the exothermic reaction",
+        "Catalyst sensitivity to sulphur and other impurities",
+        "Competes with low-cost natural gas"
+      ],
+      "reference_projects": [],
+      "economics": "Hydrogen supply dominates. Roughly half the hydrogen ends up as water, so energy efficiency from electricity to methane is lower than for some other e-fuels.",
+      "lifecycle_evidence": "Methane slip along the chain can erode benefits; electricity carbon intensity and CO₂ origin determine the result.",
+      "references": [
+        "https://doi.org/10.1016/j.renene.2015.07.066",
+        "https://www.iea.org/reports/putting-co2-to-use"
+      ],
+      "related_learning": [
+        "tea",
+        "lca"
+      ],
+      "last_updated": "2026-10-10"
+    },
+    {
+      "technology_id": "rwgs-fischer-tropsch",
+      "technology_name": "CO₂ to synthetic hydrocarbons (RWGS + Fischer–Tropsch)",
+      "pathway_category": "Thermochemical synthesis",
+      "value_chain_stage": "conversion",
+      "summary": "CO₂ is first converted to CO-rich syngas—by reverse water–gas shift or co-electrolysis—then Fischer–Tropsch synthesis builds liquid hydrocarbons such as e-kerosene.",
+      "carbon_fate": "Carbon returns to the atmosphere when the fuel is combusted, typically within months to a few years of production.",
+      "chemical_reactions": [
+        "CO₂ + H₂ ⇌ CO + H₂O (reverse water–gas shift)",
+        "n CO + 2n H₂ → (–CH₂–)ₙ + n H₂O (Fischer–Tropsch)"
+      ],
+      "feedstocks": [
+        "CO₂",
+        "Hydrogen"
+      ],
+      "products": [
+        "Synthetic kerosene, diesel and naphtha",
+        "Waxes",
+        "Water"
+      ],
+      "catalysts": [
+        "RWGS: process-specific high-temperature catalysts",
+        "Fischer–Tropsch: cobalt- or iron-based catalysts"
+      ],
+      "process_conditions": "RWGS is endothermic and favoured at high temperature; Fischer–Tropsch is exothermic at lower temperature. Product distribution needs hydrocracking and refining.",
+      "process_flow": [
+        "CO₂ + H₂ feed",
+        "RWGS reactor",
+        "Syngas conditioning",
+        "Fischer–Tropsch synthesis",
+        "Upgrading / refining",
+        "Liquid fuels"
+      ],
+      "technical_performance": [
+        {
+          "value": 3.137,
+          "unit": "t CO₂/t –CH₂–",
+          "basis": "Ideal net reaction CO₂ + 3 H₂ → –CH₂– + 2 H₂O",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Complete conversion to a long-chain paraffin unit; excludes light-gas by-products and losses"
+        },
+        {
+          "value": 0.431,
+          "unit": "t H₂/t –CH₂–",
+          "basis": "Ideal net reaction",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Not actual plant consumption"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Fischer–Tropsch is industrial for fossil syngas; integration with CO₂ and electrolytic hydrogen is at demonstration and first-of-a-kind scale.",
+      "known_limitations": [
+        "Hydrogen cost and supply continuity",
+        "RWGS high-temperature heat and selectivity",
+        "Broad product distribution and upgrading",
+        "Fuel certification and offtake"
+      ],
+      "reference_projects": [
+        "era-one",
+        "airplant-one"
+      ],
+      "economics": "Hydrogen and capital dominate. Compare with fossil jet fuel only on a stated, complete boundary and separate any policy support from production cost.",
+      "lifecycle_evidence": "Low-carbon electricity is essential. Fuel-use emissions return the carbon; claims depend on CO₂ origin and the accounting rules applied.",
+      "references": [
+        "https://www.iea.org/reports/the-role-of-e-fuels-in-decarbonising-transport",
+        "https://doi.org/10.1021/acs.chemrev.7b00435"
+      ],
+      "related_learning": [
+        "tea",
+        "lca",
+        "trl"
+      ],
+      "last_updated": "2026-10-10"
     },
     {
       "technology_id": "electrochemical-co2",
       "technology_name": "Electrochemical CO₂ conversion",
       "pathway_category": "Electrochemical reduction",
+      "value_chain_stage": "conversion",
+      "summary": "An electrolyser uses electricity to reduce CO₂ at a cathode to CO, formate, ethylene or other products.",
+      "carbon_fate": "Depends on the product: CO or formate for fuels re-release carbon; multicarbon products used in materials hold it longer.",
       "chemical_reactions": [
         "CO₂ + 2 H⁺ + 2 e⁻ → CO + H₂O (cathode half-reaction)"
       ],
@@ -758,7 +1055,24 @@
         "Product purification",
         "Recycle"
       ],
-      "technical_performance": [],
+      "technical_performance": [
+        {
+          "value": 1.571,
+          "unit": "t CO₂/t CO",
+          "basis": "Ideal cathode reaction",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Complete conversion; excludes carbonate crossover and other carbon losses"
+        },
+        {
+          "value": 1914.0,
+          "unit": "Ah/kg CO",
+          "basis": "Faraday's law, 2 e⁻ per CO",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Minimum charge at 100% Faradaic efficiency; energy also requires the full-cell voltage"
+        }
+      ],
       "current_trl": null,
       "demonstrated_scale": "Laboratory and larger systems must be assessed individually; no universal pathway TRL is assigned.",
       "known_limitations": [
@@ -767,19 +1081,219 @@
         "Scale-dependent electrode uniformity",
         "Dilute product separation"
       ],
-      "reference_projects": [],
+      "reference_projects": [
+        "airplant-one"
+      ],
       "economics": "Faradaic efficiency alone does not specify electricity consumption: full-cell voltage, current and production rate are needed.",
       "lifecycle_evidence": "Include electricity and replacement materials; track carbon leaving every outlet, not only the desired product.",
       "references": [
         "https://www.nature.com/articles/s41560-021-00973-9",
         "https://www.nature.com/articles/s41578-024-00696-9"
       ],
-      "last_updated": "2026-10-08"
+      "related_learning": [
+        "electrochemical",
+        "trl"
+      ],
+      "last_updated": "2026-10-10"
+    },
+    {
+      "technology_id": "gas-fermentation",
+      "technology_name": "Gas fermentation",
+      "pathway_category": "Biological conversion",
+      "value_chain_stage": "conversion",
+      "summary": "Acetogenic bacteria convert CO, CO₂ and H₂ from industrial off-gas or electrolysis into ethanol and other chemicals.",
+      "carbon_fate": "Depends on the product: ethanol used as fuel re-releases carbon quickly; chemicals and polymers made from it hold carbon for their service life.",
+      "chemical_reactions": [
+        "6 CO + 3 H₂O → C₂H₅OH + 4 CO₂ (CO-rich off-gas)",
+        "2 CO₂ + 6 H₂ → C₂H₅OH + 3 H₂O (CO₂ + hydrogen)"
+      ],
+      "feedstocks": [
+        "Steel-mill or other CO-rich off-gas",
+        "CO₂ + hydrogen",
+        "Nutrients"
+      ],
+      "products": [
+        "Ethanol",
+        "Acetate and other chemicals",
+        "Microbial protein"
+      ],
+      "catalysts": [
+        "Biocatalyst: acetogenic bacteria (e.g. Clostridium autoethanogenum)"
+      ],
+      "process_conditions": "Near-ambient temperature in aqueous broth; performance depends on gas–liquid mass transfer, strain and gas impurities.",
+      "process_flow": [
+        "Gas cleaning",
+        "Bioreactor",
+        "Broth separation",
+        "Distillation",
+        "Product"
+      ],
+      "technical_performance": [
+        {
+          "value": 1.911,
+          "unit": "t CO₂/t ethanol",
+          "basis": "Ideal net reaction from CO₂ + H₂",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "No biomass growth, by-products or losses"
+        },
+        {
+          "value": 0.263,
+          "unit": "t H₂/t ethanol",
+          "basis": "Ideal net reaction from CO₂ + H₂",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Not actual plant consumption; CO-rich gas routes need less or no added hydrogen"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Commercial plants operate on CO-rich industrial off-gas; CO₂ + H₂ operation must be assessed separately.",
+      "known_limitations": [
+        "Low gas solubility and mass transfer",
+        "Dilute product and separation energy",
+        "Feed-gas variability and contaminants",
+        "Hydrogen supply for CO₂-only feeds"
+      ],
+      "reference_projects": [],
+      "economics": "Off-gas availability, ethanol prices and separation energy drive the result; CO₂-only routes add hydrogen cost.",
+      "lifecycle_evidence": "When using fossil-derived off-gas, the climate benefit is avoided production, not removal. Allocation with the host plant must be explicit.",
+      "references": [
+        "https://doi.org/10.3389/fmicb.2016.00694",
+        "https://doi.org/10.1016/j.copbio.2020.02.017"
+      ],
+      "related_learning": [
+        "lca",
+        "trl"
+      ],
+      "last_updated": "2026-10-10"
+    },
+    {
+      "technology_id": "co2-polymers",
+      "technology_name": "CO₂-based polycarbonates and polyols",
+      "pathway_category": "Polymer chemistry",
+      "value_chain_stage": "conversion",
+      "summary": "CO₂ is copolymerised with epoxides to make polycarbonates or polyether-carbonate polyols that partly replace fossil feedstock in polyurethanes.",
+      "carbon_fate": "Bound in the polymer for the product's service life; end-of-life incineration releases it, landfill or recycling retains it longer. Not permanent storage.",
+      "chemical_reactions": [
+        "n C₃H₆O + n CO₂ → [–CH(CH₃)CH₂O–C(O)O–]ₙ (propylene oxide copolymerisation)"
+      ],
+      "feedstocks": [
+        "CO₂",
+        "Epoxides (e.g. propylene oxide)",
+        "Starter molecules"
+      ],
+      "products": [
+        "Polyether-carbonate polyols",
+        "Aliphatic polycarbonates"
+      ],
+      "catalysts": [
+        "Double metal cyanide (DMC) catalysts; zinc and cobalt complexes"
+      ],
+      "process_conditions": "Moderate temperature and CO₂ pressure in liquid phase; catalyst choice controls CO₂ incorporation and cyclic carbonate by-product.",
+      "process_flow": [
+        "CO₂ + epoxide feed",
+        "Copolymerisation reactor",
+        "By-product removal",
+        "Polyol finishing",
+        "Polyurethane production"
+      ],
+      "technical_performance": [
+        {
+          "value": 0.431,
+          "unit": "t CO₂/t polymer",
+          "basis": "Perfectly alternating poly(propylene carbonate)",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Upper bound; commercial polyols incorporate substantially less CO₂ by mass"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "CO₂-containing polyols have been produced industrially; volumes per site must be checked against producer disclosures.",
+      "known_limitations": [
+        "Limited CO₂ mass fraction per tonne of product",
+        "Epoxide supply and its own emissions",
+        "Product qualification versus incumbent polyols",
+        "Small total CO₂ volumes relative to emissions"
+      ],
+      "reference_projects": [],
+      "economics": "Value comes mainly from displacing more expensive epoxide feedstock, not from CO₂ consumption volume.",
+      "lifecycle_evidence": "Benefits stem mostly from avoided fossil feedstock. Compare full cradle-to-gate polyol results, then account for end-of-life fate.",
+      "references": [
+        "https://doi.org/10.1039/C3GC41788C",
+        "https://doi.org/10.1021/acs.chemrev.7b00435"
+      ],
+      "related_learning": [
+        "lca"
+      ],
+      "last_updated": "2026-10-10"
+    },
+    {
+      "technology_id": "photocatalytic-co2",
+      "technology_name": "Photocatalytic CO₂ reduction",
+      "pathway_category": "Photochemical conversion",
+      "value_chain_stage": "conversion",
+      "summary": "Semiconductor photocatalysts use sunlight to drive CO₂ reduction with water directly, without a separate electrolyser.",
+      "carbon_fate": "Most target products (CO, methane, methanol) are fuels or fuel precursors, so carbon is typically re-released at use.",
+      "chemical_reactions": [
+        "CO₂ + 2 H₂O → CH₄ + 2 O₂ (overall, 8-electron)",
+        "CO₂ → CO + ½ O₂ (overall, 2-electron)"
+      ],
+      "feedstocks": [
+        "CO₂",
+        "Water",
+        "Sunlight"
+      ],
+      "products": [
+        "CO, methane, methanol or formate (catalyst-dependent)",
+        "Oxygen"
+      ],
+      "catalysts": [
+        "Semiconductors such as TiO₂ with co-catalysts; molecular and hybrid systems"
+      ],
+      "process_conditions": "Near-ambient temperature under illumination. Report light source, spectrum, irradiance, quantum yield, product rates and control experiments together.",
+      "process_flow": [
+        "CO₂ + water feed",
+        "Illuminated photoreactor",
+        "Gas separation",
+        "Product purification"
+      ],
+      "technical_performance": [
+        {
+          "value": 8.0,
+          "unit": "mol e⁻/mol CH₄",
+          "basis": "Reaction stoichiometry",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Electrons transferred per methane formed; sets the charge-carrier demand, not the efficiency"
+        }
+      ],
+      "current_trl": null,
+      "demonstrated_scale": "Predominantly laboratory research; solar-to-fuel efficiencies reported so far are generally low.",
+      "known_limitations": [
+        "Low solar-to-fuel efficiency",
+        "Product separation from mixed, dilute streams",
+        "Catalyst stability under illumination",
+        "Carbon contamination artefacts in measurements"
+      ],
+      "reference_projects": [],
+      "economics": "No credible plant economics yet; reactor area per unit output is the key cost driver.",
+      "lifecycle_evidence": "Lifecycle data is limited to early-stage estimates; materials and large reactor area dominate.",
+      "references": [
+        "https://doi.org/10.1002/anie.201207199",
+        "https://www.iea.org/reports/putting-co2-to-use"
+      ],
+      "related_learning": [
+        "trl"
+      ],
+      "last_updated": "2026-10-10"
     },
     {
       "technology_id": "carbon-mineralization",
       "technology_name": "Carbon mineralization",
       "pathway_category": "Mineralization",
+      "value_chain_stage": "mineralization",
+      "summary": "CO₂ reacts with calcium- or magnesium-rich materials such as slags or concrete to form stable carbonates.",
+      "carbon_fate": "Carbonate minerals are stable over geological timescales if not recalcined or acid-leached; durability is the strongest of any CCU route.",
       "chemical_reactions": [
         "CaO + CO₂ → CaCO₃ (simplified net reaction)"
       ],
@@ -802,7 +1316,16 @@
         "Product testing",
         "Use"
       ],
-      "technical_performance": [],
+      "technical_performance": [
+        {
+          "value": 0.785,
+          "unit": "t CO₂/t CaO",
+          "basis": "Simplified net reaction",
+          "provenance": "theoretical",
+          "evidence_ids": [],
+          "assumptions": "Complete carbonation of reactive CaO; real materials contain less reactive phase"
+        }
+      ],
       "current_trl": null,
       "demonstrated_scale": "Route-specific; curing, aggregate production and waste treatment cannot share one readiness rating.",
       "known_limitations": [
@@ -811,13 +1334,19 @@
         "Contaminants and leaching",
         "Construction product qualification"
       ],
-      "reference_projects": [],
+      "reference_projects": [
+        "heim-berlin"
+      ],
       "economics": "Consider feedstock treatment, CO₂ delivery, product value and local transport rather than carbon uptake alone.",
       "lifecycle_evidence": "Carbonate retention may be durable, but net removal additionally requires atmospheric carbon and a complete lifecycle balance. Calcining virgin limestone can offset carbonation uptake.",
       "references": [
         "https://www.iea.org/reports/putting-co2-to-use"
       ],
-      "last_updated": "2026-10-08"
+      "related_learning": [
+        "ccu-ccs-cdr",
+        "lca"
+      ],
+      "last_updated": "2026-10-10"
     }
   ],
   "articles": []
