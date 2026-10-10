@@ -52,7 +52,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:43
             >CCU <strong>Intelligence</strong><small>CARBON CAPTURE & UTILIZATION</small></span
           ></a
         >
-        <span class="masthead-note">Science. Industry. Evidence.</span>
+        <div class="masthead-note">
+          <span class="edition-dot" aria-hidden="true"></span> Independent perspective · Evidence first
+        </div>
         <button class="menu-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
       </div>
     </header>
@@ -74,7 +76,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:43
             </a>
           ))
         }
-        <a class="nav-method" href={href('methodology/')}>Methodology</a>
+        <a
+          class="nav-method"
+          href={href('methodology/')}
+          aria-current={Astro.url.pathname === href('methodology/') ? 'page' : undefined}
+          >Methodology <span aria-hidden="true">↗</span></a
+        >
       </nav>
     </div>
     <main id="main" class="shell"><slot /></main>

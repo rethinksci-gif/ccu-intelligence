@@ -281,3 +281,45 @@ test('capacity sorting and exported records respect the chosen comparable group'
   await expect(page.getByLabel('Sort by')).toHaveValue('');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test('overview library links show current record counts and load site styles', async ({ page }) => {
+  await page.goto('./');
+  // Detect missing base-path assets as well as layout regressions.
+  await expect(page.locator('.overview-head')).toHaveCSS('display', 'grid');
+  const library = page.getByRole('navigation', { name: 'Explore the intelligence library' });
+  await expect(library.getByRole('link', { name: /09 Tracked projects/ })).toBeVisible();
+  await expect(library.getByRole('link', { name: /10 Technology pathways/ })).toBeVisible();
+  await library.getByRole('link', { name: /Technology pathways/ }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Technology atlas');
+});
+
+test('learning contents follow the reading position and hide when printing', async ({ page }) => {
+  await page.goto('learning/tea/');
+  const contents = page.getByRole('navigation', { name: 'Article contents' });
+  const link = contents.locator('ol a').first();
+  await link.click();
+  await expect(link).toHaveAttribute('aria-current', 'location');
+  const fragment = await link.getAttribute('href');
+  await expect(page.locator(`[id="${fragment!.slice(1)}"]`)).toBeInViewport();
+  await page.emulateMedia({ media: 'print' });
+  await expect(contents).not.toBeVisible();
+});
+
+test('reading and data pages fit a narrow phone and tablet', async ({ page }) => {
+  for (const width of [360, 768]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const route of [
+      './',
+      'issues/issue-001-research-2026-10-09/',
+      'learning/tea/',
+      'projects/',
+      'technologies/co2-to-methanol/',
+    ]) {
+      await page.goto(route);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+        `${route} at ${width}px`,
+      ).toBe(true);
+    }
+  }
+});

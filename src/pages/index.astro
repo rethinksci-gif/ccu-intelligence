@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { render } from 'astro:content';
 import { publicIssues, readingMinutes, coverageLabel } from '../lib/issues';
-import { projects, articles, href, label } from '../lib/data';
+import { projects, articles, technologies, href, label } from '../lib/data';
 const issues = await publicIssues();
 const latest = issues[0];
 const latestHeadings = latest ? (await render(latest)).headings.filter((h) => h.depth === 2).slice(0, 6) : [];
@@ -13,16 +13,20 @@ const watchProjects = liveProjects.slice(0, 3);
 ---
 
 <Base title="Industrial progress, in perspective">
-  <div class="row" style="justify-content:space-between">
+  <div class="edition-line">
     <p class="eyebrow">The intelligence brief</p><p class="meta">
       English · Every two weeks · Evidence first
     </p>
   </div>
-  <div class="page-head">
-    <h1>Industrial progress,<br />in perspective.</h1><p>
-      Which carbon capture and utilization pathways are moving toward industrial viability—and what is
-      preventing others from scaling?
-    </p>
+  <div class="page-head overview-head">
+    <h1>Industrial progress,<br /><em>in perspective.</em></h1><div class="overview-intro">
+      <p>
+        Which carbon capture and utilization pathways are moving toward industrial viability—and what is
+        preventing others from scaling?
+      </p><a class="text-link" href={href('methodology/')}
+        >How we assess the evidence <span aria-hidden="true">↗</span></a
+      >
+    </div>
   </div>
   {
     !latest && (
@@ -57,27 +61,42 @@ const watchProjects = liveProjects.slice(0, 3);
       }
       <a class="button" href={latest ? href(`issues/${latest.id}/`) : href('projects/')}
         >{latest ? 'Read the latest issue' : 'Explore sourced projects'}</a
-      ><div class="metrics">
-        <div class="metric"><strong>05</strong><span>Intelligence domains</span></div><div class="metric">
-          <strong>14</strong><span>Day reporting window</span>
-        </div><div class="metric">
-          <strong>{latest ? issues.length : '00'}</strong><span>Published issues</span>
-        </div>
-      </div>
+      >
     </section>
-    <section class="card">
+    <section class="card focus-card">
       <p class="eyebrow">Technology in focus</p><h2>CO₂ → Methanol</h2><p>
         A simple reaction. A demanding industrial balance.
-      </p><div class="reaction" style="font-size:1rem">CO₂ + 3 H₂ → CH₃OH + H₂O</div><p>
-        Explore feedstock stoichiometry, hydrogen cost sensitivity, separation and the limits of a partial
-        cost model.
-      </p><a href={href('technologies/co2-to-methanol/')}>Open the pathway & calculator</a><p
-        class="meta rule"
+      </p><div
+        class="pathway-visual"
+        aria-label="Carbon dioxide and hydrogen are converted to methanol and water"
       >
-        Reference material · No pathway-wide TRL assigned
-      </p>
+        <div class="pathway-inputs">
+          <span>CO₂<small>Carbon feedstock</small></span><span>3 H₂<small>Hydrogen supply</small></span>
+        </div>
+        <div class="pathway-connector" aria-hidden="true"><span></span>↓<span></span></div>
+        <div class="pathway-output">CH₃OH <span>+ H₂O</span><small>Methanol + water</small></div>
+      </div><p>Inspect stoichiometry, hydrogen costs and the limits of a partial cost model.</p><a
+        href={href('technologies/co2-to-methanol/')}>Open the pathway & calculator</a
+      ><p class="meta rule">Reference material · No pathway-wide TRL assigned</p>
     </section>
   </div>
+  <nav class="overview-stats" aria-label="Explore the intelligence library">
+    <a href={href('projects/')}
+      ><strong>{String(liveProjects.length).padStart(2, '0')}</strong><span
+        >Tracked projects<small>Primary-source records</small></span
+      ><span aria-hidden="true">↗</span></a
+    >
+    <a href={href('technologies/')}
+      ><strong>{String(technologies.length).padStart(2, '0')}</strong><span
+        >Technology pathways<small>From capture to conversion</small></span
+      ><span aria-hidden="true">↗</span></a
+    >
+    <a href={href('issues/')}
+      ><strong>{String(issues.length).padStart(2, '0')}</strong><span
+        >Published issues<small>A biweekly perspective</small></span
+      ><span aria-hidden="true">↗</span></a
+    >
+  </nav>
   {
     live.length > 0 ? (
       <>
@@ -132,11 +151,9 @@ const watchProjects = liveProjects.slice(0, 3);
         <div class="cards issue-sections">
           {latestHeadings.map((heading, i) => (
             <a class="card" href={href(`issues/${latest.id}/#${heading.slug}`)}>
-              <span class="card-index">
-                {String(i + 1).padStart(2, '0')} / ISSUE {latest.data.issue_number}
-              </span>
+              <span class="card-index">{String(i + 1).padStart(2, '0')}</span>
               <h3>{heading.text}</h3>
-              <span>Read section →</span>
+              <span aria-hidden="true">↗</span>
             </a>
           ))}
         </div>
@@ -144,36 +161,41 @@ const watchProjects = liveProjects.slice(0, 3);
     ) : null
   }
   <div class="section-head"><h2>Project watch</h2><a href={href('projects/')}>Explore the tracker</a></div>
-  <div class="table-wrap">
-    <table>
+  <div class="table-wrap project-watch">
+    <table role="table">
       <caption
         >{
           liveProjects.length
             ? 'Primary-source project records · reported status, not audited throughput'
             : 'Sample project updates · fictional, not verified commercial records'
         }</caption
-      ><thead
-        ><tr
-          ><th scope="col">Project</th><th scope="col">Region</th><th scope="col">Status</th><th scope="col"
-            >Evidence limitation</th
-          ></tr
+      ><thead role="rowgroup"
+        ><tr role="row"
+          ><th role="columnheader" scope="col">Project</th><th role="columnheader" scope="col">Region</th><th
+            role="columnheader"
+            scope="col">Status</th
+          ><th role="columnheader" scope="col">Evidence limitation</th></tr
         ></thead
-      ><tbody
+      ><tbody role="rowgroup"
         >{
           watchProjects.map((p) => (
-            <tr>
+            <tr role="row">
               <>
-                <td>
+                <td role="cell">
                   <>
                     <a href={href(`projects/${p.project_id}/`)}>{p.project_name}</a>
                     <span class="meta">{p.conversion_pathway}</span>
                   </>
                 </td>
-                <td>{p.region}</td>
-                <td>
+                <td role="cell" data-label="Region">
+                  {p.region}
+                </td>
+                <td role="cell" data-label="Status">
                   <span class="badge status">{label(p.development_status)}</span>
                 </td>
-                <td>{p.sample ? 'Fictional sample; no live verification' : p.limitations}</td>
+                <td role="cell" data-label="Evidence limitation">
+                  {p.sample ? 'Fictional sample; no live verification' : p.limitations}
+                </td>
               </>
             </tr>
           ))

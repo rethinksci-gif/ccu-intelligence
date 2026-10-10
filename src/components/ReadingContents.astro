@@ -1,0 +1,64 @@
+---
+interface Props {
+  sections: { slug: string; text: string }[];
+  label: string;
+  title: string;
+  topId: string;
+}
+const { sections, label, title, topId } = Astro.props;
+---
+
+{
+  sections.length > 0 && (
+    <aside class="issue-sidebar">
+      <nav aria-label={label} data-reading-contents>
+        <details class="issue-contents" open>
+          <summary>{title}</summary>
+          <ol>
+            {sections.map((section) => (
+              <li>
+                <a href={`#${section.slug}`}>{section.text}</a>
+              </li>
+            ))}
+          </ol>
+        </details>
+        <a class="meta" href={`#${topId}`}>
+          Back to top ↑
+        </a>
+      </nav>
+    </aside>
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-reading-contents]').forEach((nav) => {
+    const entries = Array.from(nav.querySelectorAll<HTMLAnchorElement>('ol a')).map((link) => ({
+      link,
+      heading: document.getElementById(decodeURIComponent(link.hash.slice(1))),
+    }));
+    let pending = false;
+    const update = () => {
+      let current: HTMLAnchorElement | undefined;
+      for (const entry of entries) {
+        if (entry.heading && entry.heading.getBoundingClientRect().top <= 100) current = entry.link;
+      }
+      for (const { link } of entries) {
+        if (link === current) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      }
+      pending = false;
+    };
+    document.addEventListener(
+      'scroll',
+      () => {
+        if (!pending) {
+          pending = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    window.addEventListener('resize', update);
+    update();
+  });
+</script>
