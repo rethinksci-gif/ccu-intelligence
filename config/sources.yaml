@@ -410,6 +410,18 @@ sources:
   include_pattern: '\b(?:co2|carbon dioxide|e-?methanol|green methanol|methanol|e-?fuels?|electrofuels?|e-?saf|e-?kerosene|synthetic (?:fuels?|kerosene|methane)|e-?methane|power-to-(?:x|liquids?|gas|methanol)|ptx|ptl|rfnbos?|fischer.tropsch|carbon capture|ccus?|minerali[sz]\w*|sustainable aviation fuel|saf)\b'
   minimum_interval_seconds: 3
   limitation: WordPress feed; robots verified 2026-10-09. Company news (e-methanol, PtX); only items matching the CCU/e-fuel include_pattern count.
+- source_id: neustark
+  organization: neustark
+  source_type: company_announcements_and_annual_reports
+  base_url: https://www.neustark.com
+  access_method: manual
+  update_frequency: biweekly manual review
+  reliability_tier: 3
+  last_successful_retrieval: null
+  reuse_restrictions: Company claims are not independent verification. Link and original paraphrase only; do not copy reports or images.
+  active: true
+  automated_access_approved: false
+  limitation: Berlin site sources checked 2026-10-10. Storage-capacity claims are not measured net removals or aggregate output. Manual source review only.
 - source_id: poseidon
   organization: POSEIDON project consortium
   source_type: company_or_consortium_report

@@ -2,7 +2,7 @@
 
 An evidence-driven, static-first intelligence platform connecting scientific progress, engineering feasibility, industrial deployment, economics and climate performance.
 
-**Status:** Live on GitHub Pages at https://rethinksci-gif.github.io/ccu-intelligence/. The public tracker contains three primary-source project baselines (Kassø, Jiangsu Sailboat and POSEIDON Mannheim), with company/consortium reporting explicitly attributed and measured output left unknown. Fictional fixtures remain for tests but are excluded from public JSON and routes. Issue 001 is published as an owner-authorized research edition with 22 sources; its incomplete editorial review is explicitly disclosed.
+**Status:** Live on GitHub Pages at https://rethinksci-gif.github.io/ccu-intelligence/. The public tracker contains nine primary-source project baselines across six countries, covering methanol, synthetic fuels and concrete mineralization, with company/consortium reporting explicitly attributed and measured output left unknown. Fictional fixtures remain for tests but are excluded from public JSON and routes. Issue 001 is published as an owner-authorized research edition with 22 sources; its incomplete editorial review is explicitly disclosed.
 
 Biweekly draft preparation is enabled through GitHub Actions. A daily 07:17 UTC check opens one draft PR per completed 14-day window, starting **12 October 2026**, then 26 October. Branch/file checks prevent duplicate drafts. Collection is bounded to 20 candidate records; scheduled runs have no model key and permit **zero paid API calls**. Publication still requires manual editorial approval and all existing validation gates. See [operational status](docs/operational-status.md).
 
@@ -196,7 +196,7 @@ package-lock.json        exact npm dependency resolution
 
 ## Known limitations and next work
 
-- The tracker has three attributed primary-source baselines. Issue 001 is a public research edition; full editorial review remains incomplete.
+- The tracker has nine attributed primary-source baselines across six countries. See [project coverage and evidence limitations](docs/project-coverage.md). Issue 001 is a public research edition; full editorial review remains incomplete.
 - Collection is bounded keyword search, not exhaustive discovery. Add cursor pagination, per-source incremental checkpoints, retrieval checksums across dates and broader regional/language queries next.
 - Exact URL/DOI/text deduplication works. Semantic syndication clustering and a project alias-resolution interface remain future work.
 - Event detection is conservative keyword triage; structured extraction and optional LLM outputs require review before insertion. LLM tasks use one common validated envelope and were tested with mocked failures, not a paid provider call.

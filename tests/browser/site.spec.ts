@@ -23,12 +23,12 @@ test('navigation is usable on desktop and mobile', async ({ page, isMobile }) =>
 test('project filters and empty states', async ({ page }) => {
   await page.goto('projects/');
   await page.getByRole('combobox', { name: 'Region', exact: true }).selectOption('China');
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
-  await expect(page.locator('#project-count')).toContainText('1 project');
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(2);
+  await expect(page.locator('#project-count')).toContainText('2 projects');
   await page.getByLabel('Search projects').fill('no such project');
   await expect(page.locator('#project-empty')).toBeVisible();
   await page.getByRole('button', { name: 'Reset filters' }).click();
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(3);
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(9);
   await page.getByLabel('Data scope').selectOption('sample');
   await expect(page.locator('#project-empty')).toBeVisible();
 });
@@ -38,7 +38,7 @@ test('capacity filter respects comparable groups', async ({ page }) => {
   await expect(page.getByLabel('Minimum announced capacity')).toBeDisabled();
   await page.getByLabel('Comparable capacity group').selectOption('product_output|Methanol|t/year');
   await page.getByLabel('Minimum announced capacity').fill('50000');
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(2);
   await page.getByLabel('Minimum announced capacity').fill('200000');
   await expect(page.locator('#project-empty')).toBeVisible();
 });
@@ -65,7 +65,7 @@ test('published output excludes fixtures and unapproved drafts', async ({ page, 
   expect(feed).toContain('<item>');
   expect(feed).toContain('Research edition; full editorial review incomplete');
   const data = await (await request.get('data/intelligence.json')).json();
-  expect(data.projects).toHaveLength(3);
+  expect(data.projects).toHaveLength(9);
   for (const records of Object.values(data) as { sample?: boolean }[][]) {
     expect(records.some((record) => record.sample)).toBe(false);
   }
@@ -94,7 +94,7 @@ test('project names link to details without JavaScript', async ({ browser, baseU
   const page = await context.newPage();
   await page.goto('projects/');
   const links = page.locator('tr[data-project] td:first-child a');
-  await expect(links).toHaveCount(3);
+  await expect(links).toHaveCount(9);
   const name = await links.first().innerText();
   await links.first().click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(name);
@@ -104,7 +104,7 @@ test('project names link to details without JavaScript', async ({ browser, baseU
 test('filters survive sharing, reload and return from details', async ({ page }) => {
   await page.goto('projects/?region=Europe&scope=live');
   await expect(page.getByRole('combobox', { name: 'Region', exact: true })).toHaveValue('Europe');
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(2);
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(5);
   await page.getByLabel('Comparable capacity group').selectOption('product_output|Methanol|t/year');
   await page.getByLabel('Minimum announced capacity').fill('10000');
   await expect(page).toHaveURL(/minCapacity=10000/);
@@ -117,17 +117,17 @@ test('filters survive sharing, reload and return from details', async ({ page })
   await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
   await page.getByRole('button', { name: 'Reset filters' }).click();
   await expect(page).toHaveURL(/projects\/$/);
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(3);
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(9);
   await expect(page.getByLabel('Minimum announced capacity')).toBeDisabled();
 });
 
 test('invalid URL filters fall back and search ignores surrounding spaces', async ({ page }) => {
   await page.goto('projects/?region=invalid&scope=invalid&minCapacity=-1&ref=shared');
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(3);
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(9);
   await expect(page.getByRole('combobox', { name: 'Region', exact: true })).toHaveValue('');
   await expect(page.getByLabel('Minimum announced capacity')).toHaveValue('');
   await page.getByLabel('Search projects').fill('  China  ');
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(2);
   await expect(page).toHaveURL(/ref=shared/);
   await page.getByRole('button', { name: 'Reset filters' }).click();
   await expect(page).toHaveURL(/projects\/\?ref=shared$/);
@@ -220,18 +220,20 @@ test('project search handles accents, CO2 spelling and word order', async ({ pag
 
 test('project availability and verification filters persist and handle unknown values', async ({ page }) => {
   await page.goto('projects/?availability=no-capacity&verifiedSince=2026-10-09&confidence_level=medium');
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(1);
-  await expect(page.locator('tr[data-project]:visible')).toContainText('POSEIDON');
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(4);
+  await expect(page.locator('tr[data-project]:visible')).toContainText([
+    'POSEIDON', 'Haru Oni', 'AirPlant One', 'HEIM Berlin',
+  ]);
   await page.reload();
   await expect(page.getByLabel('Data availability')).toHaveValue('no-capacity');
-  await page.getByLabel('Source checked on or after').fill('2026-10-10');
+  await page.getByLabel('Source checked on or after').fill('2100-01-01');
   await expect(page.locator('#project-empty')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Download filtered JSON' })).toBeDisabled();
   await page.getByRole('button', { name: 'Reset filters' }).click();
   await page.getByLabel('Data availability').selectOption('output');
   await expect(page.locator('tr[data-project]:visible')).toHaveCount(0);
   await page.getByLabel('Data availability').selectOption('no-output');
-  await expect(page.locator('tr[data-project]:visible')).toHaveCount(3);
+  await expect(page.locator('tr[data-project]:visible')).toHaveCount(9);
 });
 
 test('capacity sorting and exported records respect the chosen comparable group', async ({ page }) => {
@@ -242,15 +244,17 @@ test('capacity sorting and exported records respect the chosen comparable group'
   await page.getByLabel('Comparable capacity group').selectOption('product_output|Methanol|t/year');
   await page.getByLabel('Sort by').selectOption('capacity');
   const visible = page.locator('tr[data-project]:visible');
-  await expect(visible).toHaveCount(2);
-  await expect(visible.first()).toContainText('Sailboat');
+  await expect(visible).toHaveCount(4);
+  await expect(visible.first()).toContainText('Shunli');
   const pending = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download filtered JSON' }).click();
   const download = await pending;
   const result = JSON.parse(await readFile((await download.path())!, 'utf8'));
   expect(result.projects.map((p: { project_id: string }) => p.project_id)).toEqual([
+    'shunli-methanol',
     'jiangsu-sailboat',
     'kasso-methanol',
+    'george-olah',
   ]);
   expect(result.projects.every((p: { operational_capacity: null }) => p.operational_capacity === null)).toBe(
     true,

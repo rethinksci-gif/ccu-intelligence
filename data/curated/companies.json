@@ -32,7 +32,7 @@
       "company_id": "twelve",
       "name": "Twelve",
       "website": "https://www.twelve.co",
-      "watchlist_only": true,
+      "watchlist_only": false,
       "sample": false
     },
     {
@@ -53,7 +53,7 @@
       "company_id": "carbon-recycling-international",
       "name": "Carbon Recycling International",
       "website": "https://www.carbonrecycling.com",
-      "watchlist_only": true,
+      "watchlist_only": false,
       "sample": false
     },
     {
@@ -67,7 +67,7 @@
       "company_id": "hif-global",
       "name": "HIF Global",
       "website": "https://hifglobal.com",
-      "watchlist_only": true,
+      "watchlist_only": false,
       "sample": false
     },
     {
