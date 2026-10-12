@@ -1,0 +1,650 @@
+{
+  "crossref": {
+    "added": 3,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 7,
+    "outside_window": 0,
+    "unknown_date": 4,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/crossref/f682a4fc60e854b43b039b47c8c256c210c3fc34ba58e322f8f4c00a3459fd07.bin"
+    ]
+  },
+  "openalex": {
+    "added": 10,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 10,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/openalex/4abab8ca20beb3508a6be6c8986c4926bcd78b3b5c677bf05d0564b83249df29.bin"
+    ]
+  },
+  "co2-value-europe": {
+    "added": 2,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 10,
+    "outside_window": 8,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/co2-value-europe/6ac458dff5014053306f0791bc63e6f95d2b189443b1cae8fc04c3baa6488898.bin"
+    ]
+  },
+  "dioxycle": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 10,
+    "outside_window": 10,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/dioxycle/333353efe7d755bbac6fd6ede58fbda9292080cfbaf21fb869233f2c0e2b75d3.bin"
+    ]
+  },
+  "liquid-wind": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 10,
+    "outside_window": 10,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/liquid-wind/820a6a9f5659cd85d49c4001ddda097c7efbf9208187a8ccfedb2f8112afe162.bin"
+    ]
+  },
+  "covestro": {
+    "added": 3,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 25,
+    "outside_window": 22,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/covestro/febf8337d017397a53f5c278faa7acc45597ea0bfb490400de023f405f03c0c3.bin"
+    ]
+  },
+  "carbicrete": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 10,
+    "outside_window": 10,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/carbicrete/ddc63a12ddabb7797c7e44e644e8a8657adf903ca3a8b84f92ca5c3471383a0a.bin"
+    ]
+  },
+  "uk-desnz": {
+    "added": 8,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 16,
+    "outside_window": 8,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/uk-desnz/05c23c88c83deaaf273b40e91dad2b8c677dfea3efb17c0205a3805ac3c49fdf.bin"
+    ]
+  },
+  "european-energy": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 2,
+    "outside_window": 2,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/european-energy/a5547c1d82ffff28cca16cd904e01125b6f380603112f85d868eed1583e7fa3f.bin",
+      "data/raw/european-energy/df838c290ee0b3bb2e27b57db085c1d5ee95bd638e866f8f889b252502a71da8.bin"
+    ],
+    "filtered_out": 18
+  },
+  "openalex-oa": {
+    "added": 10,
+    "duplicates": 6,
+    "failed": 0,
+    "limited": 1,
+    "considered": 16,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/openalex-oa/49a27ccb7c7d7aa6604df71652eae01c56d3d29918a5f02627a1ede8f83d0a91.bin"
+    ]
+  },
+  "federal-register-ccu": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/federal-register-ccu/4c1e354671af95544e935dbac903ce8debe9bcd099fbb45417f279e5ad2cda75.bin"
+    ]
+  },
+  "news-efuels-carbonherald": {
+    "added": 1,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 19,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-efuels-carbonherald/b9daab9d779a5c77f024efede5b4c9e25202c7cfa7bd5492d3d3d280623f985a.bin",
+      "data/raw/news-efuels-carbonherald/eb99691b30c002ad027171f5f6c1b9fb50adcceb812714866b431e1aa65955ae.bin"
+    ]
+  },
+  "news-electrolysis-carbonherald": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 4,
+    "outside_window": 4,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/news-electrolysis-carbonherald/512ed270269d0c083189740ea1bd91c9144c533245e660a32e99de356a8ef68a.bin"
+    ]
+  },
+  "news-mineralization-carbonherald": {
+    "added": 5,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 15,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-mineralization-carbonherald/9e074911ca27b4da69718ab03efd4a025b37a82a2e2754e33e255f23fb8dc237.bin",
+      "data/raw/news-mineralization-carbonherald/436c8aa9f5cb32f3538726e833d6550c4d2bc7e5632d70a2ce7fba4f44e42a39.bin"
+    ]
+  },
+  "news-concrete-carbonherald": {
+    "added": 1,
+    "duplicates": 1,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 18,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-concrete-carbonherald/89e4700e1b86ae57e513c85b146ee598cbdee6361b5a71ce06bd791c11bb2e7b.bin",
+      "data/raw/news-concrete-carbonherald/c2d2e82a50dc9e5ac4543684dfb5de386e02193259da6a33c2432ac106a60566.bin"
+    ]
+  },
+  "news-utilization-carbonherald": {
+    "added": 5,
+    "duplicates": 3,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 12,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-utilization-carbonherald/0c2d8da40a06283fe1c90c5ab61c51fecf81214003351e6e607d3329568317b6.bin",
+      "data/raw/news-utilization-carbonherald/73ba1c48e0250bebfcf416c92ff5a78372240dfab28eaf999d152a8d7e797ee4.bin"
+    ]
+  },
+  "news-offtake-carbonherald": {
+    "added": 5,
+    "duplicates": 1,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 14,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-offtake-carbonherald/fb4fcc9b346fd0fb28a0e60e2f8929935f095de10cf796e53f124e3506331c9e.bin",
+      "data/raw/news-offtake-carbonherald/d91178bde2a46d7957beccbe77a8ad32b46b037a3df7d2da3199a85610878f26.bin"
+    ]
+  },
+  "news-emethanol-carbonherald": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 10,
+    "outside_window": 10,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/news-emethanol-carbonherald/75e5d2790bdc4db95864563867d7b779f7b3c25e6d059eac4ad60d7154481b96.bin"
+    ]
+  },
+  "news-rfnbo-carbonherald": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 1,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 1,
+    "pages_fetched": 0,
+    "raw_files": [],
+    "errors": [
+      "HTTP 404 after retries; use manual ingestion or retry later"
+    ]
+  },
+  "news-esaf-greenair": {
+    "added": 1,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 19,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-esaf-greenair/714cde46819f6dae116166fbace0e9e1de17546616c4fbceaee5f2e9433ebcad.bin",
+      "data/raw/news-esaf-greenair/8266ca29a6f4bf81d6fd0398a2eaa1e70a2098fc4c69d49e3cbd941e883ebcca.bin"
+    ]
+  },
+  "news-ptl-greenair": {
+    "added": 0,
+    "duplicates": 1,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 19,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-ptl-greenair/7f927fe4b26a4e86ca0e686c41c526eb66ce0f5ed87bdf42f598ed773edc523d.bin",
+      "data/raw/news-ptl-greenair/49514510f4b4fac9bedff8ac637e2b08ab2d7c2cc63bd0a855d368c351f2459a.bin"
+    ]
+  },
+  "news-45q-carbonherald": {
+    "added": 1,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 20,
+    "outside_window": 19,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 2,
+    "raw_files": [
+      "data/raw/news-45q-carbonherald/5ee4b4fb827b502b5aa53f7f8144bba5f2721b179ab9a4f5373e6ff3efbf3b7c.bin",
+      "data/raw/news-45q-carbonherald/1142ca248d225b748748ba6ac413051c9b826c7b59fdefa57e21a38ec8c8e195.bin"
+    ]
+  },
+  "news-efuel-biofuels": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 100,
+    "outside_window": 100,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/news-efuel-biofuels/71b5e689c4ac298c6754cc81dd7abd94f61713fc5e6e54ec5d8aed661f290ddd.bin"
+    ]
+  },
+  "ineratec": {
+    "added": 5,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 5,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/ineratec/8e7af4250d07ca8013a2ea2007457c43ff4e4474c9a2989afee3624cd6546135.bin"
+    ]
+  },
+  "news-offshore-energy": {
+    "added": 1,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 1,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/news-offshore-energy/762efe28141905677a2e91c9eff50d5c5cb565ef22b38beb01462186f799f068.bin"
+    ],
+    "filtered_out": 49
+  },
+  "news-biofuels-digest": {
+    "added": 20,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 20,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 20,
+    "raw_files": [
+      "data/raw/news-biofuels-digest/99960170a4527038103e334e3720addeb1eedaf6a7b375de92afc26e9136c410.bin",
+      "data/raw/news-biofuels-digest/6a09dca1312cf8d54077f6dfa3369280cf79c8e72ce0d8872746f5481981e81a.bin",
+      "data/raw/news-biofuels-digest/c866ffecf8add219d972abbbc02b9370cac69127ff3afd897bfc9bcd14f67138.bin",
+      "data/raw/news-biofuels-digest/f1fb4b6cffd67619116a6e0f295098bc5e1d032aad7159f536b305cfa776f40c.bin",
+      "data/raw/news-biofuels-digest/c5aa1227f909c76ef61d1bea0ac504240231357422a85d03322c786f7ac28b7b.bin",
+      "data/raw/news-biofuels-digest/abb94dad6ba290e3d9618d4edb03c737331ba7ad39e517c831e22391f244dc9b.bin",
+      "data/raw/news-biofuels-digest/9a3547a958ef0d58f65266ba66340183c848e9aedfaf3778523e9a740fd9fcab.bin",
+      "data/raw/news-biofuels-digest/b7d0f07c35d1925741e6fbd79bcc45d8334b325684f05c4735fbf8196dead284.bin",
+      "data/raw/news-biofuels-digest/2f3a67a3ff824602b3603102667602ddc2857a1366e0c02ff6dbca3b530fb439.bin",
+      "data/raw/news-biofuels-digest/c3046ca4bf1dc1d50617e387329f997cce6b82f3d05f636977e092dfb7667a05.bin",
+      "data/raw/news-biofuels-digest/e34860eeedb370f5ea7cca6a1610e39c14a350f7cf7742923fc4c69e7f2a0498.bin",
+      "data/raw/news-biofuels-digest/44f81f416575cde3afb5adee5fbc252c02add0f5ad8628ae6338cc802719a407.bin",
+      "data/raw/news-biofuels-digest/11713b4ed12e0b40a351158ebbbb6f693957947bbfbc24c002d9db46985c88af.bin",
+      "data/raw/news-biofuels-digest/745e410fd350db0347cdba8197cab00f14c4df56540e0d7b218ed2bb65e310e4.bin",
+      "data/raw/news-biofuels-digest/cd362b63bc8cfabbdd5f595cdf5002ff31f12112d34410d5bb7ca095d76d55a6.bin",
+      "data/raw/news-biofuels-digest/a613e808cca496b5e5113a09446d7f54490cfb12a5d423861285e571d2b9cbc5.bin",
+      "data/raw/news-biofuels-digest/cce56261135063d157b48e419c897ff5ee9360cd2af9e01db4fe739a6133625f.bin",
+      "data/raw/news-biofuels-digest/fd98d43a95020f1c977399ddc1c9a5358e4b4ecd09c7b668e13582eb01848000.bin",
+      "data/raw/news-biofuels-digest/43f4d4b0f026d4987c8b601e11f3eca7af07479a600ee4a7c8334d9fb564d5f1.bin",
+      "data/raw/news-biofuels-digest/cfe117396c083ca9a94f959ae8805757dc5957bea035465262e86191992de00f.bin"
+    ],
+    "filtered_out": 55
+  },
+  "news-chemengonline": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 1,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 1,
+    "pages_fetched": 0,
+    "raw_files": [],
+    "errors": [
+      "HTTP 403 after retries; use manual ingestion or retry later"
+    ]
+  },
+  "news-manifold-times": {
+    "added": 10,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 10,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 9,
+    "raw_files": [
+      "data/raw/news-manifold-times/7bd84f8afbf7dc48318d38f8d178dbed7772e39726a74b45bcfd54a1630240d4.bin",
+      "data/raw/news-manifold-times/6e550b40a779379b7f591295d18f3f9d4e439409aeca3f974d98e4fe59383b36.bin",
+      "data/raw/news-manifold-times/f6b5e83e7e7805991613c2ea522b35ce7d4a14f57061a0414cbcf6d3558c4bc4.bin",
+      "data/raw/news-manifold-times/e6a9b591b9beb35c564e6b6d5fa7a18d6558570185087b63018bd5327ee518fe.bin",
+      "data/raw/news-manifold-times/08329d97d980ca9806769da55fb985b9e94aa9a67587ade6afe33dc44c724449.bin",
+      "data/raw/news-manifold-times/699c55f2f7ce53a43ed4bec6e7073c2cbda7bc26d8c17a8ad82a340a6a745ef1.bin",
+      "data/raw/news-manifold-times/2869eef0583a90021086318b1d8469af86e3f3962e9e9c3c1c78259dda9b2967.bin",
+      "data/raw/news-manifold-times/9d8bc368d3c230d238d7d329587f8ce83f3abc0de0a5323c76ff85e4b742adfa.bin",
+      "data/raw/news-manifold-times/ae429040f1a68b44e2cc4da63af0b65e90eec7dc82ed978ed3a3deb553a1f59e.bin"
+    ],
+    "filtered_out": 80
+  },
+  "news-renewable-carbon": {
+    "added": 11,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 14,
+    "outside_window": 3,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 10,
+    "raw_files": [
+      "data/raw/news-renewable-carbon/f0ec1f6f6d0298bbd1fa509f580fd422562dcac65418a56227d64a70ad58628b.bin",
+      "data/raw/news-renewable-carbon/a3b2755d0873e5269ae9bee7ea9a840adda2b69909522c1a7d2891cf72a0ad0f.bin",
+      "data/raw/news-renewable-carbon/e780b1909a77fb476893bab0e49da35929a1cf0c5c1a17a69e2c688d9a52110c.bin",
+      "data/raw/news-renewable-carbon/8ff770d8d40c2a37c349a01600b46e97e8646dd9e22e17db5f95857702313170.bin",
+      "data/raw/news-renewable-carbon/9416053eb2d5338f21148cd52b2feec08c3a8f845fcc70f8e1f800660deec7bd.bin",
+      "data/raw/news-renewable-carbon/596f3f8c846b39fc852472acce0e6c8462da6ce5911fc8221ee59e5dd19ab265.bin",
+      "data/raw/news-renewable-carbon/968c8c57a669146873bb0dc6a529c324c24cec1b44826f912bedd353efebc80a.bin",
+      "data/raw/news-renewable-carbon/a1a2e64fa6250f4d459c9b7529dd4fd1458ca8412ba9771f18e0acd2490ae8a2.bin",
+      "data/raw/news-renewable-carbon/70f146a5841201faee319dd0349e7c6610ae42307df91ff1525a9a41b54e95a0.bin",
+      "data/raw/news-renewable-carbon/887e3daa15a61210ee99b416297816168cd8d6c0d9ecc5a91da63ea2a76fe979.bin"
+    ],
+    "filtered_out": 86
+  },
+  "news-efuel-bioenergy": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 1,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 1,
+    "pages_fetched": 0,
+    "raw_files": [],
+    "errors": [
+      "HTTP 404 after retries; use manual ingestion or retry later"
+    ]
+  },
+  "editor-submitted-company": {
+    "added": 1,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 1,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/editor-submitted-company/3ec2953fc4222f061545d419853a32dd4d9ac739595553e09e2958745954793b.bin"
+    ]
+  },
+  "editor-submitted-news": {
+    "added": 1,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 0,
+    "considered": 2,
+    "outside_window": 1,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/editor-submitted-news/5bd50639db0e7ddaa108aa4f483b909b82b916aac8edbf6c167ca5ef2bff3aa7.bin"
+    ]
+  },
+  "gdelt-efuels": {
+    "added": 18,
+    "duplicates": 3,
+    "failed": 0,
+    "limited": 0,
+    "considered": 21,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 18,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/gdelt-efuels/d268d69e96f43dea9c4106509d4fae4838b129c0c31a56edced568ade159305f.bin"
+    ]
+  },
+  "gdelt-co2-conversion": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 1,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 1,
+    "pages_fetched": 0,
+    "raw_files": [],
+    "errors": [
+      "HTTP 429 after retries; use manual ingestion or retry later"
+    ]
+  },
+  "gdelt-mineralization": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 1,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 1,
+    "pages_fetched": 0,
+    "raw_files": [],
+    "errors": [
+      "HTTP 429 after retries; use manual ingestion or retry later"
+    ]
+  },
+  "gdelt-policy": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 1,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 1,
+    "pages_fetched": 0,
+    "raw_files": [],
+    "errors": [
+      "HTTP 429 after retries; use manual ingestion or retry later"
+    ]
+  },
+  "govuk-search-ccu": {
+    "added": 10,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 10,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "discovery_only": 0,
+    "invalid_items": 0,
+    "source_failures": 0,
+    "pages_fetched": 1,
+    "raw_files": [
+      "data/raw/govuk-search-ccu/4dc43457ba08807e7813f0c3a8c4c197509aa3f8d07f587491553254dd722c73.bin"
+    ]
+  }
+}
