@@ -39,6 +39,10 @@ class EvidenceCases(unittest.TestCase):
         c,s=fixture();s['status']=404
         self.assertEqual(verify(c,s,support)['status'],'QUARANTINED')
 
+    def test_conflicting_unit_with_same_number(self):
+        c,s=fixture();c['claims'][0]['en']=c['claims'][0]['en'].replace('kWh','MWh')
+        self.assertEqual(verify(c,s,support)['status'],'QUARANTINED')
+
     def test_missing_source_evidence(self):
         c,s=fixture();s['text']='No evidence available'
         self.assertEqual(verify(c,s,support)['status'],'QUARANTINED')

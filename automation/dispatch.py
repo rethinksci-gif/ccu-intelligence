@@ -39,6 +39,8 @@ def main(workflow):
     status.update(deployment_status='confirmed', confirmed_revision=sha, deployment_run_url=run['url'],
                   last_confirmed_publication=confirmation.get('last_publication'),
                   last_successful_check=confirmation['confirmed_at'])
+    if not status.get('last_publication'):
+        status['last_publication'] = confirmation.get('last_publication')
     status_path.write_text(json.dumps(status,indent=2)+'\n')
     print(json.dumps({'deployment_run':run['url'],**confirmation},indent=2))
 

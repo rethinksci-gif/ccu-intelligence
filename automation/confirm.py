@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import time
 import urllib.request
 from pathlib import Path
@@ -12,13 +13,34 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
+
+def published_inventory(repository=Path('.')):
+    """Include legacy curated editions without asserting that they passed new automatic gates."""
+    entries = []
+    patterns = [('src/content/issues/*.md', 'issues'), ('issues/*.md', 'issues'),
+                ('content/en/analyst-editions/*/index.md', 'en/analyst-editions')]
+    for pattern, base in patterns:
+        for path in repository.glob(pattern):
+            raw = path.read_text()
+            if not raw.startswith('---'):
+                continue
+            front = raw.split('---', 2)[1]
+            if not re.search(r'^(?:editorial_status|status):\s*[\"\']?(?:published|research_published)', front, re.M):
+                continue
+            when = re.search(r'^(?:publication_date|date):\s*[\"\']?(\d{4}-\d{2}-\d{2})', front, re.M)
+            if when:
+                slug = path.parent.name if path.name == 'index.md' else path.stem
+                entries.append({'id': slug, 'date': when.group(1), 'page': f'{base}/{slug}/index.html'})
+    return sorted(entries, key=lambda e: (e['date'], e['id']))
+
+
 def receipt(root, revision):
     # Hash actual HTML bytes, including every new publication and both language variants.
     pages = {str(p.relative_to(root)): sha(p.read_bytes()) for p in root.rglob('*.html')}
     if not pages:
         raise ValueError('build contains no pages')
     publications = sorted(p.stem for p in Path('automation/publications').glob('*.json'))
-    return {'revision': revision, 'pages': pages, 'publications': publications}
+    return {'revision': revision, 'pages': pages, 'publications': publications, 'publication_inventory': published_inventory()}
 
 
 def confirm(base, expected, fetch=None):
@@ -33,7 +55,7 @@ def confirm(base, expected, fetch=None):
         if sha(fetch(path)) != expected_hash:
             raise ValueError('live content mismatch: ' + path)
     return {'status': 'confirmed', 'revision': expected['revision'], 'pages': len(expected['pages']),
-            'last_publication': (expected.get('publications') or [None])[-1],
+            'last_publication': (expected.get('publication_inventory') or [{'id':None}])[-1]['id'],
             'confirmed_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
 
 

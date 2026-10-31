@@ -28,10 +28,6 @@ jobs:
       SITE_URL: https://${{ github.repository_owner }}.github.io
       BASE_PATH: /${{ github.event.repository.name }}/
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-      OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
-      CCU_CONTACT_EMAIL: ${{ secrets.CCU_CONTACT_EMAIL }}
       MAX_LLM_CALLS_PER_RUN: '40'
     steps:
       - uses: actions/checkout@v7
@@ -49,6 +45,11 @@ jobs:
         run: python -m pytest -q tests automation/tests
       - name: Collect, extract, verify and prepare eligible publication
         id: pipeline
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+          CCU_CONTACT_EMAIL: ${{ secrets.CCU_CONTACT_EMAIL }}
         run: PYTHONPATH=src python automation/run.py
       - name: Validate automatic publication records
         run: python automation/validate.py
