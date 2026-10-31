@@ -1,29 +1,52 @@
 [
   {
-    "id": "a-aabde105c39e8145bda4",
+    "id": "a-1152d60f21ef3de289f7",
     "status": "QUARANTINED",
     "reasons": [
-      "verification unavailable or invalid input: ValueError"
+      "conflicting or unsupported numerical data"
     ],
-    "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
-    "checked_at": "2026-10-31T07:35:45.150774+00:00",
-    "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
+    "source_url": "https://co2value.eu/214351-2/",
+    "checked_at": "2026-10-31T20:23:04.306308+00:00",
+    "source_sha256": "1812341af20ec42b47131de5b701f0fe8325d194345a42af5471ff4ec737c19f",
     "checks": {}
   },
   {
-    "id": "a-2dc70401d50f6bc2ba41",
+    "id": "a-aabde105c39e8145bda4",
     "status": "QUARANTINED",
-    "source_url": "https://doi.org/10.1021/acsenergylett.6c02712",
     "reasons": [
-      "original-source extraction failed: HTTPError"
-    ]
+      "semantic evidence checks failed"
+    ],
+    "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
+    "checked_at": "2026-10-31T20:23:04.791118+00:00",
+    "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
+    "checks": {
+      "support": true,
+      "dates": true,
+      "quantities_units_conditions": true,
+      "contradictions": true,
+      "authority": true,
+      "capacity_status": true,
+      "legal_status_effective_date": true,
+      "translation_meaning": true
+    }
   },
   {
-    "id": "a-512801eeda25bf97f658",
+    "id": "a-f46c80f4d2d7a5b02e5b",
     "status": "QUARANTINED",
-    "source_url": "https://doi.org/10.1038/s41467-026-78548-z",
     "reasons": [
-      "original-source extraction failed: ValueError"
+      "conflicting or unsupported numerical data"
+    ],
+    "source_url": "https://co2value.eu/d-crbn-selects-worley-to-engineer-renewable-syngas-demonstration-plant-in-belgium/",
+    "checked_at": "2026-10-31T20:23:08.917506+00:00",
+    "source_sha256": "32699206b37c4058fc5f064abe51228b1173280c768178b548194b2bb2de24bf",
+    "checks": {}
+  },
+  {
+    "id": "a-00c573e3c91a7cd1c498",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/carbon-curve-intelligence-a-new-free-tool-that-tracks-the-cdr-sector",
+    "reasons": [
+      "news/company/industry/government: gate decides"
     ]
   },
   {
@@ -43,6 +66,14 @@
     ]
   },
   {
+    "id": "a-304cd436a16448e9e6b2",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/fortera-secures-meta-as-buyer-of-certificates-for-low-carbon-cement",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
     "id": "a-3f2d8bab7eb417d6ab84",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.2118/234071-ms",
@@ -56,14 +87,6 @@
     "source_url": "https://doi.org/10.1021/acsnano.6c17097",
     "reasons": [
       "below threshold"
-    ]
-  },
-  {
-    "id": "a-512d9cea5ded1c7bd5f7",
-    "status": "REJECTED",
-    "source_url": "https://econotimes.com/Taiwan-Researchers-Increase-Bioethanol-Feedstock-in-Tested-Microalga-1756637",
-    "reasons": [
-      "unknown or outside publication window"
     ]
   },
   {
@@ -87,7 +110,23 @@
     "status": "QUARANTINED",
     "source_url": "https://carbicrete.com/amazon-deployment",
     "reasons": [
-      "failed or not run"
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-5e60a56cbdedce926f74",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/salesforce-partners-with-mitti-labs-to-purchase-500000-rice-methane-carbon-credits",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-608b2f14a322af2d0d83",
+    "status": "REJECTED",
+    "source_url": "https://jp.ibtimes.com/university-tokyo-model-matches-two-hour-co2-mineralization-calcium-rich-olivine-104800",
+    "reasons": [
+      "unknown or outside publication window"
     ]
   },
   {
@@ -95,7 +134,7 @@
     "status": "QUARANTINED",
     "source_url": "https://www.manifoldtimes.com/news/imo-study-identifies-methanol-as-starting-point-for-indias-alternative-fuel-bunkering",
     "reasons": [
-      "headline only (listed)"
+      "CCU term without utilization context"
     ]
   },
   {
@@ -103,7 +142,7 @@
     "status": "QUARANTINED",
     "source_url": "https://dioxycle.com/dioxycle-features-once-again-in-norrsken-100-impact-list",
     "reasons": [
-      "headline only (listed)"
+      "news/company/industry/government: gate decides"
     ]
   },
   {
@@ -123,11 +162,19 @@
     ]
   },
   {
-    "id": "a-842eebb408ec1259c53a",
+    "id": "a-87cf62c3cff9a947e4b3",
     "status": "REJECTED",
-    "source_url": "https://focustaiwan.tw/sci-tech/202610190017",
+    "source_url": "https://alwasat-ye.net/2026-10/N-Ethylmaleimide-NEM-NEthylmaleimide-influence-on-free-living-nematode-soil-carbon-mineralization.html",
     "reasons": [
       "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-88e57bec63a631bfb59e",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.3390/cryst16110698",
+    "reasons": [
+      "CCU term without utilization context"
     ]
   },
   {
@@ -171,6 +218,22 @@
     ]
   },
   {
+    "id": "a-a3eb7d2af7938a650cf8",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/nasdaq-launches-new-carbon-issuance-calendar-in-collaboration-with-relae",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-a592b6a4fee16d10c757",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/skytree-galetech-and-mwahera-partner-on-direct-air-capture-for-e-fuel-production-in-kenya",
+    "reasons": [
+      "selected, not enriched: enrichment cap"
+    ]
+  },
+  {
     "id": "a-b2699781740ce5dcd2c4",
     "status": "QUARANTINED",
     "source_url": "https://www.covestro.com/press/2026-covestro-grandparent-grandchild-science-camp-strengthens-family-bonds-through-hands-on-experiments",
@@ -195,6 +258,14 @@
     ]
   },
   {
+    "id": "a-c74f034b45b886032941",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/carbon180-presents-new-roadmap-for-scaling-removals-on-agricultural-land-in-the-u-s",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
     "id": "a-dce9eaf33482c33f7687",
     "status": "QUARANTINED",
     "source_url": "https://biofuels-news.com/news/varopreem-sets-out-value-growth-strategy-to-2030-driving-the-next-phase-of-growth",
@@ -208,6 +279,14 @@
     "source_url": "https://doi.org/10.1016/j.cej.2026.183079",
     "reasons": [
       "below threshold"
+    ]
+  },
+  {
+    "id": "a-e4cc45b855aa8717e3dd",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/emissionlink-calls-for-eu-ets-revenue-allocation-to-onboard-carbon-capture",
+    "reasons": [
+      "CCU term without utilization context"
     ]
   },
   {
@@ -232,6 +311,30 @@
     "source_url": "https://www.gov.uk/government/news/8th-uk-taiwan-energy-dialogue-and-21st-uk-taiwan-renewable-energy-conference",
     "reasons": [
       "below threshold"
+    ]
+  },
+  {
+    "id": "a-f84098996874c4f745c2",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/uk-cuts-200m-from-acorn-carbon-capture-hub-funding",
+    "reasons": [
+      "CCU topic"
+    ]
+  },
+  {
+    "id": "a-fd8a2974e9f42efcd43d",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/epa-proposes-primacy-approval-for-utah-class-vi-carbon-storage-permitting",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-ffd6c4c1319d87971540",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.1016/j.apcatb.2026.127699",
+    "reasons": [
+      "failed or not run"
     ]
   }
 ]
