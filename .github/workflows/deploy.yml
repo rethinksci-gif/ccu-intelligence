@@ -32,7 +32,7 @@ jobs:
       - run: npm ci
       - run: pip install -r requirements.lock
       - run: ruff check src/ccu_intelligence tests scripts
-      - run: pytest -q tests automation/tests
+      - run: python -m pytest -q tests automation/tests
       - run: python -m ccu_intelligence.cli validate
       - name: Validate generated data is current
         run: |
