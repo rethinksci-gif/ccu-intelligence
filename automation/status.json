@@ -3,8 +3,12 @@
   "status": "skipped",
   "window": "2026-10-26",
   "last_publication": null,
-  "last_successful_check": "2026-10-31T07:36:14.626209+00:00",
+  "last_successful_check": "2026-10-31T07:38:24Z",
   "reasons": [
     "fewer than four original-source verified developments"
-  ]
+  ],
+  "deployment_status": "confirmed",
+  "confirmed_revision": "945663177bd64540c90e5b4918ba11ef6ed55a81",
+  "deployment_run_url": "https://github.com/rethinksci-gif/ccu-intelligence/actions/runs/41181314052",
+  "last_confirmed_publication": null
 }
