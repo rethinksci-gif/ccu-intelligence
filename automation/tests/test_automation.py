@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from automation.confirm import confirm, receipt
-from automation.evidence_gate import CHECKS, Model, digest, verify
+from automation.evidence_gate import CHECKS, Model, digest, numbers, verify
 from automation.validate import validate
 
 TEXT = 'On 2026-10-01 the official laboratory measured 50 kWh at 200 C under dry conditions. The result is experimental, not operational capacity.'
@@ -89,6 +89,10 @@ class EvidenceCases(unittest.TestCase):
         c,s=fixture()
         self.assertEqual(verify(c,s,lambda *args:{'checks':{'support':True}})['status'],'QUARANTINED')
 
+    def test_chinese_attached_numbers_match_english(self):
+        self.assertEqual(numbers('2026年增长16%，容量50kWh'), numbers('In 2026 growth was 16%, capacity 50kWh'))
+        self.assertNotEqual(numbers('-20 °C'), numbers('20 °C'))
+
     def test_wrong_original_date(self):
         c,s=fixture();s['date']='2026-09-01'
         self.assertEqual(verify(c,s,support)['status'],'QUARANTINED')
@@ -103,7 +107,7 @@ class PublicationCases(unittest.TestCase):
     def test_live_success_and_deployment_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'index.html').write_text('Publication identifier: TEST-001')
-            expected=receipt(root,'sha')
+            expected=receipt(root,'sha',root)
             files={'publication-receipt.json':json.dumps(expected).encode(),'index.html':(root/'index.html').read_bytes()}
             self.assertEqual(confirm('',expected,files.__getitem__)['status'],'confirmed')
             files['index.html']=b'previous known good publication'
@@ -112,7 +116,22 @@ class PublicationCases(unittest.TestCase):
     def test_rerunning_same_receipt_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);(root/'index.html').write_text('TEST-001')
-            self.assertEqual(receipt(root,'sha'),receipt(root,'sha'))
+            self.assertEqual(receipt(root,'sha',root),receipt(root,'sha',root))
+
+    def test_built_publication_must_contain_expected_identifier(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            previous=os.getcwd()
+            try:
+                os.chdir(tmp)
+                Path('automation/publications').mkdir(parents=True)
+                Path('automation/publications/test.json').write_text(json.dumps({
+                    'id':'EXPECTED-001','file':'issues/test.md'}))
+                root=Path('dist');(root/'issues/test').mkdir(parents=True)
+                (root/'issues/test/index.html').write_text('Old content without the expected edition')
+                with self.assertRaisesRegex(ValueError,'identifier missing'):
+                    receipt(root,'sha')
+            finally:
+                os.chdir(previous)
 
     def test_missing_live_receipt_is_failure(self):
         with self.assertRaises(KeyError):confirm('',{'revision':'sha','pages':{}},{}.__getitem__)

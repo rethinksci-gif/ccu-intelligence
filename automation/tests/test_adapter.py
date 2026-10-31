@@ -52,6 +52,7 @@ class AdapterTests(unittest.TestCase):
         with self.pipeline():
             self.assertEqual(adapter.run()['status'],'publish')
             validate()
+            self.assertIn('publication_date: \'2026-10-31\'', Path('src/content/issues/auto-2026-10-26.md').read_text())
             original=Path('src/content/issues/auto-2026-10-26.md').read_bytes()
             self.assertEqual(adapter.run()['status'],'skipped')
             self.assertEqual(Path('src/content/issues/auto-2026-10-26.md').read_bytes(),original)

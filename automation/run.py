@@ -69,7 +69,7 @@ def run():
         else:
             stamp = now()
             meta = {'title':f'CCU Intelligence — {end}', 'issue_number':(end-date(2026,1,5)).days//14+1,
-                    'publication_date':str(end),'coverage_start':str(start),'coverage_end':str(end),
+                    'publication_date':str(date.today()),'coverage_start':str(start),'coverage_end':str(end),
                     'featured_topics':['Verified developments'],'source_count':len(good),
                     'editorial_status':'research_published','last_updated':stamp,'sample':False,
                     'publication_authorization':'automated-evidence-gate-v1',

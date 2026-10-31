@@ -6,6 +6,7 @@ import os
 import re
 import socket
 import urllib.request
+import unicodedata
 from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
@@ -94,12 +95,15 @@ class Model:
 
 
 def numbers(text):
-    return set(re.findall(r'(?<!\w)\d+(?:[.,]\d+)*(?:%|\b)', text))
+    # Unicode word boundaries miss digits adjacent to Chinese characters (e.g. 2026年).
+    text = unicodedata.normalize('NFKC', text).replace('−', '-')
+    return set(re.findall(r'(?<![A-Za-z0-9])[-+]?\d+(?:[.,]\d+)*(?:[eE][-+]?\d+)?%?', text))
 
 
 def quantities(text):
     # Exact value/unit pairs; no silent conversions of source-reported measurements.
-    pattern = r'(\d+(?:[.,]\d+)*)\s*(TWh|GWh|MWh|kWh|Wh|GW|MW|kW|W|kg|tonnes|bar|MPa|mA|°C|%)(?![A-Za-z])'
+    text = unicodedata.normalize('NFKC', text).replace('−', '-')
+    pattern = r'([-+]?\d+(?:[.,]\d+)*)\s*(TWh|GWh|MWh|kWh|Wh|GW|MW|kW|W|kg|tonnes|bar|MPa|mA|°C|%)(?![A-Za-z])'
     return set(re.findall(pattern, text))
 
 

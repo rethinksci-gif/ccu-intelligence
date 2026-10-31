@@ -34,13 +34,29 @@ def published_inventory(repository=Path('.')):
     return sorted(entries, key=lambda e: (e['date'], e['id']))
 
 
-def receipt(root, revision):
+def receipt(root, revision, repository=Path('.')):
     # Hash actual HTML bytes, including every new publication and both language variants.
     pages = {str(p.relative_to(root)): sha(p.read_bytes()) for p in root.rglob('*.html')}
     if not pages:
         raise ValueError('build contains no pages')
-    publications = sorted(p.stem for p in Path('automation/publications').glob('*.json'))
-    return {'revision': revision, 'pages': pages, 'publications': publications, 'publication_inventory': published_inventory()}
+    publications = []
+    for manifest_path in (repository/'automation/publications').glob('*.json'):
+        publication = json.loads(manifest_path.read_text())
+        publications.append(publication['id'])
+        names = publication.get('files') or [publication['file']]
+        for name in names:
+            if name.startswith('src/content/issues/'):
+                page = 'issues/' + Path(name).stem + '/index.html'
+            elif name.startswith('issues/'):
+                page = 'issues/' + Path(name).stem + '/index.html'
+            elif name.startswith('content/'):
+                page = name.removeprefix('content/').removesuffix('.md') + '.html'
+            else:
+                raise ValueError('unknown automatic publication route')
+            if page not in pages or publication['id'] not in (root/page).read_text():
+                raise ValueError('expected publication identifier missing from built page: ' + page)
+    publications.sort()
+    return {'revision': revision, 'pages': pages, 'publications': publications, 'publication_inventory': published_inventory(repository)}
 
 
 def confirm(base, expected, fetch=None):
