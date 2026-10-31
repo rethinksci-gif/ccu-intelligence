@@ -32,7 +32,7 @@ jobs:
       - run: npm ci
       - run: pip install -r requirements.lock
       - run: ruff check src/ccu_intelligence tests scripts
-      - run: pytest -q
+      - run: pytest -q tests automation/tests
       - run: python -m ccu_intelligence.cli validate
       - name: Validate generated data is current
         run: |
@@ -42,6 +42,13 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - run: python3 automation/validate.py
+      - name: Record exact build for live confirmation
+        run: python3 automation/confirm.py prepare --root dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: publication-receipt
+          path: automation/expected-receipt.json
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
@@ -50,6 +57,8 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     permissions:
+      contents: read
+      actions: read
       pages: write
       id-token: write
     environment:
@@ -59,3 +68,21 @@ jobs:
       - name: Deploy reviewed main branch
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v7
+        with:
+          name: publication-receipt
+          path: automation
+      - name: Confirm live receipt and every published page
+        env:
+          LIVE_BASE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: python3 automation/confirm.py confirm --base "$LIVE_BASE"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: live-confirmation
+          path: automation/confirmation.json
+          if-no-files-found: ignore

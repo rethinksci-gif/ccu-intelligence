@@ -1,8 +1,6 @@
 name: Draft biweekly issue
 on:
-  # Check daily for a new completed 14-day window; existing branches make retries idempotent.
-  schedule:
-    - cron: '17 7 * * *'
+  # Optional diagnostic draft only; autonomous.yml owns scheduled publication.
   workflow_dispatch:
 permissions:
   contents: write

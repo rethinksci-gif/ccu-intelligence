@@ -21,3 +21,11 @@ data/manual/*
 # Local terminal transcript; preserve privately.
 /CCU
 *.log
+
+# Autonomous runtime artifacts
+automation/expected-receipt.json
+automation/confirmation.json
+automation/runtime/
+automation/run-result.json
+
+.venv

@@ -1,3 +1,5 @@
+> **Scheduled publishing:** [Autonomous evidence publishing](AUTOMATION.md) now owns routine publication; legacy manual instructions below apply only to optional editorial diagnostics.
+
 # CCU Intelligence — Carbon Capture & Utilization
 
 An evidence-driven, static-first intelligence platform connecting scientific progress, engineering feasibility, industrial deployment, economics and climate performance.

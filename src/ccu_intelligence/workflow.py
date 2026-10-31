@@ -256,8 +256,8 @@ def check_args(args):
     if not args.dry_run and os.getenv("GITHUB_ACTIONS") == "true":
         event = os.getenv("GITHUB_EVENT_NAME")
         trusted = os.getenv("GITHUB_REF") == "refs/heads/" + os.getenv("DEFAULT_BRANCH", "main")
-        if not trusted or event != "workflow_dispatch" or os.getenv("GITHUB_RUN_ATTEMPT") != "1":
-            raise ValueError("Paid processing requires a trusted default-branch dispatch and first attempt")
+        if not trusted or event not in ("workflow_dispatch", "schedule"):
+            raise ValueError("Paid processing requires a trusted default-branch schedule/dispatch")
     if not args.dry_run and not os.getenv("LLM_API_KEY"):
         raise ValueError("Paid processing requires LLM_API_KEY")
 
@@ -526,6 +526,7 @@ def _run(args, store, budget, stage_roles, pricing, config, categories, endpoint
                       "evidence_role": entry["evidence_role"], "publication_date": record["publication_date"],
                       "input_basis": entry["input_basis"], "category": entry["category"], "score": entry["score"],
                       "enrichment": entry["enrichment"], "content": entry["content"]})
+    atomic_json(Path("data/runtime/autonomous-input") / (args.output.name + ".json"), final)
     leads = takeaways(final, config)
     story_sids: dict[str, list[str]] = {}
     for e in final:

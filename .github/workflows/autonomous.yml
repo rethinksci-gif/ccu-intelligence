@@ -1,0 +1,99 @@
+name: Autonomous evidence publishing
+on:
+  schedule:
+    - cron: '47 5 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Collect, verify and build without committing or deploying'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: autonomous-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    environment: deepseek-paid
+    permissions:
+      contents: write
+      actions: write
+    env:
+      PYTHONPATH: src:.
+      ASTRO_TELEMETRY_DISABLED: '1'
+      SITE_URL: https://${{ github.repository_owner }}.github.io
+      BASE_PATH: /${{ github.event.repository.name }}/
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+      CCU_CONTACT_EMAIL: ${{ secrets.CCU_CONTACT_EMAIL }}
+      MAX_LLM_CALLS_PER_RUN: '40'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: pip install -r requirements.lock
+      - run: npm ci
+      - name: Verification and failure-case tests
+        run: python -m pytest -q tests automation/tests
+      - name: Collect, extract, verify and prepare eligible publication
+        id: pipeline
+        run: PYTHONPATH=src python automation/run.py
+      - name: Validate automatic publication records
+        run: python automation/validate.py
+      - run: python scripts/validate_workflows.py
+      - run: python -m ccu_intelligence.cli validate
+      - name: Build before committing publication
+        run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - name: Commit only validated publication and audit state
+        if: inputs.dry_run != true
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- src/content/issues public/data automation/status.json automation/verification.json automation/publications
+          if ! git diff --cached --quiet; then
+            git commit -m "Automated evidence check and eligible publication"
+            git push origin "HEAD:$DEFAULT_BRANCH"
+          fi
+      - name: Build, deploy and confirm committed revision
+        if: inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python automation/dispatch.py deploy.yml
+      - name: Persist confirmed deployment status
+        if: inputs.dry_run != true
+        run: |
+          git add -- automation/status.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record confirmed live publication"
+            git push origin "HEAD:$DEFAULT_BRANCH"
+          fi
+      - name: Record run outcome (including build or deployment-trigger failure)
+        if: always()
+        env:
+          RUN_OUTCOME: ${{ job.status }}
+        run: python automation/finish.py
+      - name: Retain machine-readable verification and run status
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: evidence-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            automation/status.json
+            automation/verification.json
+            automation/run-result.json
+          retention-days: 90
+          if-no-files-found: warn

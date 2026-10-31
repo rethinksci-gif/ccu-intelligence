@@ -1100,9 +1100,8 @@ def test_invalid_caps_fail_before_collection(research, field, value):
 
 @pytest.mark.parametrize("event,ref,attempt", [
     ("pull_request", "refs/heads/main", "1"), ("workflow_dispatch", "refs/heads/feature", "1"),
-    ("workflow_dispatch", "refs/heads/main", "2"), ("schedule", "refs/heads/main", "1"),
 ])
-def test_untrusted_or_retry_run_rejected_before_payment(research, monkeypatch, event, ref, attempt):
+def test_untrusted_run_rejected_before_payment(research, monkeypatch, event, ref, attempt):
     args, stages, _ = research
     monkeypatch.setenv("GITHUB_ACTIONS", "true")
     monkeypatch.setenv("GITHUB_EVENT_NAME", event)
@@ -1452,3 +1451,15 @@ def test_non_flash_direct_calls_rejected_before_network_or_budget(monkeypatch):
             complete_json(replace(role(), model="deepseek-v4-pro"), "s", {}, DedupResult,
                           budget=budget, calls=calls, client=client)
     assert budget.requests == 0 and calls == []
+
+
+@pytest.mark.parametrize("event,attempt", [("schedule", "1"), ("workflow_dispatch", "2")])
+def test_trusted_schedule_and_retry_remain_budgeted(research, monkeypatch, event, attempt):
+    args, stages, _ = research
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+    monkeypatch.setenv("GITHUB_REF", "refs/heads/main")
+    monkeypatch.setenv("GITHUB_RUN_ATTEMPT", attempt)
+    result = execute(args)
+    assert result["summary"]["requests_reserved"] <= args.max_requests
+    assert result["summary"]["reserved_cost_usd"] <= args.max_spend_usd
