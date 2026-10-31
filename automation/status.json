@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-31T07:23:19.549275+00:00",
+  "status": "skipped",
+  "window": "2026-10-26",
+  "last_publication": null,
+  "last_successful_check": "2026-10-31T07:36:14.626209+00:00",
+  "reasons": [
+    "fewer than four original-source verified developments"
+  ]
+}

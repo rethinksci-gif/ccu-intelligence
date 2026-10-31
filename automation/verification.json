@@ -1,0 +1,237 @@
+[
+  {
+    "id": "a-aabde105c39e8145bda4",
+    "status": "QUARANTINED",
+    "reasons": [
+      "verification unavailable or invalid input: ValueError"
+    ],
+    "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
+    "checked_at": "2026-10-31T07:35:45.150774+00:00",
+    "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
+    "checks": {}
+  },
+  {
+    "id": "a-2dc70401d50f6bc2ba41",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.1021/acsenergylett.6c02712",
+    "reasons": [
+      "original-source extraction failed: HTTPError"
+    ]
+  },
+  {
+    "id": "a-512801eeda25bf97f658",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.1038/s41467-026-78548-z",
+    "reasons": [
+      "original-source extraction failed: ValueError"
+    ]
+  },
+  {
+    "id": "a-1e18001e46d2a7355429",
+    "status": "QUARANTINED",
+    "source_url": "https://offshore-energy.biz/2026/10/29/co2-storage-appraisal-campaign-in-uk-north-sea-yields-positive-results",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-28e084f120c9772fea14",
+    "status": "QUARANTINED",
+    "source_url": "https://www.gov.uk/government/speeches/carbon-capture-and-the-renewal-of-british-industry",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-3f2d8bab7eb417d6ab84",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.2118/234071-ms",
+    "reasons": [
+      "failed or not run"
+    ]
+  },
+  {
+    "id": "a-445a8c757a67c3c8d4d8",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.1021/acsnano.6c17097",
+    "reasons": [
+      "below threshold"
+    ]
+  },
+  {
+    "id": "a-512d9cea5ded1c7bd5f7",
+    "status": "REJECTED",
+    "source_url": "https://econotimes.com/Taiwan-Researchers-Increase-Bioethanol-Feedstock-in-Tested-Microalga-1756637",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-52500c90c4a64b8318a4",
+    "status": "REJECTED",
+    "source_url": "https://www.prnewswire.com/news-releases/renewable-methanol-market-to-reach-usd-5-52-billion-by-2035---credence-research-302914611.html",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-55a159352b4ab31db185",
+    "status": "REJECTED",
+    "source_url": "https://www.gov.uk/government/publications/uk-ets-allocation-table-for-operators-of-installations",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-5aa552d7b16b5f86cef1",
+    "status": "QUARANTINED",
+    "source_url": "https://carbicrete.com/amazon-deployment",
+    "reasons": [
+      "failed or not run"
+    ]
+  },
+  {
+    "id": "a-638ef7d85d7f32005308",
+    "status": "QUARANTINED",
+    "source_url": "https://www.manifoldtimes.com/news/imo-study-identifies-methanol-as-starting-point-for-indias-alternative-fuel-bunkering",
+    "reasons": [
+      "headline only (listed)"
+    ]
+  },
+  {
+    "id": "a-7ddb174814e965fe962c",
+    "status": "QUARANTINED",
+    "source_url": "https://dioxycle.com/dioxycle-features-once-again-in-norrsken-100-impact-list",
+    "reasons": [
+      "headline only (listed)"
+    ]
+  },
+  {
+    "id": "a-7e5c4fefb516ecf37a3f",
+    "status": "QUARANTINED",
+    "source_url": "https://renewable-carbon.eu/news/copper-d-orbital-regulation-enables-direct-coupling-of-co2-with-no2-for-selective-urea-electrosynthesis",
+    "reasons": [
+      "headline only (listed)"
+    ]
+  },
+  {
+    "id": "a-7ffc90b70bfc7bce44cb",
+    "status": "QUARANTINED",
+    "source_url": "https://www.manifoldtimes.com/news/fratelli-cosulich-launches-third-methanol-ready-bunker-tanker-in-china",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-842eebb408ec1259c53a",
+    "status": "REJECTED",
+    "source_url": "https://focustaiwan.tw/sci-tech/202610190017",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-9652fa007be68e61d8c7",
+    "status": "QUARANTINED",
+    "source_url": "https://biofuelsdigest.com/biofuels-partners-looks-to-china-to-consolidate-its-supply-chains-for-used-oil-hvo-and-saf",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-9b40d3aff681f5b04839",
+    "status": "QUARANTINED",
+    "source_url": "https://biofuelsdigest.com/bcd-launches-saf-program-to-boost-corporate-investment",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-a0bd848360b6a00f971d",
+    "status": "QUARANTINED",
+    "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
+    "reasons": [
+      "headline only (listed)"
+    ]
+  },
+  {
+    "id": "a-a0bd913c61bc8e28081e",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.21203/rs.3.rs-11262643/v1",
+    "reasons": [
+      "failed or not run"
+    ]
+  },
+  {
+    "id": "a-a2c5ee50d96741dd4e39",
+    "status": "QUARANTINED",
+    "source_url": "https://www.ineratec.de/en/glossary/now-china-wants-flood-world-e-fuels-too",
+    "reasons": [
+      "below threshold"
+    ]
+  },
+  {
+    "id": "a-b2699781740ce5dcd2c4",
+    "status": "QUARANTINED",
+    "source_url": "https://www.covestro.com/press/2026-covestro-grandparent-grandchild-science-camp-strengthens-family-bonds-through-hands-on-experiments",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-b3f777c172c8a71004b7",
+    "status": "REJECTED",
+    "source_url": "https://www.finanznachrichten.de/nachrichten-2026-10/69888149-credence-research-inc-renewable-methanol-market-to-reach-usd-5-52-billion-by-2035-credence-research-008.htm",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-ba86ecc772c6c25ec372",
+    "status": "REJECTED",
+    "source_url": "https://www.gov.uk/government/news/major-undersea-power-cable-given-green-light",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-dce9eaf33482c33f7687",
+    "status": "QUARANTINED",
+    "source_url": "https://biofuels-news.com/news/varopreem-sets-out-value-growth-strategy-to-2030-driving-the-next-phase-of-growth",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-e1ff52d54e42251ebbd5",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.1016/j.cej.2026.183079",
+    "reasons": [
+      "below threshold"
+    ]
+  },
+  {
+    "id": "a-ef25ff4cd110d1ab61e1",
+    "status": "QUARANTINED",
+    "source_url": "https://renewable-carbon.eu/news/as-europe-accelerates-electrification-alchemhy-advances-flexible-ammonia-and-methanol-production",
+    "reasons": [
+      "selected, not enriched: enrichment cap"
+    ]
+  },
+  {
+    "id": "a-f0de9fd8fba4f136a043",
+    "status": "QUARANTINED",
+    "source_url": "https://www.covestro.com/press/covestro-to-showcase-cast-elastomer-expertise-at-utech-asia--pu-china-2026",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-f12f1cc32d681b2355ca",
+    "status": "QUARANTINED",
+    "source_url": "https://www.gov.uk/government/news/8th-uk-taiwan-energy-dialogue-and-21st-uk-taiwan-renewable-energy-conference",
+    "reasons": [
+      "below threshold"
+    ]
+  }
+]
