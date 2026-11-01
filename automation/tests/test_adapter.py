@@ -99,9 +99,11 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(self.args.since,date(2026,10,12))
         validate()
 
-    def test_collection_span_respects_research_workflow_limit(self):
+    def test_collection_covers_only_closed_windows_within_workflow_limit(self):
         with self.pipeline(count=0,today='2026-11-22'):adapter.run()
-        self.assertEqual((self.args.until-self.args.since).days+1,31)
+        self.assertEqual((self.args.since,self.args.until),(date(2026,10,12),date(2026,11,8)))
+        with self.pipeline(count=0,today='2026-12-06'):adapter.run()
+        self.assertLessEqual((self.args.until-self.args.since).days+1,31)
 
     def test_optional_sentence_with_unsupported_number_is_dropped(self):
         with self.pipeline(why='This could cut costs by 40%.'):self.assertEqual(adapter.run()['status'],'publish')

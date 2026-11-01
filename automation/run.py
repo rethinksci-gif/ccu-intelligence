@@ -86,7 +86,8 @@ def run():
         if not open_windows:
             status.update(status='skipped', reasons=['edition already published'], last_successful_check=now())
             return status
-        until = today - timedelta(days=1)
+        # Items from the still-open window cannot publish yet; keep enrichment budget for closed windows.
+        until = min(today - timedelta(days=1), open_windows[-1] - timedelta(days=1))
         since = max(open_windows[0] - timedelta(days=14), until - timedelta(days=MAX_COLLECTION_DAYS - 1))
         report = execute(argparse.Namespace(
             since=since, until=until, scheduled_publication=None,
