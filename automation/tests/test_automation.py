@@ -93,6 +93,42 @@ class EvidenceCases(unittest.TestCase):
         self.assertEqual(numbers('2026年增长16%，容量50kWh'), numbers('In 2026 growth was 16%, capacity 50kWh'))
         self.assertNotEqual(numbers('-20 °C'), numbers('20 °C'))
 
+    def test_chinese_dates_and_scale_words_match_english(self):
+        self.assertEqual(numbers('2026年10月29日签署，规模4.8万吨'), numbers('Signed on 29 October 2026 for 48,000 tonnes'))
+        self.assertEqual(numbers('10月29日宣布'), numbers('announced on October 29'))
+        self.assertEqual(numbers('投资12亿美元'), numbers('investing $1.2 billion'))
+        self.assertNotEqual(numbers('2026年10月29日'), numbers('29 November 2026'))
+
+    def test_claim_date_without_year_supported_by_dated_source(self):
+        c,s=fixture();c['bilingual']=True;s['text']='On October 1, 2026 '+TEXT
+        c['claims'][0]['en']='On 1 October the laboratory measured 50 kWh at 200 C under dry conditions.'
+        c['claims'][0]['zh']='10月1日，该实验室在 200 C 干燥条件下测得 50 kWh。'
+        self.assertEqual(verify(c,s,support)['status'],'VERIFIED')
+
+    def test_confirmation_notes_do_not_fail_review(self):
+        c,s=fixture()
+        def noted(*args):
+            result=support(*args);del result['reasons']
+            result.update(errors=[],notes=['The 50 kWh figure is supported by the source.'])
+            return result
+        report=verify(c,s,noted)
+        self.assertEqual(report['status'],'VERIFIED')
+        self.assertEqual(report['notes'],['The 50 kWh figure is supported by the source.'])
+
+    def test_reported_errors_fail_review(self):
+        c,s=fixture()
+        def erroneous(*args):
+            result=support(*args);result['errors']=['Capacity is planned, not operational']
+            return result
+        self.assertEqual(verify(c,s,erroneous)['status'],'QUARANTINED')
+
+    def test_negated_check_name_is_not_accepted(self):
+        c,s=fixture()
+        def legacy(*args):
+            result=support(*args);del result['checks']['no_contradictions'];result['checks']['contradictions']=False
+            return result
+        self.assertEqual(verify(c,s,legacy)['status'],'QUARANTINED')
+
     def test_wrong_original_date(self):
         c,s=fixture();s['date']='2026-09-01'
         self.assertEqual(verify(c,s,support)['status'],'QUARANTINED')
