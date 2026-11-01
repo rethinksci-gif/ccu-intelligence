@@ -6,24 +6,45 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://co2value.eu/214351-2/",
-    "checked_at": "2026-10-31T20:23:04.306308+00:00",
+    "checked_at": "2026-11-01T12:17:26.100188+00:00",
     "source_sha256": "1812341af20ec42b47131de5b701f0fe8325d194345a42af5471ff4ec737c19f",
+    "checks": {}
+  },
+  {
+    "id": "a-304cd436a16448e9e6b2",
+    "status": "QUARANTINED",
+    "reasons": [
+      "primary authority not established"
+    ],
+    "source_url": "https://carbonherald.com/fortera-secures-meta-as-buyer-of-certificates-for-low-carbon-cement/",
+    "checked_at": "2026-11-01T12:17:27.970468+00:00",
+    "source_sha256": "e67d1c6e3fe93ecb287d87c7e019b936ac3022ca779068d012e063a4d167fb68",
     "checks": {}
   },
   {
     "id": "a-aabde105c39e8145bda4",
     "status": "QUARANTINED",
     "reasons": [
-      "semantic evidence checks failed"
+      "semantic evidence checks failed",
+      "The claim states the 48,000 t/yr figure is 'planned design capacity, not output' and that 'the MoU is dated only to 2025' — the source says the facility 'will have an annual production capacity of 48,000 tonnes' and that the agreement 'builds on a memorandum of understanding the two companies signed in 2025', so the MoU date is supported; however the claim's assertion that 'the 48,000 t/yr figure is planned capacity rather than achieved output' is consistent with the source's 'planned facility' ",
+      "The claim says 'preliminary engineering is complete and grid connection construction is underway' — supported by source ('preliminary engineering studies complete and grid connection construction underway').",
+      "The claim says 'Offtake discussions start immediately' — supported ('will begin commercial discussions with offtakers immediately').",
+      "The claim says 'The RFNBO and deep emissions reductions claims are company statements without quantification or certification basis' — the source does state 'The e-methanol will meet RFNBO requirements, offering a fuel alternative with deep emissions reductions' without quantification; this is a characterization, not a factual contradiction.",
+      "The claim's statement that 'Capex, operating cost, electrolyser capacity, hydrogen and CO₂ volumes, CO₂ contract terms, offtake terms, ownership split, FID date and construction schedule are absent' is accurate to the source.",
+      "The claim says 'The MoU is dated only to 2025' — source says MoU 'signed in 2025', so supported.",
+      "The claim says the project 'would pair Québec hydroelectricity with biogenic CO₂ from fermentation' — source supports hydroelectricity and biogenic CO₂ from fermentation.",
+      "The claim says 'beside Greenfield's ethanol distillery near Montréal, Québec' — source says 'adjacent to Greenfield's existing ethanol facility near Montréal, Québec', supported.",
+      "The claim says 'the companies said on 29 October 2026' — source dated Oct 29, 2026, supported.",
+      "The claim's summary line 'Adds a named North American e-methanol project with an on-site biogenic CO₂ source to the RFNBO and maritime fuel pipeline, and tests whether European Energy's Kassø operating experience transfers to a new geography' is editorial framing, not a factual claim requiring source support; the source does reference Kassø experience and North American market."
     ],
     "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
-    "checked_at": "2026-10-31T20:23:04.791118+00:00",
+    "checked_at": "2026-11-01T12:17:29.388880+00:00",
     "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
     "checks": {
-      "support": true,
+      "support": false,
       "dates": true,
-      "quantities_units_conditions": true,
-      "contradictions": true,
+      "quantities_units_conditions": false,
+      "contradictions": false,
       "authority": true,
       "capacity_status": true,
       "legal_status_effective_date": true,
@@ -37,9 +58,28 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://co2value.eu/d-crbn-selects-worley-to-engineer-renewable-syngas-demonstration-plant-in-belgium/",
-    "checked_at": "2026-10-31T20:23:08.917506+00:00",
+    "checked_at": "2026-11-01T12:17:40.183780+00:00",
     "source_sha256": "32699206b37c4058fc5f064abe51228b1173280c768178b548194b2bb2de24bf",
     "checks": {}
+  },
+  {
+    "id": "a-5aa552d7b16b5f86cef1",
+    "status": "QUARANTINED",
+    "reasons": [
+      "evidence excerpt absent from original"
+    ],
+    "source_url": "https://carbicrete.com/amazon-deployment/",
+    "checked_at": "2026-11-01T12:17:41.428265+00:00",
+    "source_sha256": "47faf25507fa7dd3b522425ca311006e2005d83bbf2a255476f559e9c22e895d",
+    "checks": {}
+  },
+  {
+    "id": "a-ffd6c4c1319d87971540",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.1016/j.apcatb.2026.127699",
+    "reasons": [
+      "original-source extraction failed: ValueError"
+    ]
   },
   {
     "id": "a-00c573e3c91a7cd1c498",
@@ -66,19 +106,19 @@
     ]
   },
   {
-    "id": "a-304cd436a16448e9e6b2",
-    "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/fortera-secures-meta-as-buyer-of-certificates-for-low-carbon-cement",
-    "reasons": [
-      "news/company/industry/government: gate decides"
-    ]
-  },
-  {
     "id": "a-3f2d8bab7eb417d6ab84",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.2118/234071-ms",
     "reasons": [
-      "failed or not run"
+      "selected, not enriched: enrichment cap"
+    ]
+  },
+  {
+    "id": "a-40d8cb3f089f408b6ff5",
+    "status": "REJECTED",
+    "source_url": "https://www.moneycontrol.com/news/business/greenko-promoter-backed-am-intelligence-explores-1-billion-plus-equity-raise-14055719.html",
+    "reasons": [
+      "unknown or outside publication window"
     ]
   },
   {
@@ -90,14 +130,6 @@
     ]
   },
   {
-    "id": "a-52500c90c4a64b8318a4",
-    "status": "REJECTED",
-    "source_url": "https://www.prnewswire.com/news-releases/renewable-methanol-market-to-reach-usd-5-52-billion-by-2035---credence-research-302914611.html",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
     "id": "a-55a159352b4ab31db185",
     "status": "REJECTED",
     "source_url": "https://www.gov.uk/government/publications/uk-ets-allocation-table-for-operators-of-installations",
@@ -106,27 +138,11 @@
     ]
   },
   {
-    "id": "a-5aa552d7b16b5f86cef1",
-    "status": "QUARANTINED",
-    "source_url": "https://carbicrete.com/amazon-deployment",
-    "reasons": [
-      "news/company/industry/government: gate decides"
-    ]
-  },
-  {
     "id": "a-5e60a56cbdedce926f74",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/salesforce-partners-with-mitti-labs-to-purchase-500000-rice-methane-carbon-credits",
     "reasons": [
       "CCU term without utilization context"
-    ]
-  },
-  {
-    "id": "a-608b2f14a322af2d0d83",
-    "status": "REJECTED",
-    "source_url": "https://jp.ibtimes.com/university-tokyo-model-matches-two-hour-co2-mineralization-calcium-rich-olivine-104800",
-    "reasons": [
-      "unknown or outside publication window"
     ]
   },
   {
@@ -142,7 +158,7 @@
     "status": "QUARANTINED",
     "source_url": "https://dioxycle.com/dioxycle-features-once-again-in-norrsken-100-impact-list",
     "reasons": [
-      "news/company/industry/government: gate decides"
+      "headline only (listed)"
     ]
   },
   {
@@ -162,19 +178,11 @@
     ]
   },
   {
-    "id": "a-87cf62c3cff9a947e4b3",
-    "status": "REJECTED",
-    "source_url": "https://alwasat-ye.net/2026-10/N-Ethylmaleimide-NEM-NEthylmaleimide-influence-on-free-living-nematode-soil-carbon-mineralization.html",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
     "id": "a-88e57bec63a631bfb59e",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.3390/cryst16110698",
     "reasons": [
-      "CCU term without utilization context"
+      "selected, not enriched: enrichment cap"
     ]
   },
   {
@@ -206,7 +214,7 @@
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.21203/rs.3.rs-11262643/v1",
     "reasons": [
-      "failed or not run"
+      "selected, not enriched: enrichment cap"
     ]
   },
   {
@@ -230,7 +238,7 @@
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/skytree-galetech-and-mwahera-partner-on-direct-air-capture-for-e-fuel-production-in-kenya",
     "reasons": [
-      "selected, not enriched: enrichment cap"
+      "category cap"
     ]
   },
   {
@@ -242,17 +250,17 @@
     ]
   },
   {
-    "id": "a-b3f777c172c8a71004b7",
+    "id": "a-ba86ecc772c6c25ec372",
     "status": "REJECTED",
-    "source_url": "https://www.finanznachrichten.de/nachrichten-2026-10/69888149-credence-research-inc-renewable-methanol-market-to-reach-usd-5-52-billion-by-2035-credence-research-008.htm",
+    "source_url": "https://www.gov.uk/government/news/major-undersea-power-cable-given-green-light",
     "reasons": [
       "unknown or outside publication window"
     ]
   },
   {
-    "id": "a-ba86ecc772c6c25ec372",
+    "id": "a-c38759199b185eb457a5",
     "status": "REJECTED",
-    "source_url": "https://www.gov.uk/government/news/major-undersea-power-cable-given-green-light",
+    "source_url": "https://oilprice.com/Energy/Energy-General/EUs-Proposed-Shipping-Subsidies-Could-Make-BioLNG-Cheaper-Than-Fuel-Oil.html",
     "reasons": [
       "unknown or outside publication window"
     ]
@@ -327,14 +335,6 @@
     "source_url": "https://carbonherald.com/epa-proposes-primacy-approval-for-utah-class-vi-carbon-storage-permitting",
     "reasons": [
       "news/company/industry/government: gate decides"
-    ]
-  },
-  {
-    "id": "a-ffd6c4c1319d87971540",
-    "status": "QUARANTINED",
-    "source_url": "https://doi.org/10.1016/j.apcatb.2026.127699",
-    "reasons": [
-      "failed or not run"
     ]
   }
 ]
