@@ -1,0 +1,96 @@
+{
+  "liquid-wind": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 2,
+    "outside_window": 2,
+    "unknown_date": 0,
+    "raw_files": [
+      "data/raw/liquid-wind/820a6a9f5659cd85d49c4001ddda097c7efbf9208187a8ccfedb2f8112afe162.bin"
+    ]
+  },
+  "dioxycle": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 2,
+    "outside_window": 2,
+    "unknown_date": 0,
+    "raw_files": [
+      "data/raw/dioxycle/333353efe7d755bbac6fd6ede58fbda9292080cfbaf21fb869233f2c0e2b75d3.bin"
+    ]
+  },
+  "carbicrete": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 2,
+    "outside_window": 2,
+    "unknown_date": 0,
+    "raw_files": [
+      "data/raw/carbicrete/0178d8a23870d0c056bf21b53d489213244eb53aa1e0cef95eb7bf756358e94a.bin"
+    ]
+  },
+  "covestro": {
+    "added": 2,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 2,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "raw_files": [
+      "data/raw/covestro/4d520bcf9990c1459a5133b7f4c3c5915b3042c5cb1d6f99d3f7c495ace095de.bin"
+    ]
+  },
+  "co2-value-europe": {
+    "added": 0,
+    "duplicates": 0,
+    "failed": 1,
+    "limited": 0,
+    "considered": 0,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "raw_files": []
+  },
+  "uk-desnz": {
+    "added": 3,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 3,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "raw_files": [
+      "data/raw/uk-desnz/87acc8b21d9e0aec007faf953f73a450382470b41dda8a128a1ab5966c9fd7d7.bin"
+    ]
+  },
+  "crossref": {
+    "added": 3,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 3,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "raw_files": [
+      "data/raw/crossref/94372a6586813565f56d0026956aacdf8a7b6897e3d9267217b44eea522e279f.bin"
+    ]
+  },
+  "openalex": {
+    "added": 3,
+    "duplicates": 0,
+    "failed": 0,
+    "limited": 1,
+    "considered": 3,
+    "outside_window": 0,
+    "unknown_date": 0,
+    "raw_files": [
+      "data/raw/openalex/dd5791809035ff3455b0491bf5a063ac361aad3d362a8a88afa00c232f93d8a9.bin"
+    ]
+  }
+}
