@@ -7,7 +7,7 @@
       "publication date not grounded in original source"
     ],
     "source_url": "https://renewable-carbon.eu/news/the-lego-group-starts-making-selected-lego-elements-using-e-methanol/",
-    "checked_at": "2026-11-02T14:03:12.900834+00:00",
+    "checked_at": "2026-11-03T13:13:04.545361+00:00",
     "source_sha256": "17edb2965073359a984129594751e5460ccbee2806dfe72074e6dc669fbf4e87",
     "checks": {}
   },
@@ -140,14 +140,6 @@
     ]
   },
   {
-    "id": "a-608b2f14a322af2d0d83",
-    "status": "REJECTED",
-    "source_url": "https://jp.ibtimes.com/university-tokyo-model-matches-two-hour-co2-mineralization-calcium-rich-olivine-104800",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
     "id": "a-6b166c6ab41c2116efea",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/csiro-scientists-are-carving-a-path-for-co2-mineralization-in-australia",
@@ -161,14 +153,6 @@
     "source_url": "https://dioxycle.com/dioxycle-features-once-again-in-norrsken-100-impact-list",
     "reasons": [
       "headline only (listed)"
-    ]
-  },
-  {
-    "id": "a-87cf62c3cff9a947e4b3",
-    "status": "REJECTED",
-    "source_url": "https://alwasat-ye.net/2026-10/N-Ethylmaleimide-NEM-NEthylmaleimide-influence-on-free-living-nematode-soil-carbon-mineralization.html",
-    "reasons": [
-      "unknown or outside publication window"
     ]
   },
   {
