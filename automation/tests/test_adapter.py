@@ -118,3 +118,30 @@ class AdapterTests(unittest.TestCase):
         self.assertIn('[Trade-press report](https://example.org/0)',page)
         self.assertNotIn('[Original source]',page)
         validate()
+
+    def test_unreachable_doi_falls_back_to_open_access_copy(self):
+        fetched=[]
+        def original(url,authority,when):
+            fetched.append(url)
+            if 'doi.org' in url:raise ValueError('publisher refused')
+            return {'url':url,'authority':authority,'status':200,'date':when,'date_verified':True,'text':TEXT}
+        with self.pipeline(),patch.object(adapter,'original',original),\
+             patch.object(adapter,'academic_copies',lambda url:['https://repository.example/copy/'+url.rsplit('/',1)[1]]),\
+             patch.object(adapter,'execute',self.doi_execute()):
+            self.assertEqual(adapter.run()['status'],'publish')
+        self.assertIn('[Original source](https://repository.example/copy/0)',Path('src/content/issues/auto-2026-10-26.md').read_text())
+        self.assertEqual(fetched[:2],['https://doi.org/10.1000/0','https://repository.example/copy/0'])
+
+    def test_academic_copies_only_for_doi_links(self):
+        self.assertEqual(adapter.academic_copies('https://example.org/article'),[])
+
+    def doi_execute(self):
+        def execute(args):
+            values=[{'article_id':'0','publication_date':'2026-10-20','url':'https://doi.org/10.1000/0','evidence_role':'primary',
+                     'enrichment':{'headline':'Laboratory result','what_changed':TEXT,'why_it_matters':None,
+                                   'practical_implication':None,'uncertainty':'Experimental result.','quotes':[TEXT]}}]*4
+            values=[dict(v,article_id=str(i),url=f'https://doi.org/10.1000/{i}') for i,v in enumerate(values)]
+            path=Path('data/runtime/autonomous-input')/(args.output.name+'.json')
+            path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(values))
+            return {'records':[{'article_id':v['article_id'],'triage':{'eligible':True,'reason':'relevant'},'url':v['url']} for v in values]}
+        return execute

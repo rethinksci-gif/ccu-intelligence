@@ -5,6 +5,7 @@ import os
 import sys
 from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import yaml
 
@@ -12,6 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from automation.evidence_gate import Model, digest, now, numbers, verify, write
 from automation.source import original
 from ccu_intelligence.editorial import read_issue, safe_text, window
+from ccu_intelligence.collect import Fetcher
+from ccu_intelligence.fulltext import openalex_records, unpaywall_urls
 from ccu_intelligence.workflow import execute
 
 
@@ -22,6 +25,30 @@ BACKFILL = 2  # most recent closed windows still eligible for publication
 MAX_COLLECTION_DAYS = 31  # limit enforced by the research workflow
 REQUIRED_FIELDS = ('headline', 'what_changed', 'uncertainty')
 OPTIONAL_FIELDS = ('why_it_matters', 'practical_implication')
+
+
+def academic_copies(url):
+    """Open-access copies of a DOI from OpenAlex, then Unpaywall; HTML pages only, at most three."""
+    if urlsplit(url).hostname not in ('doi.org', 'dx.doi.org'):
+        return []
+    doi = urlsplit(url).path.lstrip('/').lower()
+    fetcher = Fetcher()
+    urls = openalex_records(fetcher, [doi]).get(doi, {}).get('oa_urls') or unpaywall_urls(fetcher, doi)
+    return [u for u in urls if urlsplit(u).scheme == 'https' and not urlsplit(u).path.lower().endswith('.pdf')
+            and urlsplit(u).hostname not in ('doi.org', 'dx.doi.org')][:3]
+
+
+def retrieve(url, authority, expected_date):
+    """The publisher's page, or else an open-access copy of the same DOI; every copy must pass the same gates."""
+    try:
+        return original(url, authority, expected_date)
+    except Exception as first:
+        for copy in academic_copies(url):
+            try:
+                return original(copy, authority, expected_date)
+            except Exception:
+                continue
+        raise first
 
 
 def windows(today):
@@ -116,7 +143,7 @@ def run():
                 if target is None:
                     check = {'id':item['article_id'], 'status':'REJECTED', 'source_url':item['url'], 'reasons':['outside publication window']}
                 else:
-                    source = original(item['url'], 'primary' if item['evidence_role']=='primary' else 'secondary', item['publication_date'])
+                    source = retrieve(item['url'], 'primary' if item['evidence_role']=='primary' else 'secondary', item['publication_date'])
                     candidate['url'] = source['url']
                     candidate['claims'] = claims(brief, source)
                     check = verify(candidate, source, model, seen)

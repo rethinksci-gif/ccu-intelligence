@@ -16,6 +16,8 @@ Missing keys, inaccessible originals, ambiguous publication dates, unsupported c
 
 CCU admits trade-press reports (sources with `evidence_role: news`) as **secondary** evidence: the article is still re-fetched and every claim must match it, but the edition labels the item “Trade-press report”, names the outlet, and states that figures were not confirmed against a primary company or official source. Electrification does not opt in.
 
+When a DOI's publisher page cannot be retrieved, CCU tries up to three open-access HTML copies of the same DOI (OpenAlex, then Unpaywall with `CCU_CONTACT_EMAIL`); a copy must pass every gate, including an explicit publisher date matching the record.
+
 ## Operations and credentials
 
 Required credentials: **deepseek-paid environment LLM_API_KEY**. Secrets are supplied only to default-branch scheduled/dispatch processing, never PR jobs. The publication job has contents write and actions write for its commit and deploy dispatch. The deployment job has Pages/OIDC permissions. No PAT or protection bypass is used. Current main branches have no required-review protection; if protections change, a rejected push fails visibly rather than bypassing them.
