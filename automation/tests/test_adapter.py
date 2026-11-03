@@ -18,13 +18,13 @@ class Day(date):
     def today(cls):return cls(2026,10,31)
 
 class AdapterTests(unittest.TestCase):
-    def pipeline(self,count=4,broken=False,dates=None,today=None,why=None):
+    def pipeline(self,count=4,broken=False,dates=None,today=None,why=None,role='primary'):
         def execute(args):
             self.args=args
             values=[];records=[]
             for index in range(count):
                 url=f'https://example.org/{index}'
-                values.append({'article_id':str(index),'publication_date':(dates or {}).get(index,'2026-10-20'),'url':url,'evidence_role':'primary',
+                values.append({'article_id':str(index),'publication_date':(dates or {}).get(index,'2026-10-20'),'url':url,'evidence_role':role,'source_name':'Carbon Herald',
                                'enrichment':{'headline':'Laboratory result','what_changed':TEXT,'why_it_matters':why,
                                              'practical_implication':None,'uncertainty':'Experimental result.', 'quotes':[TEXT]}})
                 records.append({'article_id':str(index),'triage':{'eligible':True,'reason':'relevant'},'url':url})
@@ -110,3 +110,11 @@ class AdapterTests(unittest.TestCase):
         page=Path('src/content/issues/auto-2026-10-26.md').read_text()
         self.assertNotIn('40%',page)
         self.assertIn('Experimental result.',page)
+
+    def test_trade_press_is_admitted_with_secondary_label(self):
+        with self.pipeline(role='news'):self.assertEqual(adapter.run()['status'],'publish')
+        page=Path('src/content/issues/auto-2026-10-26.md').read_text()
+        self.assertIn('Reported by Carbon Herald (trade press)',page)
+        self.assertIn('[Trade-press report](https://example.org/0)',page)
+        self.assertNotIn('[Original source]',page)
+        validate()

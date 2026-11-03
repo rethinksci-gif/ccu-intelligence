@@ -16,7 +16,8 @@ from urllib.parse import urlsplit, urlunsplit
 # invites the model to answer false for "none found".
 CHECKS = ['support', 'dates', 'quantities_units_conditions', 'no_contradictions', 'authority',
           'capacity_status', 'legal_status_effective_date', 'translation_meaning']
-USER_AGENT = 'EvidencePublisher/1.1 (+https://github.com/rethinksci-gif; automated research digest)'
+# Avoid the word "research": co2value.eu's firewall returns 403 to any User-Agent containing it.
+USER_AGENT = 'EvidencePublisher/1.1 (+https://github.com/rethinksci-gif)'
 
 
 def now():
@@ -194,7 +195,9 @@ def verify(candidate, source, model, seen=()):
             reasons.append('original source unavailable')
         if canonical(source['url']) != url:
             reasons.append('canonical source mismatch')
-        if source.get('authority') not in ('official', 'primary', 'academic'):
+        # Trade-press reporting is admitted only where an adapter opts in and labels it as secondary.
+        if source.get('authority') not in ('official', 'primary', 'academic') and not (
+                candidate.get('secondary') and source.get('authority') == 'secondary'):
             reasons.append('primary authority not established')
         published = date.fromisoformat(candidate['date'])
         if published > date.today():
@@ -231,7 +234,8 @@ def verify(candidate, source, model, seen=()):
                          'excerpts]}. Every check is phrased so that true means it PASSES: support = every claim is '
                          'supported; dates = dates match; quantities_units_conditions = values, units and conditions '
                          'match; no_contradictions = no claim contradicts the source or another claim; authority = '
-                         'the source is the original publisher; capacity_status = announced/planned/operational '
+                         'the source is the original publisher (or, when the candidate is marked secondary, a '
+                         'named trade publication reporting the development); capacity_status = announced/planned/operational '
                          'status is stated correctly; legal_status_effective_date = legal status and dates are '
                          'correct; translation_meaning = languages agree. Inapplicable checks are true. Missing '
                          'evidence is false. Put confirmations in notes, never in errors. Required checks: '

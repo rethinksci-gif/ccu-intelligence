@@ -62,8 +62,14 @@ def edition(good, start, end, compact, existing):
         text = {c['field']: c['en'] for c in candidate['claims']}
         body += ['### '+safe_text(text['headline']), '', safe_text(text['what_changed']), '']
         body += [x for field in OPTIONAL_FIELDS if field in text for x in (safe_text(text[field]), '')]
-        body += ['**Uncertainty:** '+safe_text(text['uncertainty']), '',
-                 f"[Original source]({candidate['url']}) · Published {candidate['date']}", '']
+        if candidate.get('secondary'):
+            reporter = safe_text(candidate.get('source_name') or 'trade press')
+            body += ['**Uncertainty:** '+safe_text(text['uncertainty'])+f' Reported by {reporter} (trade press); figures '
+                     'were checked against that report, not against a primary company or official source.', '',
+                     f"[Trade-press report]({candidate['url']}) · Published {candidate['date']}", '']
+        else:
+            body += ['**Uncertainty:** '+safe_text(text['uncertainty']), '',
+                     f"[Original source]({candidate['url']}) · Published {candidate['date']}", '']
     return '---\n'+yaml.safe_dump(meta, sort_keys=False)+'---\n\n'+'\n'.join(body)+'\n'
 
 
@@ -102,7 +108,9 @@ def run():
         seen = set()
         for item in candidates:
             brief = item['enrichment']
-            candidate = {'id':item['article_id'], 'date':item['publication_date'], 'url':item['url'], 'claims':[]}
+            secondary = item['evidence_role'] != 'primary'
+            candidate = {'id':item['article_id'], 'date':item['publication_date'], 'url':item['url'], 'claims':[],
+                         'secondary':secondary, 'source_name':item.get('source_name') or ''}
             target = next((w for w in open_windows if w-timedelta(days=14) <= date.fromisoformat(str(item['publication_date'])) < w), None)
             try:
                 if target is None:

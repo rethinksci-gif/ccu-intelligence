@@ -129,6 +129,12 @@ class EvidenceCases(unittest.TestCase):
             return result
         self.assertEqual(verify(c,s,legacy)['status'],'QUARANTINED')
 
+    def test_secondary_source_requires_explicit_opt_in(self):
+        c,s=fixture();s['authority']='secondary'
+        self.assertEqual(verify(c,s,support)['reasons'],['primary authority not established'])
+        c['secondary']=True
+        self.assertEqual(verify(c,s,support)['status'],'VERIFIED')
+
     def test_wrong_original_date(self):
         c,s=fixture();s['date']='2026-09-01'
         self.assertEqual(verify(c,s,support)['status'],'QUARANTINED')
