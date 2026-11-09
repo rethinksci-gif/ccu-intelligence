@@ -1,38 +1,141 @@
 [
   {
-    "id": "a-db68498535139623ace0",
-    "status": "QUARANTINED",
-    "reasons": [
-      "primary authority not established",
-      "publication date not grounded in original source"
+    "id": "a-304cd436a16448e9e6b2",
+    "status": "VERIFIED",
+    "reasons": [],
+    "source_url": "https://carbonherald.com/fortera-secures-meta-as-buyer-of-certificates-for-low-carbon-cement/",
+    "checked_at": "2026-11-09T14:38:21.207899+00:00",
+    "source_sha256": "e67d1c6e3fe93ecb287d87c7e019b936ac3022ca779068d012e063a4d167fb68",
+    "checks": {
+      "support": true,
+      "dates": true,
+      "quantities_units_conditions": true,
+      "no_contradictions": true,
+      "authority": true,
+      "capacity_status": true,
+      "legal_status_effective_date": true,
+      "translation_meaning": true
+    },
+    "citations": [
+      "Fortera has signed a multi-year agreement with Meta covering environmental attribute certificates (EACs) associated with approximately 200,000 tons of its low-carbon cement, in a deal designed to help finance production expansion.",
+      "Meta will also have the option to use the cement in its own construction projects and expand the agreement’s volume or duration in future years.",
+      "The agreement provides a long-term demand signal for lower-emission construction materials, potentially giving Fortera greater revenue certainty as it seeks funding for new facilities.",
+      "The partnership is expected to support development of Fortera’s planned cement plant in Ste. Genevieve, Missouri.",
+      "The facility is designed to produce ReAct Cement, which uses captured carbon dioxide (CO2) and, according to Fortera, generates 70% fewer emissions than ordinary Portland cement production. The product has undergone third-party testing and meets ASTM standards for use in concrete.",
+      "The plant is planned to produce 300,000 tons of cement annually. Fortera already operates a facility in Redding, California, with annual capacity of 15,000 tons."
     ],
-    "source_url": "https://renewable-carbon.eu/news/the-lego-group-starts-making-selected-lego-elements-using-e-methanol/",
-    "checked_at": "2026-11-03T13:13:04.545361+00:00",
-    "source_sha256": "17edb2965073359a984129594751e5460ccbee2806dfe72074e6dc669fbf4e87",
-    "checks": {}
+    "notes": [
+      "All claims are supported by the Carbon Herald article: multi-year Meta EAC agreement for ~200,000 tons of low-carbon cement; option for Meta to use cement and expand volume/duration; long-term revenue visibility and financing support; planned Ste. Genevieve, Missouri plant producing 300,000 tons/yr of ReAct Cement; 70% fewer emissions than ordinary Portland cement per Fortera; third-party testing and ASTM standards.",
+      "Capacity status is correctly framed: Ste. Genevieve is described as 'planned' (300,000 t/yr), and the Redding, California facility (15,000 t/yr) is described as already operating; the candidate does not misstate the Missouri plant as operational.",
+      "The candidate correctly flags that signing date, duration, price, EAC methodology, CO2 source, chemistry, energy use, FID, timeline, capex, LCA boundary and independent verification are not provided in the source.",
+      "Authority check passes: the candidate is marked secondary and Carbon Herald is a named trade publication reporting the development.",
+      "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
+      "Only English claims are present; translation_meaning is inapplicable and passes."
+    ],
+    "candidate_sha256": "52922b71ecb7ab4bbfa88a0b1c0f9e822489fc175356a0149c7625645d6a74f0",
+    "window": "2026-11-09",
+    "eligible_for_window": true
   },
   {
-    "id": "a-a8f0c9b3aa5e7438fa4b",
+    "id": "a-aabde105c39e8145bda4",
     "status": "QUARANTINED",
-    "source_url": "https://co2value.eu/echemicles-begins-co-electrolysis-scale-up-project-backed-by-the-european-innovation-council",
     "reasons": [
-      "original-source extraction failed: HTTPError"
-    ]
+      "semantic evidence checks failed"
+    ],
+    "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
+    "checked_at": "2026-11-09T14:38:25.706500+00:00",
+    "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
+    "checks": {
+      "support": true,
+      "dates": true,
+      "quantities_units_conditions": true,
+      "no_contradictions": true,
+      "authority": true,
+      "capacity_status": true,
+      "legal_status_effective_date": true,
+      "translation_meaning": true
+    }
+  },
+  {
+    "id": "a-ea5c41f9e27e092f78d3",
+    "status": "VERIFIED",
+    "reasons": [],
+    "source_url": "https://carbicrete.com/2026-amazon-deployment/",
+    "checked_at": "2026-11-09T14:38:30.654839+00:00",
+    "source_sha256": "a9fc11d50e4bbc87fe04f2a658fe384a486e85b994106b6a15fa5a66fb157fc2",
+    "checks": {
+      "support": true,
+      "dates": true,
+      "quantities_units_conditions": true,
+      "no_contradictions": true,
+      "authority": true,
+      "capacity_status": true,
+      "legal_status_effective_date": true,
+      "translation_meaning": true
+    },
+    "citations": [
+      "Montreal, November 2, 2026 – CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products at a new Amazon UK delivery station in Stockton-on-Tees.",
+      "In the first wide-scale deployment of its cement-free pavers anywhere in the world, CarbiCrete products now cover around 6,400m² of paving across parking spaces and footpaths at the site.",
+      "The delivery station is Amazon’s first building to pursue the latest version (v1.1) of Living Future’s Zero Carbon Certification",
+      "CarbiCrete’s technology replaces 100% of the cement content in masonry and hardscape products with a steel-making by-product, avoiding cement-related emissions. The company then uses carbon dioxide to cure its concrete, permanently storing captured carbon within the products",
+      "“Seeing CarbiCrete products deployed at this scale is an important milestone for our technology and for lower-carbon construction more broadly.,” says Gary Belisle, CarbiCrete’s CEO."
+    ],
+    "notes": [
+      "All claims are supported by the source text: three products supplied to Amazon's new Stockton-on-Tees UK delivery station; ~6,400 m² of paving across parking spaces and footpaths; described as first wide-scale deployment of cement-free pavers anywhere; binder replaces 100% of cement in masonry and hardscape with a steel-making by-product; CO2 curing permanently stores captured carbon; building is Amazon's first to pursue Living Future Zero Carbon Certification v1.1.",
+      "The candidate correctly flags the dateline (Montreal, November 2, 2026) as conflicting with the listed publication date (2026-10-30) and does not use it as the event date; the source text itself contains this internal date inconsistency, so the candidate's uncertainty note is accurate rather than a contradiction.",
+      "The candidate correctly notes absence of deployment date, CO2 quantity, mix/by-product specification, mechanical performance data, cost and TRL statement; none of these appear in the source.",
+      "The headline's 'first large-scale' matches the source's 'first wide-scale deployment ... anywhere in the world'.",
+      "Authority is primary (CarbiCrete's own release); secondary flag is false, consistent.",
+      "No regulatory/legal status claims are made, so legal_status_effective_date is inapplicable and passes.",
+      "Only English is provided; translation_meaning is inapplicable and passes."
+    ],
+    "candidate_sha256": "78dd0f34797dee2089728e09a3c0c8010faee2e65884cd580cb33d8916436874",
+    "window": "2026-11-09",
+    "eligible_for_window": true
   },
   {
     "id": "a-a592b6a4fee16d10c757",
-    "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/skytree-galetech-and-mwahera-partner-on-direct-air-capture-for-e-fuel-production-in-kenya",
-    "reasons": [
-      "original-source extraction failed: HTTPError"
-    ]
+    "status": "VERIFIED",
+    "reasons": [],
+    "source_url": "https://carbonherald.com/skytree-galetech-and-mwahera-partner-on-direct-air-capture-for-e-fuel-production-in-kenya/",
+    "checked_at": "2026-11-09T14:38:35.834729+00:00",
+    "source_sha256": "a7ca897198d79643f16d6c04e30ec6ff81d9f79c27088f74e0faab46bf85c6d5",
+    "checks": {
+      "support": true,
+      "dates": true,
+      "quantities_units_conditions": true,
+      "no_contradictions": true,
+      "authority": true,
+      "capacity_status": true,
+      "legal_status_effective_date": true,
+      "translation_meaning": true
+    },
+    "citations": [
+      "The developers expect the project to be able to capture up to tens of kilotonnes of atmospheric carbon dioxide per year once fully operational",
+      "The project is being launched with an initial deployment phase that will be followed by a technical and commercial performance verification before the initiative scales.",
+      "Skytree has entered into a strategic partnership with Galetech Energy Developments and Mwahera Green Hydrogen, embarking on a collaboration that will integrate direct air capture (DAC) technology at the Mwangea e-fuels project in Kenya.",
+      "it will utilize Kenya’s abundant renewable energy, which represents 80% of the country’s grid",
+      "By co-locating Direct Air Capture with local hydrogen production, we are building a self-sustaining infrastructure model"
+    ],
+    "notes": [
+      "All claims are supported by the Carbon Herald article, which is a named trade publication reporting the partnership (secondary source acceptable).",
+      "Capacity is correctly framed as a developer expectation ('up to tens of kilotonnes of CO2 per year once fully operational'), not an operational figure; the candidate explicitly labels it an unquantified developer target pending verification.",
+      "The initial deployment phase followed by technical and commercial performance verification is accurately described.",
+      "The 80%-renewable Kenyan grid figure is correctly attributed to the article.",
+      "The candidate correctly notes the absence of first-phase capacity, timeline, investment, energy consumption, cost, CO2 price and offtake terms in the supplied material.",
+      "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
+      "Only English is provided; no translation comparison is required, so translation_meaning passes."
+    ],
+    "candidate_sha256": "69adb3705647ced1e978aea01b84dbeb89c40fc0d48a98206fd7e6995f42e760",
+    "window": "2026-10-26",
+    "eligible_for_window": true
   },
   {
-    "id": "a-2dc70401d50f6bc2ba41",
+    "id": "a-f8229d23e3cc9ce9ffba",
     "status": "QUARANTINED",
-    "source_url": "https://doi.org/10.1021/acsenergylett.6c02712",
+    "source_url": "https://co2value.eu/from-co%e2%82%82-mineralisation-technology-to-industrial-deployment-sequestra-strengthens-its-path-to-market",
     "reasons": [
-      "original-source extraction failed: HTTPError"
+      "original-source extraction failed: UnicodeEncodeError"
     ]
   },
   {
@@ -52,6 +155,14 @@
     ]
   },
   {
+    "id": "a-88e57bec63a631bfb59e",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.3390/cryst16110698",
+    "reasons": [
+      "original-source extraction failed: HTTPError"
+    ]
+  },
+  {
     "id": "a-a0bd913c61bc8e28081e",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.21203/rs.3.rs-11262643/v1",
@@ -60,51 +171,56 @@
     ]
   },
   {
-    "id": "a-8f24573ee13c038989f6",
+    "id": "a-ffd6c4c1319d87971540",
     "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/carbicrete-issues-first-carbon-removal-tons-from-co2-negative-concrete",
+    "source_url": "https://doi.org/10.1016/j.apcatb.2026.127699",
     "reasons": [
-      "original-source extraction failed: HTTPError"
+      "original-source extraction failed: ValueError"
     ]
   },
   {
-    "id": "a-0687699d7129bde392cd",
+    "id": "a-432b0bf0a4af472b572a",
     "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/ccsa-unveils-winners-of-inaugural-international-ccus-awards-2026",
+    "reasons": [
+      "publication date not grounded in original source",
+      "unsupported value/unit combination",
+      "conflicting or unsupported numerical data"
+    ],
+    "source_url": "https://www.ineratec.de/en/glossary/refueleu-aviation_en",
+    "checked_at": "2026-11-09T14:38:46.799711+00:00",
+    "source_sha256": "4465ffd86b8fa84d5c68576ddb315a38bb01cfa499898889c348b49dafa3657a",
+    "checks": {}
+  },
+  {
+    "id": "a-0af2ecf2418ff2baf22b",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/california-resources-and-bloom-energy-to-evaluate-1-gw-fuel-cell-power-with-carbon-capture",
     "reasons": [
       "CCU term without utilization context"
     ]
   },
   {
-    "id": "a-0ec4546ce98ffe614b13",
+    "id": "a-1768be1105cf2c794d33",
     "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/california-moves-closer-to-first-in-the-nation-rules-for-carbon-capture-and-removal",
+    "source_url": "https://carbonherald.com/carbon-removal-canada-reflects-on-the-countrys-co2-removal-progress-so-far",
     "reasons": [
       "CCU term without utilization context"
     ]
   },
   {
-    "id": "a-13ed1ccab88d668aad2f",
+    "id": "a-19073cfcec7d712cb63e",
     "status": "QUARANTINED",
-    "source_url": "https://biofuelsdigest.com/azerbaijan-explores-three-green-fuel-and-fertilizer-production-projects",
-    "reasons": [
-      "headline only (listed)"
-    ]
-  },
-  {
-    "id": "a-1dbff6964dfaf4db2cae",
-    "status": "QUARANTINED",
-    "source_url": "https://www.manifoldtimes.com/news/ipec-2026-zhoushan-showcases-growing-leadership-in-biofuel-lng-methanol-and-ammonia-bunkering",
+    "source_url": "https://biofuelsdigest.com/equisera-and-vertomcory-to-explore-uk-bio-methanol-supply-for-shipping",
     "reasons": [
       "CCU term without utilization context"
     ]
   },
   {
-    "id": "a-26181124926dd1c9a84b",
-    "status": "REJECTED",
-    "source_url": "https://renewable-carbon.eu/news/lego-e-methanol-aus-abgeschiedenem-co%e2%82%82-fur-die-herstellung-von-kunststoffteilen",
+    "id": "a-2379c5f35498ff64b298",
+    "status": "QUARANTINED",
+    "source_url": "https://co2value.eu/european-stage-for-mobility-innovators-nordic-electrofuel",
     "reasons": [
-      "duplicate of a-db68498535139623ace0"
+      "below threshold"
     ]
   },
   {
@@ -116,22 +232,6 @@
     ]
   },
   {
-    "id": "a-34a208d49446aeddaecb",
-    "status": "QUARANTINED",
-    "source_url": "https://www.covestro.com/press/covestro-and-habitat-for-humanity-of-kanawha--putnam-celebrate-more-than-two-decades-of-building-homes-and-hope",
-    "reasons": [
-      "news/company/industry/government: gate decides"
-    ]
-  },
-  {
-    "id": "a-3deac5b7e5138be9dad9",
-    "status": "QUARANTINED",
-    "source_url": "https://co2value.eu/10th-co%e2%82%82-value-europe-days-advancing-the-next-decade-of-carbon-capture-and-utilisation",
-    "reasons": [
-      "below threshold"
-    ]
-  },
-  {
     "id": "a-445a8c757a67c3c8d4d8",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.1021/acsnano.6c17097",
@@ -140,11 +240,59 @@
     ]
   },
   {
-    "id": "a-6b166c6ab41c2116efea",
-    "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/csiro-scientists-are-carving-a-path-for-co2-mineralization-in-australia",
+    "id": "a-44a6747bf1883e3eac65",
+    "status": "REJECTED",
+    "source_url": "https://www.gov.uk/government/statistics/announcements/boiler-upgrade-scheme-november-2026",
     "reasons": [
-      "CCU topic"
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-512d9cea5ded1c7bd5f7",
+    "status": "REJECTED",
+    "source_url": "https://econotimes.com/Taiwan-Researchers-Increase-Bioethanol-Feedstock-in-Tested-Microalga-1756637",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-515238358affc72d7be9",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/largest-indonesia-lco2-facility-commences-production",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-52500c90c4a64b8318a4",
+    "status": "REJECTED",
+    "source_url": "https://www.prnewswire.com/news-releases/renewable-methanol-market-to-reach-usd-5-52-billion-by-2035---credence-research-302914611.html",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-5a31c044987f21d876cd",
+    "status": "REJECTED",
+    "source_url": "https://biofuelsdigest.com/greenfield-global-european-energy-plan-e-methanol-plant-targeting-marine-fuel-market",
+    "reasons": [
+      "duplicate of a-aabde105c39e8145bda4"
+    ]
+  },
+  {
+    "id": "a-6f179f79195bf2be0116",
+    "status": "QUARANTINED",
+    "source_url": "https://renewable-carbon.eu/news/co2-based-fuels-and-chemicals-conference-2027-abstracts-fur-prasentationen-konnen-ab-sofort-eingereicht-werden-2",
+    "reasons": [
+      "below threshold"
+    ]
+  },
+  {
+    "id": "a-79dd00d8ce400e87aea7",
+    "status": "QUARANTINED",
+    "source_url": "https://www.manifoldtimes.com/news/singapore-based-pil-orders-seven-new-1400-teu-methanol-ready-feeders",
+    "reasons": [
+      "CCU term without utilization context"
     ]
   },
   {
@@ -156,51 +304,59 @@
     ]
   },
   {
-    "id": "a-8b0d4a1a7015d87a357d",
-    "status": "QUARANTINED",
-    "source_url": "https://www.gov.uk/government/news/8th-uk-india-science-and-innovation-council-statement",
+    "id": "a-842eebb408ec1259c53a",
+    "status": "REJECTED",
+    "source_url": "https://focustaiwan.tw/sci-tech/202610190017",
     "reasons": [
-      "below threshold"
+      "unknown or outside publication window"
     ]
   },
   {
-    "id": "a-a2c5ee50d96741dd4e39",
+    "id": "a-90a71598b32cef51eed3",
     "status": "QUARANTINED",
-    "source_url": "https://www.ineratec.de/en/glossary/now-china-wants-flood-world-e-fuels-too",
+    "source_url": "https://www.offshore-energy.biz/2026/11/04/sea1s-first-methanol-ready-offshore-energy-support-vessel-fitted-with-offshore-crane-and-helideck",
     "reasons": [
-      "below threshold"
+      "CCU term without utilization context"
     ]
   },
   {
-    "id": "a-aa25845e7c62a7bdc3cd",
+    "id": "a-a0bd848360b6a00f971d",
     "status": "QUARANTINED",
-    "source_url": "https://biofuelsdigest.com/qatari-backed-firm-plans-239-million-green-aviation-fuel-plant-in-morocco",
+    "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
     "reasons": [
-      "headline only (listed)"
+      "also reported under a-432b0bf0a4af472b572a"
     ]
   },
   {
-    "id": "a-b2ffc30b9546d4fb81a0",
+    "id": "a-a3eb7d2af7938a650cf8",
     "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/frontier-strikes-12-million-deal-with-44-01-to-turn-co2-into-rock-in-uae",
-    "reasons": [
-      "CCU topic"
-    ]
-  },
-  {
-    "id": "a-b8bdf97100066c303c48",
-    "status": "QUARANTINED",
-    "source_url": "https://www.manifoldtimes.com/news/report-china-linked-to-nearly-one-fifth-of-global-green-shipping-corridor-initiatives",
-    "reasons": [
-      "headline only (listed)"
-    ]
-  },
-  {
-    "id": "a-c4851a8f66200c47d5d4",
-    "status": "QUARANTINED",
-    "source_url": "https://www.covestro.com/press/covestro-nv-intends-to-reorganize-polycarbonate-production-at-antwerp-site---",
+    "source_url": "https://carbonherald.com/nasdaq-launches-new-carbon-issuance-calendar-in-collaboration-with-relae",
     "reasons": [
       "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-ab36eb3c898ea32777ee",
+    "status": "REJECTED",
+    "source_url": "https://www.gov.uk/government/statistics/announcements/heat-pump-deployment-statistics-september-2026",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-b3f777c172c8a71004b7",
+    "status": "REJECTED",
+    "source_url": "https://www.finanznachrichten.de/nachrichten-2026-10/69888149-credence-research-inc-renewable-methanol-market-to-reach-usd-5-52-billion-by-2035-credence-research-008.htm",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
+    "id": "a-c236830d8261758ef9fa",
+    "status": "QUARANTINED",
+    "source_url": "https://renewable-carbon.eu/news/co2-based-fuels-and-chemicals-conference-2027-call-for-abstracts-now-open-2",
+    "reasons": [
+      "below threshold"
     ]
   },
   {
@@ -212,27 +368,43 @@
     ]
   },
   {
-    "id": "a-d3afdda1c845648932d6",
+    "id": "a-ced912890bcf6feb4011",
     "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/microsoft-shares-lessons-learned-from-its-carbon-removal-procurement-program",
+    "source_url": "https://carbonherald.com/the-ipcc-is-looking-for-feedback-on-its-new-cdr-ccus-methodology-report",
     "reasons": [
       "CCU term without utilization context"
     ]
   },
   {
-    "id": "a-e1ff52d54e42251ebbd5",
+    "id": "a-d912fac6f38157bbe534",
     "status": "QUARANTINED",
-    "source_url": "https://doi.org/10.1016/j.cej.2026.183079",
+    "source_url": "https://www.manifoldtimes.com/news/singapore-qingdao-to-explore-alternative-fuel-bunkering-along-green-shipping-corridor",
+    "reasons": [
+      "headline only (listed)"
+    ]
+  },
+  {
+    "id": "a-dce9eaf33482c33f7687",
+    "status": "QUARANTINED",
+    "source_url": "https://biofuels-news.com/news/varopreem-sets-out-value-growth-strategy-to-2030-driving-the-next-phase-of-growth",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-e9542c2efcc4c76fb1f3",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/gulf-cryo-expands-industrial-ccus-footprint-across-uae-market-ahead-of-adipec-2026",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-f12f1cc32d681b2355ca",
+    "status": "QUARANTINED",
+    "source_url": "https://www.gov.uk/government/news/8th-uk-taiwan-energy-dialogue-and-21st-uk-taiwan-renewable-energy-conference",
     "reasons": [
       "below threshold"
-    ]
-  },
-  {
-    "id": "a-edb119e723943dc71a76",
-    "status": "QUARANTINED",
-    "source_url": "https://carbonherald.com/applied-carbon-locks-in-72m-citi-financing-for-texas-based-biochar",
-    "reasons": [
-      "CCU term without utilization context"
     ]
   }
 ]
