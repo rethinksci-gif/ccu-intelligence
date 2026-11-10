@@ -3,7 +3,7 @@
   "status": "skipped",
   "window": "2026-11-09",
   "last_publication": "issue-001-research-2026-10-09",
-  "last_successful_check": "2026-11-10T14:00:25.057686+00:00",
+  "last_successful_check": "2026-11-10T14:04:25Z",
   "reasons": [
     "fewer than four original-source verified developments",
     "skipped: 1 original-source verified developments (regular edition needs 4, compact edition 2)",
@@ -12,5 +12,9 @@
   "windows": {
     "2026-10-26": "skipped: 1 original-source verified developments (regular edition needs 4, compact edition 2)",
     "2026-11-09": "skipped: 2 original-source verified developments (regular edition needs 4, compact edition 2 from 2026-11-14)"
-  }
+  },
+  "deployment_status": "confirmed",
+  "confirmed_revision": "bfba18dd7d1869625bdc72bbb9197bb1eb82b4be",
+  "deployment_run_url": "https://github.com/rethinksci-gif/ccu-intelligence/actions/runs/42830116171",
+  "last_confirmed_publication": "issue-001-research-2026-10-09"
 }
