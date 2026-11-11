@@ -4,7 +4,7 @@
     "status": "VERIFIED",
     "reasons": [],
     "source_url": "https://carbonherald.com/fortera-secures-meta-as-buyer-of-certificates-for-low-carbon-cement/",
-    "checked_at": "2026-11-10T13:59:59.475976+00:00",
+    "checked_at": "2026-11-11T13:10:16.059280+00:00",
     "source_sha256": "e67d1c6e3fe93ecb287d87c7e019b936ac3022ca779068d012e063a4d167fb68",
     "checks": {
       "support": true,
@@ -21,19 +21,31 @@
       "Meta will also have the option to use the cement in its own construction projects and expand the agreement’s volume or duration in future years.",
       "The partnership is expected to support development of Fortera’s planned cement plant in Ste. Genevieve, Missouri.",
       "The facility is designed to produce ReAct Cement, which uses captured carbon dioxide (CO2) and, according to Fortera, generates 70% fewer emissions than ordinary Portland cement production. The product has undergone third-party testing and meets ASTM standards for use in concrete.",
-      "The plant is planned to produce 300,000 tons of cement annually. Fortera already operates a facility in Redding, California, with annual capacity of 15,000 tons."
+      "The plant is planned to produce 300,000 tons of cement annually. Fortera already operates a facility in Redding, California, with annual capacity of 15,000 tons.",
+      "The agreement provides a long-term demand signal for lower-emission construction materials, potentially giving Fortera greater revenue certainty as it seeks funding for new facilities."
     ],
     "notes": [
-      "All claims are supported by the Carbon Herald article: multi-year Meta EAC agreement for ~200,000 tons of low-carbon cement; Meta option to use cement and expand volume/duration; support for planned Ste. Genevieve, Missouri plant; plant planned at 300,000 tons/yr producing ReAct Cement; 70% fewer emissions vs ordinary Portland cement per Fortera; third-party testing and ASTM standards.",
-      "Capacity status is correctly framed: Ste. Genevieve is described as 'planned' (300,000 t/yr), and the Redding facility is described as already operating (15,000 t/yr) — the candidate does not misstate either.",
-      "The candidate correctly flags that signing date, duration, price, EAC methodology, CO2 source, FID, timeline and capex are absent, and that the 70% figure is company-reported without LCA boundary — consistent with the source.",
-      "Authority check passes: candidate is marked secondary and Carbon Herald is a named trade publication reporting the development.",
+      "All claims trace to the Carbon Herald article: multi-year Meta EAC agreement for ~200,000 tons of low-carbon cement; option for Meta to use cement and expand volume/duration; support for planned Ste. Genevieve, Missouri plant; ReAct Cement using captured CO2 with company-reported 70% fewer emissions than OPC; third-party testing and ASTM standards; planned 300,000 t/yr capacity.",
+      "Capacity status is correctly framed: Ste. Genevieve is described as 'planned' (300,000 tons annually), and the Redding facility is described as already operating (15,000 tons), consistent with the source.",
+      "The candidate is marked secondary and the source is Carbon Herald, a named trade publication reporting the development, so the authority check passes.",
+      "Uncertainty field appropriately flags missing signing date, duration, price, EAC methodology, CO2 source, chemistry, energy use, FID, timeline, capex, LCA boundary, and independent verification — none of which appear in the source.",
       "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
-      "Only English text is provided; no Chinese translation to compare, so translation_meaning passes as inapplicable."
+      "Only English is provided; no Chinese translation to compare, so translation_meaning passes as inapplicable."
     ],
     "candidate_sha256": "52922b71ecb7ab4bbfa88a0b1c0f9e822489fc175356a0149c7625645d6a74f0",
     "window": "2026-11-09",
     "eligible_for_window": true
+  },
+  {
+    "id": "a-a0bd848360b6a00f971d",
+    "status": "QUARANTINED",
+    "reasons": [
+      "conflicting or unsupported numerical data"
+    ],
+    "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
+    "checked_at": "2026-11-11T13:10:20.356707+00:00",
+    "source_sha256": "b34d37cad0979dd0bc6c8eb74eee8e098e1096ca2e8c75815e37a08553ae8201",
+    "checks": {}
   },
   {
     "id": "a-aabde105c39e8145bda4",
@@ -42,7 +54,7 @@
       "semantic evidence checks failed"
     ],
     "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
-    "checked_at": "2026-11-10T14:00:04.371508+00:00",
+    "checked_at": "2026-11-11T13:10:21.327925+00:00",
     "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
     "checks": {
       "support": true,
@@ -57,10 +69,12 @@
   },
   {
     "id": "a-ea5c41f9e27e092f78d3",
-    "status": "VERIFIED",
-    "reasons": [],
+    "status": "QUARANTINED",
+    "reasons": [
+      "semantic evidence checks failed"
+    ],
     "source_url": "https://carbicrete.com/2026-amazon-deployment/",
-    "checked_at": "2026-11-10T14:00:09.523618+00:00",
+    "checked_at": "2026-11-11T13:10:26.255368+00:00",
     "source_sha256": "a9fc11d50e4bbc87fe04f2a658fe384a486e85b994106b6a15fa5a66fb157fc2",
     "checks": {
       "support": true,
@@ -71,62 +85,7 @@
       "capacity_status": true,
       "legal_status_effective_date": true,
       "translation_meaning": true
-    },
-    "citations": [
-      "CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products at a new Amazon UK delivery station in Stockton-on-Tees.",
-      "In the first wide-scale deployment of its cement-free pavers anywhere in the world, CarbiCrete products now cover around 6,400m² of paving across parking spaces and footpaths at the site.",
-      "The delivery station is Amazon’s first building to pursue the latest version (v1.1) of Living Future’s Zero Carbon Certification",
-      "CarbiCrete’s technology replaces 100% of the cement content in masonry and hardscape products with a steel-making by-product, avoiding cement-related emissions. The company then uses carbon dioxide to cure its concrete, permanently storing captured carbon within the products",
-      "Montreal, November 2, 2026 – CarbiCrete"
-    ],
-    "notes": [
-      "All substantive claims (three products, Stockton-on-Tees delivery station, ~6,400 m² paving across parking and footpaths, first wide-scale deployment of cement-free pavers, 100% cement replacement with steel-making by-product, CO2 curing storing captured carbon, Amazon's first building pursuing Living Future Zero Carbon Certification v1.1) are directly supported by the source text.",
-      "The candidate correctly flags the dateline (Montreal, November 2, 2026) as conflicting with the listed publication date (2026-10-30) and does not use it as the event date; the source gives no separate event date, so the uncertainty statement is accurate.",
-      "The candidate correctly notes absence of CO2 quantity, mix/by-product specification, mechanical performance, cost and TRL data in the source.",
-      "Source is the original publisher (CarbiCrete), matching the primary authority designation.",
-      "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
-      "Only English is present; translation_meaning is inapplicable and passes."
-    ],
-    "candidate_sha256": "78dd0f34797dee2089728e09a3c0c8010faee2e65884cd580cb33d8916436874",
-    "window": "2026-11-09",
-    "eligible_for_window": true
-  },
-  {
-    "id": "a-a592b6a4fee16d10c757",
-    "status": "VERIFIED",
-    "reasons": [],
-    "source_url": "https://carbonherald.com/skytree-galetech-and-mwahera-partner-on-direct-air-capture-for-e-fuel-production-in-kenya/",
-    "checked_at": "2026-11-10T14:00:14.178256+00:00",
-    "source_sha256": "a7ca897198d79643f16d6c04e30ec6ff81d9f79c27088f74e0faab46bf85c6d5",
-    "checks": {
-      "support": true,
-      "dates": true,
-      "quantities_units_conditions": true,
-      "no_contradictions": true,
-      "authority": true,
-      "capacity_status": true,
-      "legal_status_effective_date": true,
-      "translation_meaning": true
-    },
-    "citations": [
-      "Skytree has entered into a strategic partnership with Galetech Energy Developments and Mwahera Green Hydrogen, embarking on a collaboration that will integrate direct air capture (DAC) technology at the Mwangea e-fuels project in Kenya.",
-      "The project is being launched with an initial deployment phase that will be followed by a technical and commercial performance verification before the initiative scales.",
-      "According to the developers, once scaled, the project will be able to capture up to tens of kilotonnes of atmospheric carbon dioxide per year.",
-      "it will utilize Kenya’s abundant renewable energy, which represents 80% of the country’s grid",
-      "By co-locating Direct Air Capture with local hydrogen production, we are building a self-sustaining infrastructure model that retains value in the regional economy while helping hard-to-decarbonize industries meet strict international mandates"
-    ],
-    "notes": [
-      "All claims are supported by the Carbon Herald article, which is a named trade publication reporting the partnership (candidate marked secondary, so authority passes).",
-      "Capacity status is correctly framed: 'up to tens of kilotonnes of CO2 per year once fully operational' is presented as a developer expectation/target, not an operational figure; the initial deployment phase and subsequent technical/commercial verification are accurately described.",
-      "The candidate correctly notes the absence of first-phase capacity, timeline, investment, energy consumption, cost, CO2 price and offtake terms in the supplied material.",
-      "The 80%-renewable Kenyan grid figure is accurately attributed to the article.",
-      "The circular-carbon and mandate-compliance points are correctly attributed to the partners (Dr. Kenneth Namunje quote) with no LCA method or third-party validation reported.",
-      "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
-      "Only English claims are present; translation_meaning is inapplicable and passes."
-    ],
-    "candidate_sha256": "69adb3705647ced1e978aea01b84dbeb89c40fc0d48a98206fd7e6995f42e760",
-    "window": "2026-10-26",
-    "eligible_for_window": true
+    }
   },
   {
     "id": "a-f8229d23e3cc9ce9ffba",
@@ -185,7 +144,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/glossary/refueleu-aviation_en",
-    "checked_at": "2026-11-10T14:00:25.037812+00:00",
+    "checked_at": "2026-11-11T13:10:36.134164+00:00",
     "source_sha256": "4465ffd86b8fa84d5c68576ddb315a38bb01cfa499898889c348b49dafa3657a",
     "checks": {}
   },
@@ -201,14 +160,6 @@
     "id": "a-1768be1105cf2c794d33",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/carbon-removal-canada-reflects-on-the-countrys-co2-removal-progress-so-far",
-    "reasons": [
-      "CCU term without utilization context"
-    ]
-  },
-  {
-    "id": "a-19073cfcec7d712cb63e",
-    "status": "QUARANTINED",
-    "source_url": "https://biofuelsdigest.com/equisera-and-vertomcory-to-explore-uk-bio-methanol-supply-for-shipping",
     "reasons": [
       "CCU term without utilization context"
     ]
@@ -230,6 +181,14 @@
     ]
   },
   {
+    "id": "a-40d8cb3f089f408b6ff5",
+    "status": "REJECTED",
+    "source_url": "https://www.moneycontrol.com/news/business/greenko-promoter-backed-am-intelligence-explores-1-billion-plus-equity-raise-14055719.html",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
     "id": "a-445a8c757a67c3c8d4d8",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.1021/acsnano.6c17097",
@@ -246,27 +205,19 @@
     ]
   },
   {
+    "id": "a-512d9cea5ded1c7bd5f7",
+    "status": "REJECTED",
+    "source_url": "https://econotimes.com/Taiwan-Researchers-Increase-Bioethanol-Feedstock-in-Tested-Microalga-1756637",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
     "id": "a-515238358affc72d7be9",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/largest-indonesia-lco2-facility-commences-production",
     "reasons": [
       "CCU term without utilization context"
-    ]
-  },
-  {
-    "id": "a-5a31c044987f21d876cd",
-    "status": "REJECTED",
-    "source_url": "https://biofuelsdigest.com/greenfield-global-european-energy-plan-e-methanol-plant-targeting-marine-fuel-market",
-    "reasons": [
-      "duplicate of a-aabde105c39e8145bda4"
-    ]
-  },
-  {
-    "id": "a-608b2f14a322af2d0d83",
-    "status": "REJECTED",
-    "source_url": "https://jp.ibtimes.com/university-tokyo-model-matches-two-hour-co2-mineralization-calcium-rich-olivine-104800",
-    "reasons": [
-      "unknown or outside publication window"
     ]
   },
   {
@@ -302,9 +253,9 @@
     ]
   },
   {
-    "id": "a-87cf62c3cff9a947e4b3",
+    "id": "a-842eebb408ec1259c53a",
     "status": "REJECTED",
-    "source_url": "https://alwasat-ye.net/2026-10/N-Ethylmaleimide-NEM-NEthylmaleimide-influence-on-free-living-nematode-soil-carbon-mineralization.html",
+    "source_url": "https://focustaiwan.tw/sci-tech/202610190017",
     "reasons": [
       "unknown or outside publication window"
     ]
@@ -318,19 +269,19 @@
     ]
   },
   {
-    "id": "a-a0bd848360b6a00f971d",
-    "status": "QUARANTINED",
-    "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
-    "reasons": [
-      "also reported under a-432b0bf0a4af472b572a"
-    ]
-  },
-  {
     "id": "a-a3eb7d2af7938a650cf8",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/nasdaq-launches-new-carbon-issuance-calendar-in-collaboration-with-relae",
     "reasons": [
       "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-a592b6a4fee16d10c757",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/skytree-galetech-and-mwahera-partner-on-direct-air-capture-for-e-fuel-production-in-kenya",
+    "reasons": [
+      "category cap"
     ]
   },
   {
@@ -355,6 +306,14 @@
     "source_url": "https://renewable-carbon.eu/news/co2-based-fuels-and-chemicals-conference-2027-call-for-abstracts-now-open-2",
     "reasons": [
       "below threshold"
+    ]
+  },
+  {
+    "id": "a-c38759199b185eb457a5",
+    "status": "REJECTED",
+    "source_url": "https://oilprice.com/Energy/Energy-General/EUs-Proposed-Shipping-Subsidies-Could-Make-BioLNG-Cheaper-Than-Fuel-Oil.html",
+    "reasons": [
+      "unknown or outside publication window"
     ]
   },
   {
