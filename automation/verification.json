@@ -4,7 +4,7 @@
     "status": "VERIFIED",
     "reasons": [],
     "source_url": "https://carbonherald.com/fortera-secures-meta-as-buyer-of-certificates-for-low-carbon-cement/",
-    "checked_at": "2026-11-11T13:10:16.059280+00:00",
+    "checked_at": "2026-11-12T14:13:17.639551+00:00",
     "source_sha256": "e67d1c6e3fe93ecb287d87c7e019b936ac3022ca779068d012e063a4d167fb68",
     "checks": {
       "support": true,
@@ -19,18 +19,17 @@
     "citations": [
       "Fortera has signed a multi-year agreement with Meta covering environmental attribute certificates (EACs) associated with approximately 200,000 tons of its low-carbon cement, in a deal designed to help finance production expansion.",
       "Meta will also have the option to use the cement in its own construction projects and expand the agreement’s volume or duration in future years.",
-      "The partnership is expected to support development of Fortera’s planned cement plant in Ste. Genevieve, Missouri.",
-      "The facility is designed to produce ReAct Cement, which uses captured carbon dioxide (CO2) and, according to Fortera, generates 70% fewer emissions than ordinary Portland cement production. The product has undergone third-party testing and meets ASTM standards for use in concrete.",
+      "The partnership is expected to support development of Fortera’s planned cement plant in Ste. Genevieve, Missouri. The facility is designed to produce ReAct Cement, which uses captured carbon dioxide (CO2) and, according to Fortera, generates 70% fewer emissions than ordinary Portland cement production. The product has undergone third-party testing and meets ASTM standards for use in concrete.",
       "The plant is planned to produce 300,000 tons of cement annually. Fortera already operates a facility in Redding, California, with annual capacity of 15,000 tons.",
       "The agreement provides a long-term demand signal for lower-emission construction materials, potentially giving Fortera greater revenue certainty as it seeks funding for new facilities."
     ],
     "notes": [
-      "All claims trace to the Carbon Herald article: multi-year Meta EAC agreement for ~200,000 tons of low-carbon cement; option for Meta to use cement and expand volume/duration; support for planned Ste. Genevieve, Missouri plant; ReAct Cement using captured CO2 with company-reported 70% fewer emissions than OPC; third-party testing and ASTM standards; planned 300,000 t/yr capacity.",
-      "Capacity status is correctly framed: Ste. Genevieve is described as 'planned' (300,000 tons annually), and the Redding facility is described as already operating (15,000 tons), consistent with the source.",
-      "The candidate is marked secondary and the source is Carbon Herald, a named trade publication reporting the development, so the authority check passes.",
-      "Uncertainty field appropriately flags missing signing date, duration, price, EAC methodology, CO2 source, chemistry, energy use, FID, timeline, capex, LCA boundary, and independent verification — none of which appear in the source.",
+      "All claims are supported by the Carbon Herald article: multi-year Meta EAC agreement for ~200,000 tons of low-carbon cement; option for Meta to use cement and expand volume/duration; long-term revenue visibility and financing support; planned Ste. Genevieve, Missouri plant designed for ReAct Cement using captured CO2; company-reported 70% fewer emissions than ordinary Portland cement; third-party testing and ASTM standards; planned 300,000 tons/yr capacity.",
+      "Capacity status is correctly framed: Ste. Genevieve is described as 'planned' (300,000 t/yr), and the Redding, California facility (15,000 t/yr) is described as already operating, consistent with the source.",
+      "The candidate is marked secondary and the source is a named trade publication (Carbon Herald) reporting the development, so the authority check passes.",
+      "The uncertainty field appropriately flags missing details (signing date, duration, price, EAC methodology, CO2 source, chemistry, energy use, FID, timeline, capex, LCA boundary, verification) that the source does not provide.",
       "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
-      "Only English is provided; no Chinese translation to compare, so translation_meaning passes as inapplicable."
+      "Only English claims are present; no Chinese translation is provided, so translation_meaning is inapplicable and passes."
     ],
     "candidate_sha256": "52922b71ecb7ab4bbfa88a0b1c0f9e822489fc175356a0149c7625645d6a74f0",
     "window": "2026-11-09",
@@ -43,7 +42,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
-    "checked_at": "2026-11-11T13:10:20.356707+00:00",
+    "checked_at": "2026-11-12T14:13:21.579904+00:00",
     "source_sha256": "b34d37cad0979dd0bc6c8eb74eee8e098e1096ca2e8c75815e37a08553ae8201",
     "checks": {}
   },
@@ -54,7 +53,7 @@
       "semantic evidence checks failed"
     ],
     "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
-    "checked_at": "2026-11-11T13:10:21.327925+00:00",
+    "checked_at": "2026-11-12T14:13:21.818940+00:00",
     "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
     "checks": {
       "support": true,
@@ -69,12 +68,10 @@
   },
   {
     "id": "a-ea5c41f9e27e092f78d3",
-    "status": "QUARANTINED",
-    "reasons": [
-      "semantic evidence checks failed"
-    ],
+    "status": "VERIFIED",
+    "reasons": [],
     "source_url": "https://carbicrete.com/2026-amazon-deployment/",
-    "checked_at": "2026-11-11T13:10:26.255368+00:00",
+    "checked_at": "2026-11-12T14:13:30.053271+00:00",
     "source_sha256": "a9fc11d50e4bbc87fe04f2a658fe384a486e85b994106b6a15fa5a66fb157fc2",
     "checks": {
       "support": true,
@@ -85,7 +82,26 @@
       "capacity_status": true,
       "legal_status_effective_date": true,
       "translation_meaning": true
-    }
+    },
+    "citations": [
+      "Montreal, November 2, 2026 – CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products at a new Amazon UK delivery station in Stockton-on-Tees.",
+      "In the first wide-scale deployment of its cement-free pavers anywhere in the world, CarbiCrete products now cover around 6,400m² of paving across parking spaces and footpaths at the site.",
+      "The delivery station is Amazon’s first building to pursue the latest version (v1.1) of Living Future’s Zero Carbon Certification, a rigorous standard that sets demanding requirements for both construction and operations.",
+      "CarbiCrete’s technology replaces 100% of the cement content in masonry and hardscape products with a steel-making by-product, avoiding cement-related emissions. The company then uses carbon dioxide to cure its concrete, permanently storing captured carbon within the products, significantly lowering the embodied carbon of the construction projects in which they are used.",
+      "“Seeing CarbiCrete products deployed at this scale is an important milestone for our technology and for lower-carbon construction more broadly.,” says Gary Belisle, CarbiCrete’s CEO."
+    ],
+    "notes": [
+      "All claims are supported by the source text: three products supplied to a new Amazon UK delivery station in Stockton-on-Tees; ~6,400 m² of paving across parking spaces and footpaths; described as the first wide-scale deployment of CarbiCrete's cement-free pavers anywhere in the world; binder replaces 100% of cement in masonry and hardscape products with a steel-making by-product; CO2 curing said to permanently store captured carbon; delivery station is Amazon's first building to pursue Living Fu",
+      "The candidate correctly flags the dateline conflict: the source dateline reads 'Montreal, November 2, 2026' while the listed publication date is 2026-10-30; the candidate does not use the dateline as the event date, so no contradiction arises.",
+      "The candidate correctly notes the absence of a deployment date, CO2 quantity stored, mix/by-product specification, mechanical performance data, cost and TRL statement in the source.",
+      "The candidate correctly characterizes the material as a company-supplied release with no independent verification.",
+      "The quoted excerpt matches the source verbatim (including the source's stray period before the closing quotation mark).",
+      "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
+      "Only English is provided; no translation comparison is required, so translation_meaning passes."
+    ],
+    "candidate_sha256": "78dd0f34797dee2089728e09a3c0c8010faee2e65884cd580cb33d8916436874",
+    "window": "2026-11-09",
+    "eligible_for_window": true
   },
   {
     "id": "a-f8229d23e3cc9ce9ffba",
@@ -93,6 +109,14 @@
     "source_url": "https://co2value.eu/from-co%e2%82%82-mineralisation-technology-to-industrial-deployment-sequestra-strengthens-its-path-to-market",
     "reasons": [
       "original-source extraction failed: UnicodeEncodeError"
+    ]
+  },
+  {
+    "id": "a-2dc70401d50f6bc2ba41",
+    "status": "QUARANTINED",
+    "source_url": "https://doi.org/10.1021/acsenergylett.6c02712",
+    "reasons": [
+      "original-source extraction failed: HTTPError"
     ]
   },
   {
@@ -120,14 +144,6 @@
     ]
   },
   {
-    "id": "a-a0bd913c61bc8e28081e",
-    "status": "QUARANTINED",
-    "source_url": "https://doi.org/10.21203/rs.3.rs-11262643/v1",
-    "reasons": [
-      "original-source extraction failed: ValueError"
-    ]
-  },
-  {
     "id": "a-ffd6c4c1319d87971540",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.1016/j.apcatb.2026.127699",
@@ -144,7 +160,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/glossary/refueleu-aviation_en",
-    "checked_at": "2026-11-11T13:10:36.134164+00:00",
+    "checked_at": "2026-11-12T14:13:39.573906+00:00",
     "source_sha256": "4465ffd86b8fa84d5c68576ddb315a38bb01cfa499898889c348b49dafa3657a",
     "checks": {}
   },
@@ -160,6 +176,14 @@
     "id": "a-1768be1105cf2c794d33",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/carbon-removal-canada-reflects-on-the-countrys-co2-removal-progress-so-far",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-19073cfcec7d712cb63e",
+    "status": "QUARANTINED",
+    "source_url": "https://biofuelsdigest.com/equisera-and-vertomcory-to-explore-uk-bio-methanol-supply-for-shipping",
     "reasons": [
       "CCU term without utilization context"
     ]
@@ -181,14 +205,6 @@
     ]
   },
   {
-    "id": "a-40d8cb3f089f408b6ff5",
-    "status": "REJECTED",
-    "source_url": "https://www.moneycontrol.com/news/business/greenko-promoter-backed-am-intelligence-explores-1-billion-plus-equity-raise-14055719.html",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
     "id": "a-445a8c757a67c3c8d4d8",
     "status": "QUARANTINED",
     "source_url": "https://doi.org/10.1021/acsnano.6c17097",
@@ -205,19 +221,19 @@
     ]
   },
   {
-    "id": "a-512d9cea5ded1c7bd5f7",
-    "status": "REJECTED",
-    "source_url": "https://econotimes.com/Taiwan-Researchers-Increase-Bioethanol-Feedstock-in-Tested-Microalga-1756637",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
     "id": "a-515238358affc72d7be9",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/largest-indonesia-lco2-facility-commences-production",
     "reasons": [
       "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-5a31c044987f21d876cd",
+    "status": "REJECTED",
+    "source_url": "https://biofuelsdigest.com/greenfield-global-european-energy-plan-e-methanol-plant-targeting-marine-fuel-market",
+    "reasons": [
+      "duplicate of a-aabde105c39e8145bda4"
     ]
   },
   {
@@ -250,22 +266,6 @@
     "source_url": "https://www.covestro.com/press/future-oriented-material-solutions-for-key-industries",
     "reasons": [
       "news/company/industry/government: gate decides"
-    ]
-  },
-  {
-    "id": "a-842eebb408ec1259c53a",
-    "status": "REJECTED",
-    "source_url": "https://focustaiwan.tw/sci-tech/202610190017",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
-    "id": "a-90a71598b32cef51eed3",
-    "status": "QUARANTINED",
-    "source_url": "https://www.offshore-energy.biz/2026/11/04/sea1s-first-methanol-ready-offshore-energy-support-vessel-fitted-with-offshore-crane-and-helideck",
-    "reasons": [
-      "CCU term without utilization context"
     ]
   },
   {
@@ -306,14 +306,6 @@
     "source_url": "https://renewable-carbon.eu/news/co2-based-fuels-and-chemicals-conference-2027-call-for-abstracts-now-open-2",
     "reasons": [
       "below threshold"
-    ]
-  },
-  {
-    "id": "a-c38759199b185eb457a5",
-    "status": "REJECTED",
-    "source_url": "https://oilprice.com/Energy/Energy-General/EUs-Proposed-Shipping-Subsidies-Could-Make-BioLNG-Cheaper-Than-Fuel-Oil.html",
-    "reasons": [
-      "unknown or outside publication window"
     ]
   },
   {
