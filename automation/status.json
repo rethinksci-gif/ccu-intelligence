@@ -1,20 +1,16 @@
 {
-  "checked_at": "2026-11-15T12:59:11.739782+00:00",
+  "checked_at": "2026-11-18T14:36:13.979706+00:00",
   "status": "skipped",
   "window": "2026-11-09",
   "last_publication": "issue-001-research-2026-10-09",
-  "last_successful_check": "2026-11-15T13:12:40Z",
+  "last_successful_check": "2026-11-18T14:47:51.206631+00:00",
   "reasons": [
     "fewer than four original-source verified developments",
-    "skipped: 1 original-source verified developments (regular edition needs 4, compact edition 2)",
-    "skipped: 1 original-source verified developments (regular edition needs 4, compact edition 2)"
+    "skipped: 0 original-source verified developments (regular edition needs 4, compact edition 2)",
+    "skipped: 0 original-source verified developments (regular edition needs 4, compact edition 2)"
   ],
   "windows": {
-    "2026-10-26": "skipped: 1 original-source verified developments (regular edition needs 4, compact edition 2)",
-    "2026-11-09": "skipped: 1 original-source verified developments (regular edition needs 4, compact edition 2)"
-  },
-  "deployment_status": "confirmed",
-  "confirmed_revision": "ad47d4df3121afd399adb83282a39fada9bb7f95",
-  "deployment_run_url": "https://github.com/rethinksci-gif/ccu-intelligence/actions/runs/43717656207",
-  "last_confirmed_publication": "issue-001-research-2026-10-09"
+    "2026-10-26": "skipped: 0 original-source verified developments (regular edition needs 4, compact edition 2)",
+    "2026-11-09": "skipped: 0 original-source verified developments (regular edition needs 4, compact edition 2)"
+  }
 }
