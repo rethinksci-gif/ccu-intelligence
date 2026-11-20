@@ -6,7 +6,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
-    "checked_at": "2026-11-19T14:53:05.724952+00:00",
+    "checked_at": "2026-11-20T14:34:07.854111+00:00",
     "source_sha256": "b34d37cad0979dd0bc6c8eb74eee8e098e1096ca2e8c75815e37a08553ae8201",
     "checks": {}
   },
@@ -17,7 +17,7 @@
       "semantic evidence checks failed"
     ],
     "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
-    "checked_at": "2026-11-19T14:53:05.829938+00:00",
+    "checked_at": "2026-11-20T14:34:08.687722+00:00",
     "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
     "checks": {
       "support": true,
@@ -35,7 +35,7 @@
     "status": "VERIFIED",
     "reasons": [],
     "source_url": "https://carbicrete.com/2026-amazon-deployment/",
-    "checked_at": "2026-11-19T14:53:10.116884+00:00",
+    "checked_at": "2026-11-20T14:34:13.946600+00:00",
     "source_sha256": "a9fc11d50e4bbc87fe04f2a658fe384a486e85b994106b6a15fa5a66fb157fc2",
     "checks": {
       "support": true,
@@ -52,15 +52,14 @@
       "In the first wide-scale deployment of its cement-free pavers anywhere in the world, CarbiCrete products now cover around 6,400m² of paving across parking spaces and footpaths at the site.",
       "The delivery station is Amazon’s first building to pursue the latest version (v1.1) of Living Future’s Zero Carbon Certification",
       "CarbiCrete’s technology replaces 100% of the cement content in masonry and hardscape products with a steel-making by-product, avoiding cement-related emissions. The company then uses carbon dioxide to cure its concrete, permanently storing captured carbon within the products",
-      "Montreal, November 2, 2026 – CarbiCrete"
+      "Montreal, November 2, 2026 – CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products at a new Amazon UK delivery station in Stockton-on-Tees."
     ],
     "notes": [
-      "All substantive claims (three products, Stockton-on-Tees delivery station, ~6,400 m² paving across parking and footpaths, first wide-scale deployment of cement-free pavers, 100% cement replacement with steel-making by-product, CO2 curing storing captured carbon, Amazon's first building pursuing Living Future Zero Carbon Certification v1.1) are supported by the source text.",
-      "The candidate correctly flags the dateline (Montreal, November 2, 2026) as conflicting with the listed publication date (2026-10-30) and does not use it as the event date; the source gives no separate event date, consistent with the uncertainty note.",
-      "The uncertainty note accurately lists absent data: no CO2 quantity stored, no mix/by-product specification, no mechanical performance data, no cost, no TRL statement.",
-      "The source is the original publisher (CarbiCrete), matching the primary authority designation.",
-      "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
-      "Only English is provided; no translation comparison is required, so translation_meaning passes."
+      "All substantive claims (three products, Stockton-on-Tees delivery station, ~6,400 m² paving across parking and footpaths, first wide-scale deployment of cement-free pavers, 100% cement replacement with steel-making by-product, CO2 curing storing captured carbon, Amazon's first building pursuing Living Future Zero Carbon Certification v1.1) are directly supported by the source text.",
+      "The candidate correctly flags the dateline (Montreal, November 2, 2026) as conflicting with the listed publication date (2026-10-30) and does not use it as the event date; the source gives no separate event date, which the candidate acknowledges.",
+      "The candidate appropriately labels the material as a company-supplied release with no independent verification and notes the absence of CO2 quantity, mix specification, performance data, cost and TRL.",
+      "The quote used for each claim field is a verbatim excerpt from the source (CEO Gary Belisle statement).",
+      "The source is the original publisher (CarbiCrete), so authority is satisfied; the candidate marks secondary as false, consistent with primary sourcing."
     ],
     "candidate_sha256": "78dd0f34797dee2089728e09a3c0c8010faee2e65884cd580cb33d8916436874",
     "window": "2026-11-09",
@@ -91,7 +90,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/glossary/refueleu-aviation_en",
-    "checked_at": "2026-11-19T14:53:14.344006+00:00",
+    "checked_at": "2026-11-20T14:34:19.719362+00:00",
     "source_sha256": "4465ffd86b8fa84d5c68576ddb315a38bb01cfa499898889c348b49dafa3657a",
     "checks": {}
   },
@@ -128,19 +127,19 @@
     ]
   },
   {
+    "id": "a-512d9cea5ded1c7bd5f7",
+    "status": "REJECTED",
+    "source_url": "https://econotimes.com/Taiwan-Researchers-Increase-Bioethanol-Feedstock-in-Tested-Microalga-1756637",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
     "id": "a-5a31c044987f21d876cd",
     "status": "REJECTED",
     "source_url": "https://biofuelsdigest.com/greenfield-global-european-energy-plan-e-methanol-plant-targeting-marine-fuel-market",
     "reasons": [
       "duplicate of a-aabde105c39e8145bda4"
-    ]
-  },
-  {
-    "id": "a-608b2f14a322af2d0d83",
-    "status": "REJECTED",
-    "source_url": "https://jp.ibtimes.com/university-tokyo-model-matches-two-hour-co2-mineralization-calcium-rich-olivine-104800",
-    "reasons": [
-      "unknown or outside publication window"
     ]
   },
   {
@@ -176,9 +175,9 @@
     ]
   },
   {
-    "id": "a-87cf62c3cff9a947e4b3",
+    "id": "a-842eebb408ec1259c53a",
     "status": "REJECTED",
-    "source_url": "https://alwasat-ye.net/2026-10/N-Ethylmaleimide-NEM-NEthylmaleimide-influence-on-free-living-nematode-soil-carbon-mineralization.html",
+    "source_url": "https://focustaiwan.tw/sci-tech/202610190017",
     "reasons": [
       "unknown or outside publication window"
     ]
