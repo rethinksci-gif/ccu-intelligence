@@ -6,7 +6,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
-    "checked_at": "2026-11-24T16:41:47.911622+00:00",
+    "checked_at": "2026-11-25T16:20:31.207076+00:00",
     "source_sha256": "b34d37cad0979dd0bc6c8eb74eee8e098e1096ca2e8c75815e37a08553ae8201",
     "checks": {}
   },
@@ -17,7 +17,7 @@
       "semantic evidence checks failed"
     ],
     "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
-    "checked_at": "2026-11-24T16:41:48.825386+00:00",
+    "checked_at": "2026-11-25T16:20:31.419813+00:00",
     "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
     "checks": {
       "support": true,
@@ -35,7 +35,7 @@
     "status": "VERIFIED",
     "reasons": [],
     "source_url": "https://europeanenergy.com/2026/11/19/european-energy-metafuels-and-norwegian-partner-to-develop-danish-e-saf/",
-    "checked_at": "2026-11-24T16:41:51.906765+00:00",
+    "checked_at": "2026-11-25T16:20:34.247811+00:00",
     "source_sha256": "de46e530f2542b988df581b601c67752d3c07a4ab1aa123443d28759f37e9adf",
     "checks": {
       "support": true,
@@ -50,21 +50,20 @@
     "citations": [
       "European Energy, Norwegian and Metafuels have signed a memorandum of understanding to develop an e-SAF value chain for Denmark.",
       "Copenhagen, Denmark, 19th November 2026",
-      "its operational e-methanol facility at Kassø in southern Denmark",
+      "The partnership builds on heads of terms already in place between Metafuels and Norwegian for the future offtake of e-SAF from Turbe, Metafuels’ first commercial facility in the Port of Rotterdam.",
       "Front end engineering and design is close to completion (end 2026), and the plant will be operational in 2030.",
-      "The partnership builds on heads of terms already in place between Metafuels and Norwegian for the future offtake of e-SAF from Turbe",
-      "Metafuels will convert into synthetic aviation fuel using its aerobrew demonstration plant at PSI in Switzerland",
-      "Under ReFuelEU Aviation, e-SAF sub-mandates come into force from 2030",
-      "began operating in May 2025, is the world’s first large-scale e-methanol facility, with capacity of up to 42,000 tonnes of e-methanol a year",
-      "delivering up to 90% lower lifecycle emissions than fossil kerosene"
+      "the partners plan to work towards a showcase flight using European Energy e-methanol converted to e-SAF at Metafuels’ aerobrew demonstration plant in Switzerland.",
+      "Its Kassø facility in southern Denmark, which began operating in May 2025, is the world’s first large-scale e-methanol facility, with capacity of up to 42,000 tonnes of e-methanol a year.",
+      "delivering up to 90% lower lifecycle emissions than fossil kerosene",
+      "Under ReFuelEU Aviation, e-SAF sub-mandates come into force from 2030"
     ],
     "notes": [
       "All claims are supported by the supplied press release: MoU signed 19 Nov 2026; Kassø operational since May 2025 with capacity up to 42,000 t/y e-methanol; Turbe FEED close to completion end-2026 and operational in 2030; heads of terms between Metafuels and Norwegian for Turbe offtake; showcase flight via PSI demonstration plant in Switzerland; ReFuelEU e-SAF sub-mandates from 2030.",
       "The 90% lifecycle-emission reduction is correctly attributed as a Metafuels company claim without method or verification.",
-      "Uncertainty claim correctly notes absence of volumes, prices, CO2 source, catalyst, energy input, TRL, Turbe capacity, and showcase flight date; no FID or financing is reported.",
-      "Capacity status is correctly framed: Kassø operational; Turbe planned/operational target 2030; showcase flight planned.",
-      "Legal status: ReFuelEU e-SAF sub-mandates described as coming into force from 2030, consistent with source; no adoption/entry-into-force distinction is claimed beyond the source.",
-      "Only English text is provided; no Chinese translation to compare, so translation_meaning is inapplicable and passes."
+      "Uncertainty claim correctly notes absence of volumes, prices, CO2 source, catalyst, energy input, TRL, Turbe capacity, and showcase flight date; no FID or financing reported.",
+      "Capacity status is correctly distinguished: Kassø operational; Turbe planned/under development (FEED stage); showcase flight planned.",
+      "Legal status: ReFuelEU e-SAF sub-mandates described as coming into force from 2030, matching source wording.",
+      "Only English text supplied; translation_meaning treated as inapplicable/true."
     ],
     "candidate_sha256": "4577cabaf4f141881483eadb9c1d00a35c83be8917add1923880a9f8c502f188",
     "window": "2026-11-23",
@@ -75,7 +74,7 @@
     "status": "VERIFIED",
     "reasons": [],
     "source_url": "https://carbicrete.com/2026-amazon-deployment/",
-    "checked_at": "2026-11-24T16:41:56.523534+00:00",
+    "checked_at": "2026-11-25T16:20:39.299337+00:00",
     "source_sha256": "a9fc11d50e4bbc87fe04f2a658fe384a486e85b994106b6a15fa5a66fb157fc2",
     "checks": {
       "support": true,
@@ -88,19 +87,20 @@
       "translation_meaning": true
     },
     "citations": [
-      "CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products at a new Amazon UK delivery station in Stockton-on-Tees.",
+      "Montreal, November 2, 2026 – CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products at a new Amazon UK delivery station in Stockton-on-Tees.",
       "In the first wide-scale deployment of its cement-free pavers anywhere in the world, CarbiCrete products now cover around 6,400m² of paving across parking spaces and footpaths at the site.",
       "The delivery station is Amazon’s first building to pursue the latest version (v1.1) of Living Future’s Zero Carbon Certification",
       "CarbiCrete’s technology replaces 100% of the cement content in masonry and hardscape products with a steel-making by-product, avoiding cement-related emissions. The company then uses carbon dioxide to cure its concrete, permanently storing captured carbon within the products",
-      "Montreal, November 2, 2026 – CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products"
+      "“Seeing CarbiCrete products deployed at this scale is an important milestone for our technology and for lower-carbon construction more broadly.,” says Gary Belisle, CarbiCrete’s CEO."
     ],
     "notes": [
-      "All substantive claims (three products, Stockton-on-Tees delivery station, ~6,400 m² paving across parking and footpaths, first wide-scale deployment of cement-free pavers, 100% cement replacement with steel-making by-product, CO2 curing storing captured carbon, Amazon's first building pursuing Living Future Zero Carbon Certification v1.1) are directly supported by the source text.",
-      "The candidate correctly flags the dateline (Montreal, November 2, 2026) as conflicting with the listed publication date (2026-10-30) and does not use it as the event date; the source gives no separate event date, so the uncertainty statement is accurate.",
-      "The candidate correctly notes absence of CO2 quantity, mix/by-product specification, mechanical performance data, cost and TRL statement in the source.",
-      "The quote used across fields is verbatim from the source (minor trailing punctuation artifact in source does not alter meaning).",
+      "All substantive claims (three products, Stockton-on-Tees UK delivery station, ~6,400 m² paving across parking and footpaths, first wide-scale deployment of cement-free pavers, 100% cement replacement with steel-making by-product, CO2 curing storing captured carbon, Amazon's first building pursuing Living Future Zero Carbon Certification v1.1) are supported by the source text.",
+      "The candidate correctly flags the dateline (Montreal, November 2, 2026) as conflicting with the listed publication date (2026-10-30) and does not use it as the event date; the source gives no separate event date, so the uncertainty note is accurate.",
+      "The candidate correctly notes absence of CO2 quantity, mix/by-product specification, mechanical performance, cost and TRL data in the source.",
+      "The headline's 'first large-scale' matches the source's 'first wide-scale deployment ... anywhere in the world'.",
+      "The quote used for all fields is verbatim from the source (minor trailing punctuation artifact in source does not alter meaning).",
       "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
-      "Only English is present; translation_meaning is inapplicable and passes."
+      "Only English text is provided; no translation comparison is required, so translation_meaning passes."
     ],
     "candidate_sha256": "78dd0f34797dee2089728e09a3c0c8010faee2e65884cd580cb33d8916436874",
     "window": "2026-11-09",
@@ -113,7 +113,7 @@
       "publication date not grounded in original source"
     ],
     "source_url": "https://renewable-carbon.eu/news/nutzung-von-co2-hefe-und-strom-schlagen-zwei-fliegen-mit-einer-klappe/",
-    "checked_at": "2026-11-24T16:42:01.592893+00:00",
+    "checked_at": "2026-11-25T16:20:44.998968+00:00",
     "source_sha256": "c80dbeea4a73a508df93665ac71a49ad1795953f5e7f89bedfa708059961bfed",
     "checks": {}
   },
@@ -134,7 +134,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/glossary/refueleu-aviation_en",
-    "checked_at": "2026-11-24T16:42:03.565602+00:00",
+    "checked_at": "2026-11-25T16:20:47.207932+00:00",
     "source_sha256": "4465ffd86b8fa84d5c68576ddb315a38bb01cfa499898889c348b49dafa3657a",
     "checks": {}
   },
@@ -144,6 +144,14 @@
     "source_url": "https://doi.org/10.1002/celc.70330",
     "reasons": [
       "no CCU term"
+    ]
+  },
+  {
+    "id": "a-13204973c305cc58ce97",
+    "status": "QUARANTINED",
+    "source_url": "https://co2value.eu/co2-value-europe-joins-call-for-a-strong-eu-ets-to-support-cleaner-chemicals",
+    "reasons": [
+      "headline only (listed)"
     ]
   },
   {
@@ -163,6 +171,14 @@
     ]
   },
   {
+    "id": "a-2b47cbb9dc31b7a575fd",
+    "status": "REJECTED",
+    "source_url": "https://sbr.com.sg/energy-offshore/news/ssfa-revises-green-financing-criteria-four-key-sectors",
+    "reasons": [
+      "unknown or outside publication window"
+    ]
+  },
+  {
     "id": "a-2e124034f30f460cae9e",
     "status": "REJECTED",
     "source_url": "https://doi.org/10.1039/d6sc06295d",
@@ -179,11 +195,11 @@
     ]
   },
   {
-    "id": "a-33081b9b5eac6da8cf59",
-    "status": "REJECTED",
-    "source_url": "https://www.gov.uk/government/news/cop31-outcomes-your-questions-answered",
+    "id": "a-3e9efe69d253b6ed6ebf",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/cop31-why-carbon-capture-may-be-the-lifeline-for-data-centers",
     "reasons": [
-      "unknown or outside publication window"
+      "CCU term without utilization context"
     ]
   },
   {
@@ -195,19 +211,43 @@
     ]
   },
   {
-    "id": "a-5faad7ca7b82045e5fab",
+    "id": "a-43caf5ff06c608cd014f",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/gevo-posts-record-83-million-revenue-as-carbon-business-fuels-quarterly-profit",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-4a45fe04c77a0263c4fc",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/sublime-to-supply-low-carbon-cement-for-meta-data-center",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-576863eccc54fd1d1673",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/japanese-dac-startup-planet-savers-secures-over-10m-to-scale-its-zeolite-based-technology",
+    "reasons": [
+      "below threshold"
+    ]
+  },
+  {
+    "id": "a-5e7d3f46814a230cc6b5",
     "status": "REJECTED",
-    "source_url": "https://www.gov.uk/government/news/uk-government-position-on-cop31-outcome",
+    "source_url": "https://www.alberta.ca/release.cfm?xID=98167954820D3-00B6-6A55-A40A22FBA96168AD",
     "reasons": [
       "unknown or outside publication window"
     ]
   },
   {
-    "id": "a-6cc10bdd6dd937f4e48d",
-    "status": "REJECTED",
-    "source_url": "https://greentechlead.com/energy-news/renewable-energy-news-muir-mhor-floating-wind-farm-pne-siemens-energy-56696",
+    "id": "a-6d4c724905fe56afe03e",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/eight-leading-developers-are-helping-shape-an-eu-crcf-methodology-for-erw",
     "reasons": [
-      "unknown or outside publication window"
+      "news/company/industry/government: gate decides"
     ]
   },
   {
@@ -219,11 +259,43 @@
     ]
   },
   {
+    "id": "a-8068160b38b5eb7e6ec4",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/econetix-adds-nearly-485000-rwanda-credits-to-corsia-eligible-supply",
+    "reasons": [
+      "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-8c2dde7c46a625804147",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/occidental-targets-4-million-tonnes-of-co2-supply-through-new-carbon-capture-partnerships",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-a13f9bb69694d3ee9dd2",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/canada-launches-landmark-carbon-removal-procurement-listing-19-approved-suppliers",
+    "reasons": [
+      "CCU term without utilization context"
+    ]
+  },
+  {
     "id": "a-a4f6ad81e10e28d65ae3",
     "status": "QUARANTINED",
     "source_url": "https://www.manifoldtimes.com/news/fratelli-cosulich-marks-keel-laying-of-fourth-methanol-ready-chemical-bunker-tanker",
     "reasons": [
       "CCU term without utilization context"
+    ]
+  },
+  {
+    "id": "a-b2b40aecddd9892eb505",
+    "status": "QUARANTINED",
+    "source_url": "https://carbonherald.com/cop31-carbon-removal-and-ccus-included-in-cop31-cover-decision-talks",
+    "reasons": [
+      "CCU topic"
     ]
   },
   {
@@ -235,17 +307,9 @@
     ]
   },
   {
-    "id": "a-c10a0ac8b5f940a58294",
-    "status": "REJECTED",
-    "source_url": "https://www.chemeurope.com/en/news/1190378/together-dwe-and-basf-advance-sustainable-methanol-production.html",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
-    "id": "a-c861ad911a0ddd4889ba",
+    "id": "a-d54397ce276da192e178",
     "status": "QUARANTINED",
-    "source_url": "https://www.offshore-energy.biz/2026/11/19/purus-takes-delivery-of-first-methanol-ready-damen-csov",
+    "source_url": "https://carbonherald.com/cop31-draft-accord-drops-fossil-fuel-phaseout-language-in-favor-of-carbon-capture",
     "reasons": [
       "CCU term without utilization context"
     ]
@@ -283,11 +347,11 @@
     ]
   },
   {
-    "id": "a-fdcdb4df90f8ff070adb",
+    "id": "a-faf6e713ceae399d5ffe",
     "status": "QUARANTINED",
-    "source_url": "https://www.offshore-energy.biz/2026/11/19/another-methanol-ready-offshore-energy-support-vessel-launches-in-china",
+    "source_url": "https://co2value.eu/great-british-chemicals-advancing-circular-chemistry-through-industrial-carbon-reuse",
     "reasons": [
-      "CCU term without utilization context"
+      "below threshold"
     ]
   },
   {
