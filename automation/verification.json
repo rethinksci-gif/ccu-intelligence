@@ -6,7 +6,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/news/era-th2-selected-funding-eu-innovation-fund",
-    "checked_at": "2026-11-26T16:01:01.113111+00:00",
+    "checked_at": "2026-11-27T15:48:35.269783+00:00",
     "source_sha256": "b34d37cad0979dd0bc6c8eb74eee8e098e1096ca2e8c75815e37a08553ae8201",
     "checks": {}
   },
@@ -17,7 +17,7 @@
       "semantic evidence checks failed"
     ],
     "source_url": "https://europeanenergy.com/2026/10/29/greenfield-global-and-european-energy-sign-joint-venture-to-establish-a-platform-for-large-scale-e-methanol-production-in-quebec-canada/",
-    "checked_at": "2026-11-26T16:01:01.339028+00:00",
+    "checked_at": "2026-11-27T15:48:35.942041+00:00",
     "source_sha256": "d49c258edc322cb82fefe8af0aea5e2d56790d24503f78fe4dad901e0690e369",
     "checks": {
       "support": true,
@@ -35,7 +35,7 @@
     "status": "VERIFIED",
     "reasons": [],
     "source_url": "https://europeanenergy.com/2026/11/19/european-energy-metafuels-and-norwegian-partner-to-develop-danish-e-saf/",
-    "checked_at": "2026-11-26T16:01:04.349857+00:00",
+    "checked_at": "2026-11-27T15:48:39.758700+00:00",
     "source_sha256": "de46e530f2542b988df581b601c67752d3c07a4ab1aa123443d28759f37e9adf",
     "checks": {
       "support": true,
@@ -50,21 +50,61 @@
     "citations": [
       "European Energy, Norwegian and Metafuels have signed a memorandum of understanding to develop an e-SAF value chain for Denmark.",
       "Copenhagen, Denmark, 19th November 2026",
+      "its operational e-methanol facility at Kassø in southern Denmark",
       "Front end engineering and design is close to completion (end 2026), and the plant will be operational in 2030.",
       "The partnership builds on heads of terms already in place between Metafuels and Norwegian for the future offtake of e-SAF from Turbe",
       "Metafuels will convert into synthetic aviation fuel using its aerobrew demonstration plant at PSI in Switzerland",
-      "Its Kassø facility in southern Denmark, which began operating in May 2025, is the world’s first large-scale e-methanol facility, with capacity of up to 42,000 tonnes of e-methanol a year.",
       "Under ReFuelEU Aviation, e-SAF sub-mandates come into force from 2030",
+      "began operating in May 2025, is the world’s first large-scale e-methanol facility, with capacity of up to 42,000 tonnes of e-methanol a year",
       "delivering up to 90% lower lifecycle emissions than fossil kerosene"
     ],
     "notes": [
-      "All claims are supported by the supplied press release: MoU signed 19 Nov 2026; Kassø operational since May 2025 with capacity up to 42,000 t/y e-methanol; Turbe FEED close to completion end-2026 and operational in 2030; heads of terms between Metafuels and Norwegian for Turbe offtake; showcase flight via PSI demonstration plant in Switzerland; ReFuelEU e-SAF sub-mandates from 2030.",
-      "The candidate correctly frames the MoU as non-binding and the Turbe dates as targets with no FID/financing reported; the 90% lifecycle-emission reduction is attributed as a Metafuels company claim without method, matching the source.",
-      "The quote field is a CEO quote rather than a headline excerpt, but it is verbatim from the source and does not introduce unsupported claims.",
-      "The source states e-SAF sub-mandates 'come into force from 2030'; the candidate's 'from 2030' phrasing is consistent."
+      "All claims are supported by the press release: MoU signed 19 Nov 2026; Kassø operational since May 2025 with capacity up to 42,000 t/y e-methanol; Turbe FEED close to completion end-2026 and operational in 2030; heads of terms between Metafuels and Norwegian for Turbe offtake; showcase flight via PSI demonstration plant in Switzerland; ReFuelEU e-SAF sub-mandates from 2030.",
+      "The 90% lifecycle-emission reduction is correctly attributed as a Metafuels company claim without method or verification.",
+      "Uncertainty statement correctly notes absence of volumes, prices, CO2 source, catalyst, energy input, TRL, Turbe capacity, and showcase flight date; no FID or financing reported.",
+      "Capacity status is correctly distinguished: Kassø operational; Turbe planned/under development (FEED stage); showcase flight planned.",
+      "Legal status: ReFuelEU e-SAF sub-mandates described as coming into force from 2030, consistent with source.",
+      "Only English claims provided; translation check inapplicable and passes."
     ],
     "candidate_sha256": "4577cabaf4f141881483eadb9c1d00a35c83be8917add1923880a9f8c502f188",
     "window": "2026-11-23",
+    "eligible_for_window": true
+  },
+  {
+    "id": "a-ea5c41f9e27e092f78d3",
+    "status": "VERIFIED",
+    "reasons": [],
+    "source_url": "https://carbicrete.com/2026-amazon-deployment/",
+    "checked_at": "2026-11-27T15:48:44.469118+00:00",
+    "source_sha256": "a9fc11d50e4bbc87fe04f2a658fe384a486e85b994106b6a15fa5a66fb157fc2",
+    "checks": {
+      "support": true,
+      "dates": true,
+      "quantities_units_conditions": true,
+      "no_contradictions": true,
+      "authority": true,
+      "capacity_status": true,
+      "legal_status_effective_date": true,
+      "translation_meaning": true
+    },
+    "citations": [
+      "Montreal, November 2, 2026 – CarbiCrete, a leading firm in the decarbonization of concrete, has supplied Amazon with three different products at a new Amazon UK delivery station in Stockton-on-Tees.",
+      "In the first wide-scale deployment of its cement-free pavers anywhere in the world, CarbiCrete products now cover around 6,400m² of paving across parking spaces and footpaths at the site.",
+      "The delivery station is Amazon’s first building to pursue the latest version (v1.1) of Living Future’s Zero Carbon Certification",
+      "CarbiCrete’s technology replaces 100% of the cement content in masonry and hardscape products with a steel-making by-product, avoiding cement-related emissions. The company then uses carbon dioxide to cure its concrete, permanently storing captured carbon within the products",
+      "“Seeing CarbiCrete products deployed at this scale is an important milestone for our technology and for lower-carbon construction more broadly.,” says Gary Belisle, CarbiCrete’s CEO."
+    ],
+    "notes": [
+      "All claims are supported by the source text: three products supplied to Amazon's new Stockton-on-Tees UK delivery station; ~6,400 m² of paving across parking spaces and footpaths; described as first wide-scale deployment of cement-free pavers anywhere; binder replaces 100% of cement in masonry and hardscape with a steel-making by-product; CO2 curing said to permanently store captured carbon; building is Amazon's first to pursue Living Future Zero Carbon Certification v1.1.",
+      "The candidate correctly flags the dateline (Montreal, November 2, 2026) as conflicting with the listed publication date (2026-10-30) and does not use it as the event date; the source itself gives no separate event date, so the uncertainty statement is accurate.",
+      "The candidate correctly notes absence of CO2 quantity, mix/by-product specification, mechanical performance data, cost and TRL statement in the source.",
+      "The quoted excerpt matches the source verbatim (including the source's stray period before the closing quote).",
+      "Authority is the original publisher (CarbiCrete), consistent with the primary designation.",
+      "No legal/regulatory claims are made, so legal_status_effective_date is inapplicable and passes.",
+      "Only English is provided; no translation comparison is required, so translation_meaning passes."
+    ],
+    "candidate_sha256": "78dd0f34797dee2089728e09a3c0c8010faee2e65884cd580cb33d8916436874",
+    "window": "2026-11-09",
     "eligible_for_window": true
   },
   {
@@ -74,7 +114,7 @@
       "publication date not grounded in original source"
     ],
     "source_url": "https://renewable-carbon.eu/news/nutzung-von-co2-hefe-und-strom-schlagen-zwei-fliegen-mit-einer-klappe/",
-    "checked_at": "2026-11-26T16:01:09.596318+00:00",
+    "checked_at": "2026-11-27T15:48:50.465000+00:00",
     "source_sha256": "c80dbeea4a73a508df93665ac71a49ad1795953f5e7f89bedfa708059961bfed",
     "checks": {}
   },
@@ -95,7 +135,7 @@
       "conflicting or unsupported numerical data"
     ],
     "source_url": "https://www.ineratec.de/en/glossary/refueleu-aviation_en",
-    "checked_at": "2026-11-26T16:01:11.325765+00:00",
+    "checked_at": "2026-11-27T15:48:51.965401+00:00",
     "source_sha256": "4465ffd86b8fa84d5c68576ddb315a38bb01cfa499898889c348b49dafa3657a",
     "checks": {}
   },
@@ -129,6 +169,14 @@
     "source_url": "https://www.gov.uk/government/collections/industrial-technical-research",
     "reasons": [
       "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-2b47cbb9dc31b7a575fd",
+    "status": "REJECTED",
+    "source_url": "https://sbr.com.sg/energy-offshore/news/ssfa-revises-green-financing-criteria-four-key-sectors",
+    "reasons": [
+      "unknown or outside publication window"
     ]
   },
   {
@@ -188,9 +236,9 @@
     ]
   },
   {
-    "id": "a-6cc10bdd6dd937f4e48d",
+    "id": "a-5e7d3f46814a230cc6b5",
     "status": "REJECTED",
-    "source_url": "https://greentechlead.com/energy-news/renewable-energy-news-muir-mhor-floating-wind-farm-pne-siemens-energy-56696",
+    "source_url": "https://www.alberta.ca/release.cfm?xID=98167954820D3-00B6-6A55-A40A22FBA96168AD",
     "reasons": [
       "unknown or outside publication window"
     ]
@@ -260,14 +308,6 @@
     ]
   },
   {
-    "id": "a-c10a0ac8b5f940a58294",
-    "status": "REJECTED",
-    "source_url": "https://www.chemeurope.com/en/news/1190378/together-dwe-and-basf-advance-sustainable-methanol-production.html",
-    "reasons": [
-      "unknown or outside publication window"
-    ]
-  },
-  {
     "id": "a-d54397ce276da192e178",
     "status": "QUARANTINED",
     "source_url": "https://carbonherald.com/cop31-draft-accord-drops-fossil-fuel-phaseout-language-in-favor-of-carbon-capture",
@@ -297,6 +337,14 @@
     "source_url": "https://biofuels-news.com/news/varopreem-sets-out-value-growth-strategy-to-2030-driving-the-next-phase-of-growth",
     "reasons": [
       "news/company/industry/government: gate decides"
+    ]
+  },
+  {
+    "id": "a-e8f0de48c7007a703fac",
+    "status": "REJECTED",
+    "source_url": "https://royaldutchshellplc.com/2026/11/05/shells-new-green-jet-fuel-deal-a-deep-dive-into-the-239-million-moroccan-project-still-awaiting-financing-approval",
+    "reasons": [
+      "unknown or outside publication window"
     ]
   },
   {
